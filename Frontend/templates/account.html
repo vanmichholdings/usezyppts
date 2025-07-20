@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Account - Zyppts{% endblock %}
+
+{% block content %}
+<div class="account-section">
+    <div class="account-header">
+        <h1>Account Settings</h1>
+        <p>Manage your subscription and account details</p>
+    </div>
+
+    <div class="account-grid">
+        <!-- Account Info Card -->
+        <div class="account-card">
+            <div class="account-card-header">
+                <h2><i class="fas fa-user-circle me-2"></i>Account Information</h2>
+            </div>
+            <div class="account-card-body">
+                <div class="info-row">
+                    <span class="info-label">Username:</span>
+                    <span class="info-value">{{ current_user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ current_user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Member Since:</span>
+                    <span class="info-value">{{ current_user.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Last Login:</span>
+                    <span class="info-value">{{ current_user.last_login.strftime('%B %d, %Y %H:%M') if current_user.last_login else 'Never' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Card -->
+        <div class="account-card">
+            <div class="account-card-header">
+                <h2><i class="fas fa-crown me-2"></i>Subscription Details</h2>
+            </div>
+            <div class="account-card-body">
+                {% if current_user.subscription %}
+                    <div class="info-row">
+                        <span class="info-label">Current Plan:</span>
+                        <span class="info-value">{{ current_user.subscription.plan|title }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value {% if current_user.subscription.status == 'active' %}status-active{% else %}status-cancelled{% endif %}">
+                            {{ current_user.subscription.status|title }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Start Date:</span>
+                        <span class="info-value">{{ current_user.subscription.start_date.strftime('%B %d, %Y') }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Next Billing Date:</span>
+                        <span class="info-value">
+                            {% if current_user.subscription and current_user.subscription.status == 'active' %}
+                                {{ current_user.subscription.get_next_billing_date().strftime('%B %d, %Y') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Auto Renew:</span>
+                        <span class="info-value">{{ 'Yes' if current_user.subscription.auto_renew else 'No' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Credits Used:</span>
+                        <span class="info-value">{{ current_user.subscription.used_credits }}/{{ current_user.subscription.monthly_credits }}</span>
+                    </div>
+                    
+                    {% if current_user.subscription.status == 'active' %}
+                        <div class="subscription-actions">
+                            <form action="{{ url_for('main.cancel_subscription') }}" method="POST" class="cancel-form">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times-circle me-2"></i>Cancel Subscription
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="no-subscription">
+                        <p>You don't have an active subscription.</p>
+                        <a href="{{ url_for('main.subscription_plans') }}" class="btn btn-primary">
+                            <i class="fas fa-crown me-2"></i>View Plans
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.account-section {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.account-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.account-header h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.account-header p {
+    color: var(--silver-gray);
+    font-size: 1.1rem;
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.account-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.account-card:hover {
+    transform: translateY(-5px);
+}
+
+.account-card-header {
+    background: var(--primary-gradient);
+    padding: 1.5rem;
+    color: white;
+}
+
+.account-card-header h2 {
+    font-size: 1.5rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.account-card-body {
+    padding: 1.5rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--silver-light);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--silver-gray);
+    font-weight: 500;
+}
+
+.info-value {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.status-active {
+    color: #10B981;
+}
+
+.status-cancelled {
+    color: #EF4444;
+}
+
+.subscription-actions {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.cancel-form {
+    margin-top: 1rem;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+}
+
+.no-subscription {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.no-subscription p {
+    color: var(--silver-gray);
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .account-section {
+        padding: 1rem;
+    }
+    
+    .account-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 

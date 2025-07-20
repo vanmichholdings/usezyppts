@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service - Zyppts{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">Terms of Service</h1>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 mb-3">1. Acceptance of Terms</h2>
+                    <p>By accessing or using Zyppts, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.</p>
+
+                    <h2 class="h4 mb-3">2. Use License</h2>
+                    <p>Permission is granted to temporarily use Zyppts for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:</p>
+                    <ul>
+                        <li>Modify or copy the materials</li>
+                        <li>Use the materials for any commercial purpose</li>
+                        <li>Attempt to decompile or reverse engineer any software</li>
+                        <li>Remove any copyright or other proprietary notations</li>
+                        <li>Transfer the materials to another person or "mirror" the materials</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">3. User Accounts</h2>
+                    <p>To access certain features of Zyppts, you must create an account. You are responsible for:</p>
+                    <ul>
+                        <li>Maintaining the confidentiality of your account information</li>
+                        <li>All activities that occur under your account</li>
+                        <li>Providing accurate and complete information</li>
+                        <li>Notifying us immediately of any unauthorized use</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">4. Subscription and Payments</h2>
+                    <p>Some features of Zyppts require a paid subscription. By subscribing, you agree to:</p>
+                    <ul>
+                        <li>Pay all fees associated with your subscription</li>
+                        <li>Provide accurate payment information</li>
+                        <li>Authorize us to charge your payment method</li>
+                        <li>Comply with our cancellation and refund policies</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">5. Intellectual Property</h2>
+                    <p>The materials on Zyppts are protected by applicable copyright and trademark law. You retain ownership of any content you upload, but grant us a license to use, store, and process that content.</p>
+
+                    <h2 class="h4 mb-3">6. Disclaimer</h2>
+                    <p>The materials on Zyppts are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
+
+                    <h2 class="h4 mb-3">7. Limitations</h2>
+                    <p>In no event shall Zyppts or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Zyppts.</p>
+
+                    <h2 class="h4 mb-3">8. Revisions and Errata</h2>
+                    <p>The materials appearing on Zyppts could include technical, typographical, or photographic errors. We do not warrant that any of the materials are accurate, complete, or current. We may make changes to the materials at any time without notice.</p>
+
+                    <h2 class="h4 mb-3">9. Governing Law</h2>
+                    <p>These terms and conditions are governed by and construed in accordance with the laws of [Your Jurisdiction] and you irrevocably submit to the exclusive jurisdiction of the courts in that location.</p>
+
+                    <h2 class="h4 mb-3">10. Contact Information</h2>
+                    <p>If you have any questions about these Terms of Service, please contact us at:</p>
+                    <ul>
+                        <li>Email: team@zyppts.com</li>
+                        <li>Phone: (501) 500-1004</li>
+                    </ul>
+
+                    <p class="text-muted mt-4">Last updated: {{ now.strftime('%B %d, %Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

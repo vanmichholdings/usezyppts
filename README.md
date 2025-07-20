@@ -1,159 +1,172 @@
-# Zyppts - Vector Logo Processing Application
+# Zyppts V10 - Logo Format Generator
 
-A comprehensive web application for processing and vectorizing logos with advanced smart code enhancements.
+A powerful Flask-based web application for processing and generating various logo formats with advanced AI-powered features.
 
-## Project Structure
+## 🚀 Quick Start
 
-```
-zyppts_v10/
-├── Frontend/           # Frontend components
-│   ├── templates/      # HTML templates
-│   └── static/         # CSS, JS, images, and static assets
-├── Backend/            # Backend components
-│   ├── routes.py       # Flask routes and API endpoints
-│   ├── models.py       # Database models
-│   ├── config.py       # Configuration settings
-│   ├── utils/          # Utility functions
-│   │   └── logo_processor.py  # Main logo processing engine
-│   ├── tests/          # Test files
-│   ├── uploads/        # File upload directory
-│   ├── outputs/        # Processed file outputs
-│   ├── cache/          # Application cache
-│   └── logs/           # Application logs
-├── venv/               # Python virtual environment
-├── requirements.txt    # Python dependencies
-├── activate.sh         # Virtual environment activation script
-└── README.md          # This file
-```
+### Prerequisites
+- Python 3.11+
+- Virtual environment
+- Required dependencies (see requirements.txt)
 
-## Features
+### Installation & Setup
 
-- **Logo Vectorization**: Convert raster images to scalable vector graphics
-- **AI Enhancement**: Advanced image processing with AI models
-- **Quality Optimization**: Multiple quality levels and processing options
-- **User Management**: Authentication and user account management
-- **Subscription Plans**: Tiered pricing with different feature sets
-- **Real-time Processing**: Background task processing with Celery
-
-## Technology Stack
-
-### Backend
-- **Flask**: Web framework
-- **SQLAlchemy**: Database ORM
-- **Celery**: Background task processing
-- **OpenCV**: Image processing
-- **Pillow**: Image manipulation
-- **NumPy**: Numerical computing
-- **PyTorch**: Deep learning framework
-- **scikit-image**: Advanced image processing
-- **scikit-learn**: Machine learning
-- **Rembg**: Background removal
-- **Diffusers**: AI image generation
-
-### Frontend
-- **HTML5/CSS3**: Modern responsive design
-- **JavaScript**: Interactive user interface
-- **Bootstrap**: UI framework
-- **jQuery**: DOM manipulation
-
-### AI/ML
-- **Waifu2x**: Image upscaling
-- **Real-ESRGAN**: Image enhancement
-- **VTracer**: Vector tracing
-
-## Quick Start
-
-### Option 1: Using the Activation Script (Recommended)
-```bash
-# Make the script executable (first time only)
-chmod +x activate.sh
-
-# Activate the environment
-./activate.sh
-```
-
-### Option 2: Manual Setup
-```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-## Installation
-
-1. Clone the repository
-2. Run the activation script: `./activate.sh`
-3. Set up the database:
+1. **Clone and navigate to the project:**
    ```bash
-   cd Backend
-   python init_db.py
+   cd zyppts_v10
    ```
-4. Run the application:
+
+2. **Create and activate virtual environment:**
    ```bash
    cd Backend
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   cd ..
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the application:**
+   ```bash
+   # Option 1: Using the main startup script
+   python Backend/scripts/start_app.py
+   
+   # Option 2: Manual startup
+   cd Backend
+   source venv/bin/activate
    python run.py
    ```
 
-## Development
+5. **Access the application:**
+   ```
+   http://localhost:5003
+   ```
 
-- **Frontend Development**: Work in the `Frontend/` directory
-- **Backend Development**: Work in the `Backend/` directory
-- **Testing**: Run tests from the `Backend/` directory
+## 📁 Project Structure
 
-## Dependencies
-
-All required dependencies are listed in `requirements.txt` and include:
-
-### Core Dependencies
-- `opencv-contrib-python-headless>=4.8.0`
-- `numpy>=1.24.0`
-- `Pillow>=10.0.0`
-- `torch>=2.0.0`
-- `scikit-image>=0.21.0`
-- `scipy>=1.11.0`
-
-### Advanced Processing
-- `rembg>=2.0.0` - Background removal
-- `diffusers>=0.21.0` - AI image generation
-- `psd-tools>=1.9.0` - Photoshop file support
-- `colormath>=3.0.0` - Color management
-- `cairosvg>=2.7.0` - SVG processing
-
-### Web Framework
-- `flask>=2.3.0`
-- `celery>=5.3.0`
-- `sqlalchemy>=2.0.0`
-
-## Troubleshooting
-
-### Import Errors
-If you encounter import errors, ensure you're using the virtual environment:
-```bash
-source venv/bin/activate
+```
+zyppts_v10/
+├── Frontend/                 # Frontend components
+│   ├── templates/           # HTML templates (Flask Jinja2)
+│   └── static/              # CSS, JS, images, assets
+├── Backend/                 # Backend components
+│   ├── routes.py            # Flask routes and API endpoints
+│   ├── models.py            # Database models
+│   ├── config.py            # Configuration settings
+│   ├── app_config.py        # Flask app factory
+│   ├── run.py               # Application entry point
+│   ├── utils/               # Utility functions
+│   │   └── logo_processor.py # Main processing engine
+│   ├── scripts/             # Startup and utility scripts
+│   │   ├── start_app.py     # Main startup script
+│   │   ├── start_app_fixed.py # Alternative startup
+│   │   ├── start_app.sh     # Shell startup script
+│   │   └── activate.sh      # Environment activation
+│   ├── tests/               # Test files
+│   │   ├── test_complete.py # Complete structure test
+│   │   ├── test_structure.py # Structure validation
+│   │   └── test_app.py      # App functionality test
+│   ├── docs/                # Documentation
+│   │   └── STRUCTURE_GUIDE.md # Structure documentation
+│   ├── venv/                # Python virtual environment
+│   ├── uploads/             # File upload directory
+│   ├── outputs/             # Processed file outputs
+│   ├── cache/               # Application cache
+│   └── logs/                # Application logs
+├── requirements.txt         # Python dependencies
+└── README.md               # This file
 ```
 
-### Missing Dependencies
-If dependencies are missing, reinstall them:
+## 🛠️ Development
+
+### Running Tests
 ```bash
-pip install -r requirements.txt
+# Test the complete structure
+python Backend/tests/test_complete.py
+
+# Test basic structure
+python Backend/tests/test_structure.py
+
+# Test app functionality
+python Backend/tests/test_app.py
 ```
 
-### Virtual Environment Issues
-If the virtual environment is corrupted, recreate it:
-```bash
-rm -rf venv
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+### Development Workflow
+- **Frontend Development**: Work in `Frontend/` directory
+- **Backend Development**: Work in `Backend/` directory
+- **Scripts**: Use files in `Backend/scripts/` for automation
+- **Testing**: Use files in `Backend/tests/` for validation
 
-## License
+## 🔧 Configuration
 
-This project is proprietary software. All rights reserved. # Zyppts
-# ZypptsV10
-# ZypptsV10
+The application uses a clean Frontend/Backend structure:
+- **Templates**: `Frontend/templates/` → `Backend/templates` (symlink)
+- **Static Files**: `Frontend/static/` → `Backend/static` (symlink)
+- **Uploads**: `Backend/uploads/`
+- **Outputs**: `Backend/outputs/`
+- **Cache**: `Backend/cache/`
+- **Logs**: `Backend/logs/`
+
+## 🚀 Features
+
+- **ML Background Removal** (rembg library)
+- **SVG Path Optimization** (svgpathtools)
+- **Vector Tracing** (OpenCV)
+- **PDF Support**
+- **User Authentication**
+- **File Upload/Processing**
+- **Multiple Output Formats**
+- **Social Media Optimization**
+- **Color Separations**
+- **Advanced Effects**
+
+## 📚 Documentation
+
+- **Structure Guide**: `Backend/docs/STRUCTURE_GUIDE.md`
+- **API Documentation**: Available in the application
+- **Configuration**: See `Backend/config.py`
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Import Errors**: Make sure virtual environment is activated
+   ```bash
+   cd Backend
+   source venv/bin/activate
+   cd ..
+   ```
+
+2. **Missing Dependencies**: Install requirements
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Port Already in Use**: Change port in `Backend/run.py`
+   ```python
+   app.run(host='0.0.0.0', port=5004, debug=True)
+   ```
+
+4. **Template/Static Not Found**: Recreate symbolic links
+   ```bash
+   cd Backend
+   ln -sf ../Frontend/templates templates
+   ln -sf ../Frontend/static static
+   ```
+
+### Getting Help
+
+- Check the logs in `Backend/logs/`
+- Run tests to validate structure
+- Review the structure guide in `Backend/docs/`
+
+## 📄 License
+
+This project is proprietary software. All rights reserved.
+
+## 🤝 Contributing
+
+For development and contribution guidelines, please refer to the internal documentation in `Backend/docs/`.

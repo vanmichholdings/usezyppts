@@ -1,0 +1,427 @@
+
+Zyppts Diagnostic Report
+=======================
+Generated: 2025-04-17 18:23:57
+Overall Status: FAIL
+
+System Information
+-----------------
+Python Version: 3.11.11 (main, Dec  3 2024, 17:20:40) [Clang 16.0.0 (clang-1600.0.26.4)]
+Platform: macOS-14.2.1-arm64-arm-64bit
+Processor: arm
+Memory: 8.00 GB total, 1.33 GB available
+Disk Space: 460.43 GB total, 111.07 GB free
+
+Database Status
+--------------
+Database error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+
+Filesystem Status
+----------------
+uploads: PASS - Directory exists and is writable
+outputs: PASS - Directory exists and is writable
+cache: PASS - Directory exists and is writable
+temp: PASS - Directory exists and is writable
+logs: PASS - Directory exists and is writable
+static/images: PASS - Directory exists and is writable
+static/css: PASS - Directory exists and is writable
+static/js: PASS - Directory exists and is writable
+
+Routes Status
+------------
+/: PASS (Status Code: 200)
+/account: PASS (Status Code: 302)
+/login: PASS (Status Code: 200)
+/register: PASS (Status Code: 200)
+/subscription/plans: PASS (Status Code: 200)
+/logo-processor: PASS (Status Code: 302)
+/about: PASS (Status Code: 200)
+/contact: PASS (Status Code: 200)
+
+Security Status
+--------------
+secret_key: WARNING - Using development secret key
+password_hashing: PASS - Password hashing working correctly
+ssl: WARNING - Not using HTTPS
+
+Performance Metrics
+-----------------
+
+Dependencies
+-----------
+alembic: 1.15.2
+blinker: 1.9.0
+cairocffi: 1.7.1
+CairoSVG: 2.7.0
+certifi: 2025.1.31
+cffi: 1.17.1
+charset-normalizer: 3.4.1
+click: 8.1.8
+colorama: 0.4.6
+coloredlogs: 15.0.1
+cssselect2: 0.8.0
+defusedxml: 0.7.1
+Deprecated: 1.2.18
+dnspython: 2.7.0
+email-validator: 2.0.0
+filelock: 3.18.0
+Flask: 2.3.3
+Flask-Limiter: 3.5.0
+Flask-Login: 0.6.2
+Flask-Mail: 0.9.1
+Flask-Migrate: 4.0.5
+Flask-SQLAlchemy: 3.0.5
+Flask-WTF: 1.1.1
+flatbuffers: 25.2.10
+fsspec: 2025.3.2
+gunicorn: 21.2.0
+humanfriendly: 10.0
+idna: 3.10
+imageio: 2.37.0
+itsdangerous: 2.2.0
+Jinja2: 3.1.6
+joblib: 1.4.2
+lazy_loader: 0.4
+limits: 4.6
+llvmlite: 0.44.0
+Mako: 1.3.10
+markdown-it-py: 3.0.0
+MarkupSafe: 3.0.2
+mdurl: 0.1.2
+mpmath: 1.3.0
+networkx: 3.4.2
+numba: 0.61.0
+numpy: 1.24.3
+onnxruntime: 1.21.0
+opencv-python: 4.7.0.72
+opencv-python-headless: 4.11.0.86
+ordered-set: 4.1.0
+packaging: 24.2
+pdf2image: 1.16.3
+Pillow: 9.5.0
+platformdirs: 4.3.7
+pooch: 1.8.2
+protobuf: 6.30.2
+psutil: 5.9.5
+pycparser: 2.22
+Pygments: 2.19.1
+PyMatting: 1.1.13
+python-dotenv: 1.0.0
+redis: 5.0.1
+rembg: 2.0.50
+requests: 2.31.0
+rich: 13.9.4
+scikit-image: 0.24.0
+scikit-learn: 1.3.0
+scipy: 1.11.2
+SQLAlchemy: 2.0.40
+stripe: 12.0.0
+svgpathtools: 1.6.1
+svgwrite: 1.4.3
+sympy: 1.13.1
+threadpoolctl: 3.6.0
+tifffile: 2025.3.30
+tinycss2: 1.4.0
+torch: 2.6.0
+torchvision: 0.21.0
+tqdm: 4.67.1
+typing_extensions: 4.13.1
+urllib3: 2.3.0
+webencodings: 0.5.1
+Werkzeug: 2.3.7
+wrapt: 1.17.2
+WTForms: 3.2.1
+2025-04-17 18:25:31,122 - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/routes.py", line 97, in home
+    return render_template('home.html', now=datetime.now())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/home.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/base.html", line 509, in top-level template code
+    {% if current_user.is_authenticated %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'current_user' is undefined
+2025-04-17 18:25:31,126 - ERROR - Exception on /logo-processor [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 284, in decorated_view
+    elif not current_user.is_authenticated:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 515, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 372, in _get_user
+    current_app.login_manager._load_user()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'login_manager'
+2025-04-17 18:25:31,130 - ERROR - Exception on /about [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/routes.py", line 106, in about
+    return render_template('about.html', now=datetime.now())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/about.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/base.html", line 509, in top-level template code
+    {% if current_user.is_authenticated %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'current_user' is undefined
+2025-04-17 18:25:31,135 - ERROR - Exception on /contact [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/routes.py", line 165, in contact
+    return render_template('contact.html', now=datetime.now())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/contact.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/base.html", line 509, in top-level template code
+    {% if current_user.is_authenticated %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'current_user' is undefined
+2025-04-17 18:25:31,139 - ERROR - Exception on /subscription/plans [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/routes.py", line 169, in subscription_plans
+    return render_template('subscription_plans.html', plans=Config.SUBSCRIPTION_PLANS, now=datetime.now())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/subscription_plans.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/templates/base.html", line 509, in top-level template code
+    {% if current_user.is_authenticated %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/jinja2/environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'current_user' is undefined
+2025-04-17 18:25:31,140 - ERROR - Exception on /login [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/routes.py", line 173, in login
+    if current_user.is_authenticated:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 515, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 372, in _get_user
+    current_app.login_manager._load_user()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'login_manager'
+2025-04-17 18:25:31,141 - ERROR - Exception on /register [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/routes.py", line 204, in register
+    if current_user.is_authenticated:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 515, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 372, in _get_user
+    current_app.login_manager._load_user()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'login_manager'
+2025-04-17 18:25:31,143 - ERROR - Exception on /logout [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 284, in decorated_view
+    elif not current_user.is_authenticated:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 515, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 372, in _get_user
+    current_app.login_manager._load_user()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'login_manager'
+2025-04-17 18:25:31,145 - ERROR - Exception on /account [GET]
+Traceback (most recent call last):
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 284, in decorated_view
+    elif not current_user.is_authenticated:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 311, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/werkzeug/local.py", line 515, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/Users/chicoperfecto/zyppts_v10/zyppts/venv/lib/python3.11/site-packages/flask_login/utils.py", line 372, in _get_user
+    current_app.login_manager._load_user()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'login_manager'

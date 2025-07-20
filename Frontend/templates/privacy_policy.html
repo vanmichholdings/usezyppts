@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - Zyppts{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">Privacy Policy</h1>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 mb-3">1. Information We Collect</h2>
+                    <p>We collect information that you provide directly to us, including:</p>
+                    <ul>
+                        <li>Account information (name, email, password)</li>
+                        <li>Payment information (processed securely through Stripe)</li>
+                        <li>Usage data and preferences</li>
+                        <li>Uploaded images and processing results</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">2. How We Use Your Information</h2>
+                    <p>We use the collected information to:</p>
+                    <ul>
+                        <li>Provide and maintain our services</li>
+                        <li>Process your payments and manage subscriptions</li>
+                        <li>Improve and personalize your experience</li>
+                        <li>Communicate with you about updates and changes</li>
+                        <li>Ensure security and prevent fraud</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">3. Data Security</h2>
+                    <p>We implement industry-standard security measures to protect your data:</p>
+                    <ul>
+                        <li>Encryption of data in transit and at rest</li>
+                        <li>Regular security audits and updates</li>
+                        <li>Limited access to personal information</li>
+                        <li>Secure payment processing</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">4. Your Rights</h2>
+                    <p>You have the right to:</p>
+                    <ul>
+                        <li>Access your personal data</li>
+                        <li>Request corrections to your data</li>
+                        <li>Request deletion of your data</li>
+                        <li>Opt-out of marketing communications</li>
+                        <li>Export your data</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">5. Cookies and Tracking</h2>
+                    <p>We use cookies and similar technologies to:</p>
+                    <ul>
+                        <li>Maintain your session</li>
+                        <li>Remember your preferences</li>
+                        <li>Analyze site usage</li>
+                        <li>Improve our services</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">6. Third-Party Services</h2>
+                    <p>We may use third-party services that collect information about you:</p>
+                    <ul>
+                        <li>Payment processors (Stripe)</li>
+                        <li>Analytics services</li>
+                        <li>Cloud storage providers</li>
+                        <li>Email service providers</li>
+                    </ul>
+
+                    <h2 class="h4 mb-3">7. Changes to This Policy</h2>
+                    <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the effective date.</p>
+
+                    <h2 class="h4 mb-3">8. Contact Us</h2>
+                    <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                    <ul>
+                        <li>Email: team@zyppts.com</li>
+                        <li>Phone: (501) 500-1004</li>
+                    </ul>
+
+                    <p class="text-muted mt-4">Last updated: {{ now.strftime('%B %d, %Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

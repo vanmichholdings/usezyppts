@@ -1,0 +1,625 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Plans - Zyppts{% endblock %}
+
+{% block content %}
+<div class="pricing-section">
+    <div class="pricing-header">
+        <h1>Choose Your Plan</h1>
+        <p>Select the perfect plan for your needs</p>
+        
+        <!-- Billing Toggle -->
+        <div class="billing-toggle">
+            <div class="toggle-container">
+                <span class="toggle-label">Monthly Billing</span>
+                <label class="switch">
+                    <input type="checkbox" id="billingToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label annual-label">Annual Billing <span class="save-badge">Save 20%</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="pricing-grid">
+        <!-- Free Plan -->
+        <div class="pricing-card">
+            <div class="pricing-card-header">
+                <h2>Free</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">0</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> 1 logo</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Basic outputs</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Pay per logo after first</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+        
+        <!-- Pro Plan -->
+        <div class="pricing-card popular">
+            <div class="pricing-card-header">
+                <h2>Pro</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">9.99</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+                <div class="annual-price" style="display: none;">
+                    <span class="currency">$</span>
+                    <span class="amount">7.99</span>
+                    <span class="period">/month</span>
+                    <div class="billing-info">Billed $95.90 yearly — save 20%</div>
+                </div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Unlimited uploads</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> PNG/JPG/SVG formats</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Effects Tab Variations</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Select Plan</a>
+            </div>
+        </div>
+        
+        <!-- Studio Plan -->
+        <div class="pricing-card">
+            <div class="pricing-card-header">
+                <h2>Studio</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">29</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+                <div class="annual-price" style="display: none;">
+                    <span class="currency">$</span>
+                    <span class="amount">23.20</span>
+                    <span class="period">/month</span>
+                    <div class="billing-info">Billed $278.40 yearly — save 20%</div>
+                </div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> API plug-ins (beta)</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> All Pro Features</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Social Tab Variations</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Select Plan</a>
+            </div>
+        </div>
+        
+        <!-- Enterprise Plan -->
+        <div class="pricing-card">
+            <div class="pricing-card-header">
+                <h2>Enterprise</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">99</span>
+                    <span class="period">+/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+                <div class="annual-price" style="display: none;">
+                    <span class="currency">$</span>
+                    <span class="amount">79.20</span>
+                    <span class="period">+/month</span>
+                    <div class="billing-info">Billed $950.40+ yearly — save 20%</div>
+                </div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Batch upload</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> All Studio Features</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Multi-users</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Personalized support</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <a href="{{ url_for('main.contact') }}" class="btn btn-primary">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pricing-section {
+        padding: 4rem 0;
+        background: var(--content-bg);
+        position: relative;
+        overflow: hidden;
+        color: var(--text-color);
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .pricing-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(59, 94, 247, 0.03) 0%, rgba(96, 165, 250, 0.03) 100%);
+        z-index: -1;
+    }
+
+    .pricing-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .pricing-header h1 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .pricing-header p {
+        color: var(--text-color);
+        font-size: 1.2rem;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        opacity: 0.9;
+    }
+
+    /* Billing Toggle Styles */
+    .billing-toggle {
+        margin-top: 2rem;
+    }
+
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+    }
+
+    .toggle-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .toggle-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        transition: all 0.3s ease;
+    }
+    
+    .annual-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .save-badge {
+        background: var(--secondary-gradient);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        box-shadow: 0 4px 8px rgba(255, 140, 56, 0.3);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .pricing-grid {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 3rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .pricing-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        flex: 1;
+        max-width: 300px;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .pricing-card.popular {
+        border: 2px solid var(--primary-color);
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(59, 94, 247, 0.15);
+    }
+
+    .pricing-card.popular::before {
+        content: 'POPULAR';
+        position: absolute;
+        top: 12px;
+        right: -30px;
+        background: var(--secondary-gradient);
+        color: white;
+        padding: 0.25rem 2rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transform: rotate(45deg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 1;
+    }
+
+    .pricing-card-header {
+        padding: 2rem;
+        text-align: center;
+        background: var(--bg-color);
+        border-bottom: 1px solid rgba(138, 141, 147, 0.2);
+        position: relative;
+    }
+
+    .pricing-card-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1rem;
+    }
+
+    .pricing-card-header .price {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+    }
+
+    .pricing-card-header .price .currency,
+    .pricing-card-header .price .period {
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: var(--text-color);
+        opacity: 1; /* Ensure visibility */
+    }
+
+    .billing-info {
+        font-size: 0.85rem;
+        color: var(--text-color);
+        opacity: 1; /* Ensure visibility */
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+
+    .pricing-card-body {
+        padding: 2rem;
+        background-color: white;
+        border-radius: 0 0 20px 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 2rem 0;
+    }
+
+    .features-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #111827; /* Hard-coded dark color instead of variable */
+        transition: all 0.3s ease;
+        font-weight: 600; /* Increased font weight */
+        opacity: 1 !important; /* Force visibility with !important */
+        text-shadow: 0 0 0 #111827; /* Text shadow for better visibility */
+    }
+
+    .features-list li:hover {
+        transform: translateX(5px);
+        color: var(--primary-color) !important;
+        opacity: 1 !important;
+        font-weight: 700;
+    }
+
+    .features-list li i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .features-list li:hover i {
+        transform: scale(1.2);
+    }
+
+    .pricing-card-footer {
+        padding: 0 2rem 2rem;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cobalt-blue) 0%, var(--sky-blue) 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        box-shadow: 0 4px 10px rgba(59, 94, 247, 0.2);
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, var(--sky-blue) 0%, var(--cobalt-blue) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-primary:hover::before {
+        opacity: 1;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 94, 247, 0.3);
+    }
+
+    @media (max-width: 1200px) {
+        .pricing-grid {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pricing-card {
+            max-width: 280px;
+        }
+    }
+
+    /* Switch styling */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e4e7;
+        transition: .4s;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+        background: var(--primary-gradient);
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px var(--primary-color);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+    
+    @media (max-width: 768px) {
+        .pricing-header h1 {
+            font-size: 2rem;
+        }
+
+        .pricing-header p {
+            font-size: 1rem;
+        }
+
+        .pricing-grid {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pricing-card {
+            max-width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-card.popular {
+            transform: none;
+        }
+
+        .pricing-card.popular:hover {
+            transform: translateY(-10px);
+        }
+
+        .toggle-container {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    /* Dark mode specific styling for features list */
+    [data-theme="dark"] .features-list li {
+        color: #e0e0e0 !important;
+        text-shadow: 0 0 0 #e0e0e0;
+    }
+    
+    [data-theme="dark"] .features-list li:hover {
+        color: var(--sky-blue) !important;
+    }
+    
+    [data-theme="dark"] .pricing-card {
+        background-color: var(--dark-card-bg);
+        border: 1px solid var(--dark-border);
+    }
+    
+    [data-theme="dark"] .pricing-card-body {
+        background-color: var(--dark-card-bg);
+    }
+    
+    [data-theme="dark"] .pricing-card-header {
+        background-color: rgba(30, 30, 30, 0.5);
+    }
+    
+    .monthly-equivalent {
+        font-size: 0.9rem;
+        color: var(--primary-color);
+        font-weight: 500;
+        margin-top: 0.5rem;
+        background: rgba(59, 94, 247, 0.1);
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        display: inline-block;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const billingToggle = document.getElementById('billingToggle');
+    const monthlyPrices = document.querySelectorAll('.price');
+    const annualPrices = document.querySelectorAll('.annual-price');
+    const billingInfo = document.querySelectorAll('.billing-info');
+    const toggleLabels = document.querySelectorAll('.toggle-label');
+
+    // Add visual feedback when toggling
+    billingToggle.addEventListener('change', function() {
+        if (this.checked) {
+            // Show annual prices
+            monthlyPrices.forEach(price => price.style.display = 'none');
+            annualPrices.forEach(price => price.style.display = 'flex');
+            
+            // Update billing info visibility
+            billingInfo.forEach(info => {
+                if (info.textContent.includes('monthly')) {
+                    info.style.display = 'none';
+                } else {
+                    info.style.display = 'block';
+                }
+            });
+            
+            // Update toggle label styles
+            toggleLabels.forEach(label => {
+                if (label.classList.contains('annual-label')) {
+                    label.style.color = 'var(--primary-color)';
+                    label.style.fontWeight = '700';
+                } else {
+                    label.style.color = 'var(--text-color)';
+                    label.style.fontWeight = '500';
+                    label.style.opacity = '0.7';
+                }
+            });
+        } else {
+            // Show monthly prices
+            monthlyPrices.forEach(price => price.style.display = 'flex');
+            annualPrices.forEach(price => price.style.display = 'none');
+            
+            // Update billing info visibility
+            billingInfo.forEach(info => {
+                if (info.textContent.includes('monthly')) {
+                    info.style.display = 'block';
+                } else {
+                    info.style.display = 'none';
+                }
+            });
+            
+            // Update toggle label styles
+            toggleLabels.forEach(label => {
+                if (!label.classList.contains('annual-label')) {
+                    label.style.color = 'var(--primary-color)';
+                    label.style.fontWeight = '700';
+                } else {
+                    label.style.color = 'var(--text-color)';
+                    label.style.fontWeight = '500';
+                    label.style.opacity = '0.7';
+                }
+            });
+        }
+    });
+    
+    // Initialize the toggle labels based on initial state
+    toggleLabels.forEach(label => {
+        if (!label.classList.contains('annual-label')) {
+            label.style.color = 'var(--primary-color)';
+            label.style.fontWeight = '700';
+        } else {
+            label.style.opacity = '0.7';
+        }
+    });
+});
+</script>
+{% endblock %} 
