@@ -1,6 +1,6 @@
 # Zyppts V10 - Logo Format Generator
 
-A powerful Flask-based web application for processing and generating various logo formats with advanced AI-powered features.
+A powerful Flask-based web application for processing and generating various logo formats with advanced smart code features.
 
 ## 🚀 Quick Start
 
