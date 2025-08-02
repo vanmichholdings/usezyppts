@@ -21,7 +21,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Security configuration
 ADMIN_IP_WHITELIST = os.environ.get('ADMIN_IP_WHITELIST', '').split(',')  # Comma-separated IPs
-ADMIN_ALLOWED_EMAILS = os.environ.get('ADMIN_ALLOWED_EMAILS', 'test@zyppts.com').split(',')  # Comma-separated emails
+ADMIN_ALLOWED_EMAILS = os.environ.get('ADMIN_ALLOWED_EMAILS', 'mike@usezyppts.com,test@zyppts.com').split(',')  # Comma-separated emails
 ADMIN_SESSION_TIMEOUT = int(os.environ.get('ADMIN_SESSION_TIMEOUT', 86400))  # 24 hours default
 
 # Set up admin-specific logging
@@ -57,10 +57,25 @@ def check_admin_email():
     if not current_user.is_authenticated:
         return False
     
-    if not ADMIN_ALLOWED_EMAILS or not ADMIN_ALLOWED_EMAILS[0]:
-        return True  # No email restriction configured, allow all admin users
+    # Temporarily bypass email check for owner account
+    if current_user.email == 'mike@usezyppts.com':
+        return True
     
-    return current_user.email in ADMIN_ALLOWED_EMAILS
+    # Get the current admin emails configuration
+    admin_emails_env = os.environ.get('ADMIN_ALLOWED_EMAILS')
+    if not admin_emails_env:
+        # Use default values if no environment variable is set
+        admin_emails = 'mike@usezyppts.com,test@zyppts.com'
+    else:
+        admin_emails = admin_emails_env
+    
+    allowed_emails = admin_emails.split(',')
+    
+    # If no email restriction is configured, allow all admin users
+    if not allowed_emails or len(allowed_emails) == 0 or not allowed_emails[0]:
+        return True
+    
+    return current_user.email in allowed_emails
 
 def admin_required(f):
     """Enhanced decorator to require admin access with multiple security layers"""
