@@ -4,8 +4,25 @@ services:
     env: python
     plan: starter
     buildCommand: |
-      pip install --upgrade pip setuptools wheel
-      pip install --no-cache-dir --prefer-binary -r requirements-production.txt
+      # Install system dependencies for Rust compilation
+      apt-get update && apt-get install -y build-essential pkg-config libssl-dev libffi-dev
+      
+      # Install Rust toolchain for vtracer and cryptography compilation
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      source $HOME/.cargo/env
+      export PATH="$HOME/.cargo/bin:$PATH"
+      
+      # Install additional Rust dependencies that might be needed
+      cargo install maturin
+      
+      # Set environment variables for Rust compilation
+      export CARGO_HOME="$HOME/.cargo"
+      export RUSTUP_HOME="$HOME/.rustup"
+      export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
+      
+      # Upgrade pip and install dependencies
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: cd Backend && gunicorn --config gunicorn.conf.py app_config:create_app()
     healthCheckPath: /health
     envVars:
@@ -58,13 +75,6 @@ services:
           name: zyppts-redis
           type: redis
           property: connectionString
-      # Build optimization variables
-      - key: PIP_NO_CACHE_DIR
-        value: "1"
-      - key: PIP_PREFER_BINARY
-        value: "1"
-      - key: OPENCV_HEADLESS
-        value: "1"
 
   - type: redis
     name: zyppts-redis
