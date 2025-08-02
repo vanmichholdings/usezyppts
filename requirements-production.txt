@@ -4,7 +4,6 @@ Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
 Flask-Mail==0.10.0
 Flask-Session==0.8.0
-Flask-SocketIO==5.5.1
 Flask-WTF==1.2.2
 Flask-Caching==2.3.1
 flask-cors==6.0.1
@@ -20,23 +19,20 @@ WTForms==3.2.1
 # Database and ORM
 SQLAlchemy==2.0.41
 psycopg2-binary==2.9.10
-alembic==1.16.4
 
-# Image Processing and Computer Vision (Production Optimized)
+# Image Processing (Essential only)
 Pillow==11.3.0
 opencv-python-headless==4.12.0.88
 numpy==2.2.6
 scipy==1.16.0
 scikit-image==0.25.2
-scikit-learn==1.7.1
-imutils==0.5.4
 matplotlib==3.10.3
 
 # PDF and Document Processing
 pdf2image==1.17.0
 PyMuPDF==1.26.3
 
-# SVG and Vector Graphics (Simplified)
+# SVG and Vector Graphics
 lxml==6.0.0
 CairoSVG==2.8.2
 cairocffi==1.7.1
@@ -44,32 +40,25 @@ svgpathtools==1.7.1
 svgwrite==1.4.3
 svglib==1.5.1
 
-# Machine Learning and AI (Core only)
-torch==2.7.1
-torchvision==0.22.1
-safetensors==0.5.3
-huggingface-hub==0.33.4
-
-# Background Processing and Task Queue
+# Background Processing
 celery==5.5.3
 redis==6.2.0
 kombu==5.5.4
 billiard==4.2.1
 vine==5.1.0
 
-# Scheduling and Background Tasks
+# Scheduling
 APScheduler==3.10.4
 pytz==2025.2
 tzlocal==5.3.1
 
-# Authentication and Security (Pre-compiled alternatives)
+# Authentication and Security (Pre-compiled)
 bcrypt==4.3.0
 passlib==1.7.4
 python-jose==3.5.0
-# cryptography==42.0.0  # Removed - causes Rust compilation issues
-pycryptodome==3.20.0  # Alternative to cryptography
+pycryptodome==3.20.0
 
-# Email and Notifications
+# Email
 email-validator==2.2.0
 
 # Payment Processing
@@ -80,52 +69,45 @@ requests==2.32.4
 urllib3==2.5.0
 certifi==2025.7.14
 
-# Data Processing and Utilities
+# Data Processing
 pandas==2.2.6
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-multipart==0.0.20
 PyYAML==6.0.2
 
-# Logging and Monitoring
+# Logging
 sentry-sdk==2.34.1
 python-json-logger==3.3.0
 structlog==25.4.0
-prometheus_client==0.22.1
 
-# WebSocket and Real-time
+# WebSocket
 websockets==15.0.1
 python-engineio==4.12.2
 python-socketio==5.13.0
 
-# File Processing and Compression
+# File Processing
 zipfile36==0.1.3
 
-# Color and Design Processing
+# Color Processing
 colormath==3.0.0
-Pygments==2.19.2
 
-# System and Performance
+# System
 psutil==7.0.0
 setuptools==80.9.0
 packaging==25.0
 
-# Additional Utilities
+# Utilities
 tqdm==4.67.1
 rich==13.9.4
 humanize==4.12.3
-coloredlogs==15.0.1
 
-# Additional Dependencies (Cleaned up)
-aggdraw==1.3.19
+# Essential Dependencies
 attrs==25.3.0
 blinker==1.9.0
 cachelib==0.13.0
 cffi==1.17.1
 charset-normalizer==3.4.2
-click-didyoumean==0.3.1
-click-plugins==1.1.1.2
-click-repl==0.3.0
 contourpy==1.3.2
 cssselect2==0.8.0
 cycler==0.12.1
@@ -193,4 +175,4 @@ webencodings==0.5.1
 wrapt==1.17.2
 wsproto==1.2.0
 yarl==1.20.1
-zipp==3.23.0
+zipp==3.23.0 
