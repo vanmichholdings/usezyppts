@@ -1139,10 +1139,15 @@ def register():
             username = request.form['username']
             email = request.form['email']
             password = request.form['password']
+            confirm_password = request.form.get('confirm_password', '')
             promo_code = request.form.get('promo_code', '').strip()
             
-            if not all([username, email, password]):
+            if not all([username, email, password, confirm_password]):
                 flash('Please fill in all fields', 'error')
+                return render_template('register.html', now=datetime.now())
+            
+            if password != confirm_password:
+                flash('Passwords do not match', 'error')
                 return render_template('register.html', now=datetime.now())
             
             if User.query.filter_by(email=email).first():
@@ -1162,16 +1167,21 @@ def register():
             user.registration_ip = request.remote_addr
             user.registration_user_agent = request.headers.get('User-Agent', 'Unknown')
             
-            user.set_password(password)
-            db.session.add(user)
-            db.session.flush()  # This ensures user.id is available
-            
-            # Handle promo code
+            # Handle promo code - set attributes before adding to session
             if promo_code and promo_code.upper() == 'EARLYZYPPTS':
                 # Valid promo code - create promo user
                 user.promo_code = promo_code.upper()
                 user.upload_credits = 3
-                
+            else:
+                # No promo code or invalid - create regular free user
+                user.upload_credits = 3
+            
+            user.set_password(password)
+            db.session.add(user)
+            db.session.flush()  # This ensures user.id is available
+            
+            # Create subscription based on promo code
+            if promo_code and promo_code.upper() == 'EARLYZYPPTS':
                 # Create subscription for promo user
                 subscription = Subscription(
                     user_id=user.id,
@@ -1185,9 +1195,6 @@ def register():
                 
                 flash('🎉 Promo code applied! You now have 3 upload credits with Pro + Studio features!', 'success')
             else:
-                # No promo code or invalid - create regular free user
-                user.upload_credits = 3
-                
                 # Create free subscription
                 subscription = Subscription(
                     user_id=user.id,
