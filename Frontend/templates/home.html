@@ -15,12 +15,12 @@
         <div class="hero-icon hero-icon-5"><i class="fas fa-magic"></i></div>
     </div>
     <div class="hero-content">
-        <h1>One Upload. Every Format.</h1>
-        <p class="hero-subtitle">Professional design processing and optimization for modern brands.</p>
+        <h1><span class="line-1">Your Brand.</span><br><span class="line-2">Zipped & Ready.</span></h1>
+        <p class="hero-subtitle">Upload once. Get every logo format in one smart download.</p>
         {% if not current_user.is_authenticated %}
             <div class="hero-cta">
                 <a href="{{ url_for('main.register') }}" class="btn-primary">
-                    <span class="btn-text">Get Started Free</span>
+                    <span class="btn-text">Start Free</span>
                     <i class="fas fa-arrow-right"></i>
                 </a>
                 <a href="{{ url_for('main.login') }}" class="btn-secondary">
@@ -31,7 +31,7 @@
         {% else %}
             <div class="hero-cta">
                 <a href="{{ url_for('main.logo_processor') }}" class="btn-primary">
-                    <span class="btn-text">Upload</span>
+                    <span class="btn-text">Upload Logo</span>
                     <i class="fas fa-cloud-upload-alt"></i>
                 </a>
                 <a href="{{ url_for('main.subscription_plans') }}" class="btn-secondary">
@@ -46,15 +46,15 @@
 <div class="features-section">
     <div class="section-header">
         <h2>Why Choose Zyppts?</h2>
-        <p class="section-subtitle">Experience the future of logo processing</p>
+        <p class="section-subtitle">Professional logo processing made simple</p>
     </div>
     <div class="features-grid">
         <div class="feature-card">
             <div class="feature-icon">
                 <i class="fas fa-palette"></i>
             </div>
-            <h3>Professional Quality</h3>
-            <p>Get high-quality logo variations optimized for any use case. Our AI-powered processing maintains the integrity of your design while enhancing its appearance across all formats. Perfect for branding materials, websites, and marketing collateral.</p>
+            <h3>Logo Processor</h3>
+            <p>Advanced smart logic automatically processes your logos with background removal, full color vectorizing, contour cutlines, and color separations.</p>
             <div class="feature-hover">
                 <a href="{{ url_for('main.subscription_plans') }}" class="learn-more">
                     <span>Learn more</span>
@@ -66,8 +66,8 @@
             <div class="feature-icon">
                 <i class="fas fa-bolt"></i>
             </div>
-            <h3>Instant Processing</h3>
-            <p>Process your logos in seconds with our advanced AI technology. Our state-of-the-art Segment Anything Model (SAM) delivers lightning-fast results without compromising quality. Upload once and receive all your optimized formats within moments, saving you hours of design work.</p>
+            <h3>Instant Results</h3>
+            <p>Get your processed logos in seconds. No waiting, no delays - just upload and download your optimized formats immediately.</p>
             <div class="feature-hover">
                 <a href="{{ url_for('main.subscription_plans') }}" class="learn-more">
                     <span>Learn more</span>
@@ -79,8 +79,8 @@
             <div class="feature-icon">
                 <i class="fas fa-layer-group"></i>
             </div>
-            <h3>Multiple Formats</h3>
-            <p>Export your logo in various formats suitable for any platform. Get PNG, JPG, SVG, PDF, and more with transparent backgrounds, different resolutions, and optimized file sizes. Perfect for web, print, social media, and applications—all your branding needs covered with a single upload.</p>
+            <h3>Complete Package</h3>
+            <p>Get every format you need - transparent PNGs, vector files, print-ready separations, and more - all in one smart download.</p>
             <div class="feature-hover">
                 <a href="{{ url_for('main.subscription_plans') }}" class="learn-more">
                     <span>Learn more</span>
@@ -96,11 +96,13 @@
     background: var(--nav-gradient);
     color: white;
     padding: 6rem 0;
-    margin: -2rem -2rem 4rem;
+    margin: 0 0 4rem 0;
     text-align: center;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
 }
 
 .hero-background {
@@ -122,60 +124,84 @@
 }
 
 .hero-shape-1 {
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 100px,
-        var(--secondary-color) 100px, var(--secondary-color) 102px),
-    repeating-linear-gradient(90deg, transparent, transparent 100px,
-        var(--secondary-color) 100px, var(--secondary-color) 102px);
-    background-size: 150px 150px;
-    animation: floatBackground 30s linear infinite;
+    background-image: 
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
 }
 
 .hero-shape-2 {
-    background-image: radial-gradient(circle at center,
-        var(--secondary-color) 2px,
-        transparent 2px);
-    background-size: 50px 50px;
-    animation: floatBackground 20s linear infinite reverse;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.05) 2px, transparent 2px),
+        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 2px, transparent 2px);
+    background-size: 100px 100px;
+    animation: gridMove 30s linear infinite reverse;
 }
 
 .hero-shape-3 {
     background: none;
 }
 
-.hero-shape-3::before {
-    content: '\f07b'; /* Folder icon */
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-    position: absolute;
-    font-size: 24px;
-    color: var(--secondary-color);
-    opacity: 0.15;
+@keyframes gridMove {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(50px, 50px);
+    }
 }
 
-.hero-shape-3::after {
-    content: '\f15b'; /* File icon */
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-    position: absolute;
-    font-size: 20px;
-    color: var(--secondary-color);
-    opacity: 0.15;
-}
-
-/* Create multiple folder and file icons with standard CSS */
-.hero-shape-1::before, .hero-shape-1::after,
-.hero-shape-2::before, .hero-shape-2::after,
-.hero-shape-3::before, .hero-shape-3::after {
+/* Modern tech elements */
+.hero-section::before {
     content: '';
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background-repeat: no-repeat;
-    opacity: 0.15;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.02) 50%, transparent 52%),
+        linear-gradient(-45deg, transparent 48%, rgba(255, 255, 255, 0.02) 50%, transparent 52%);
+    background-size: 100px 100px;
+    animation: techGrid 15s linear infinite;
 }
 
-/* Hero icons styling */
+@keyframes techGrid {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate(100px, 100px) rotate(1deg);
+    }
+}
+
+/* Floating tech elements */
+.hero-section::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    right: 10%;
+    width: 200px;
+    height: 200px;
+    background: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.02) 2px, transparent 2px);
+    background-size: 20px 20px, 40px 40px;
+    animation: float 8s ease-in-out infinite;
+    border-radius: 50%;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
+/* Hero icons styling - Modern tech approach */
 .hero-icon {
     position: absolute;
     font-size: 1.5rem;
@@ -192,6 +218,7 @@
     -webkit-backdrop-filter: blur(4px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    opacity: 0.6;
 }
 
 .hero-icon:hover {
@@ -199,6 +226,7 @@
     color: rgba(255, 255, 255, 0.8);
     background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    opacity: 1;
 }
 
 /* Predefined positions for icons */
@@ -215,56 +243,94 @@
     100% { transform: translateY(0) rotate(0deg); }
 }
 
-@keyframes floatBackground {
-    0% {
-        background-position: 0 0;
-    }
-    100% {
-        background-position: 150px 150px;
-    }
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-    50% {
-        transform: translate(20px, -20px) rotate(5deg);
-    }
-}
-
 .hero-content {
     position: relative;
     max-width: 800px;
     margin: 0 auto;
     padding: 0 20px;
     z-index: 1;
+    text-align: center;
 }
 
-.hero-section h1 {
+.hero-content h1 {
+    font-family: 'JetBrains Mono', 'Inter', monospace;
     font-size: clamp(2.5rem, 5vw, 4rem);
-    margin-bottom: 1.5rem;
-    color: white;
     font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    animation: fadeInUp 1s ease-out;
+    margin-bottom: 1.5rem;
+    color: #FFFFFF;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1.2;
     letter-spacing: -0.02em;
+    text-align: center;
 }
 
-.hero-subtitle {
-    font-size: 1.5rem;
-    margin-bottom: 3rem;
-    opacity: 0.9;
-    animation: fadeInUp 1s ease-out 0.2s backwards;
+.hero-content h1 .line-1,
+.hero-content h1 .line-2 {
+    display: block;
+    text-align: center;
+}
+
+.hero-content h1 .line-1 {
+    margin-bottom: 0.2rem;
+}
+
+.hero-content h1 .line-2 {
+    margin-top: 0;
+}
+
+.hero-content .hero-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+    color: #E5E7EB !important;
+    margin-bottom: 2.5rem;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
 .hero-cta {
     display: flex;
     gap: 1.5rem;
     justify-content: center;
+    align-items: center;
     animation: fadeInUp 1s ease-out 0.4s backwards;
+    flex-wrap: wrap;
 }
 
+/* Dark mode support for feature cards */
+[data-theme="dark"] .feature-card {
+    background: var(--dark-card-bg);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+[data-theme="dark"] .feature-card h3 {
+    color: var(--dark-text);
+}
+
+[data-theme="dark"] .feature-card p {
+    color: var(--dark-text-muted);
+}
+
+[data-theme="dark"] .section-header h2 {
+    color: var(--dark-text);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Stronger shadow for dark mode */
+}
+
+[data-theme="dark"] .section-header .section-subtitle {
+    color: var(--dark-text-muted) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Stronger shadow for dark mode */
+}
+
+[data-theme="dark"] .features-section {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); /* Dark grey to darker grey gradient */
+}
+
+/* Ensure consistent button styling */
 .btn-primary, .btn-secondary {
     padding: 1rem 2rem;
     border-radius: 12px;
@@ -276,28 +342,23 @@
     gap: 0.75rem;
     position: relative;
     overflow: hidden;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--cobalt-blue) 0%, var(--sky-blue) 100%);
+    background: var(--primary-gradient);
     color: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-md);
 }
 
-.btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #FAA52D 0%, var(--secondary-color) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.btn-primary:hover::before {
-    opacity: 1;
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+    text-decoration: none;
 }
 
 .btn-secondary {
@@ -307,30 +368,12 @@
     backdrop-filter: blur(10px);
 }
 
-.btn-secondary::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.btn-secondary:hover::after {
-    opacity: 1;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 20px rgba(59, 94, 247, 0.3);
-}
-
 .btn-secondary:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 107, 53, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .btn-primary span,
@@ -349,7 +392,7 @@
     padding: 6rem 0;
     text-align: center;
     position: relative;
-    background-color: var(--content-bg);
+    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
     margin: 0;
     width: 100%;
     max-width: 100%;
@@ -357,20 +400,33 @@
 
 .section-header {
     margin-bottom: 4rem;
+    position: relative;
+    z-index: 1;
+    text-align: center;
 }
 
 .section-header h2 {
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-    font-size: 2.5rem;
+    font-family: 'JetBrains Mono', 'Inter', monospace;
+    font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    text-align: center;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.section-subtitle {
-    color: var(--silver-gray);
-    font-size: 1.2rem;
+.section-header .section-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.125rem, 2vw, 1.25rem);
+    color: var(--text-light) !important;
+    text-align: center;
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0 auto 3rem;
+    line-height: 1.6;
+    font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .features-grid {
@@ -379,17 +435,24 @@
     gap: 2rem;
     margin-top: 2rem;
     padding: 0 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .feature-card {
     background: white;
     padding: 3rem 2rem;
     border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-md);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .feature-card::before {
@@ -406,7 +469,7 @@
 
 .feature-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-lg);
 }
 
 .feature-card:hover::before {
@@ -437,18 +500,21 @@
 }
 
 .feature-card h3 {
-    color: var(--primary-color);
+    font-family: 'JetBrains Mono', 'Inter', monospace;
+    color: var(--text-color);
     margin-bottom: 1rem;
     font-size: 1.5rem;
     font-weight: 600;
+    line-height: 1.3;
 }
 
 .feature-card p {
-    color: var(--text-color);
-    opacity: 0.7;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-light);
     font-size: 1rem;
     line-height: 1.6;
     margin-bottom: 1.5rem;
+    font-weight: 400;
 }
 
 .feature-hover {

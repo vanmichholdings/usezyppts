@@ -2,201 +2,87 @@
 
 {% block title %}Subscription Plans - Zyppts{% endblock %}
 
-{% block content %}
-<div class="pricing-section">
-    <div class="pricing-header">
-        <h1>Choose Your Plan</h1>
-        <p>Select the perfect plan for your needs</p>
-        
-        <!-- Billing Toggle -->
-        <div class="billing-toggle">
-            <div class="toggle-container">
-                <span class="toggle-label">Monthly Billing</span>
-                <label class="switch">
-                    <input type="checkbox" id="billingToggle">
-                    <span class="slider round"></span>
-                </label>
-                <span class="toggle-label annual-label">Annual Billing <span class="save-badge">Save 20%</span></span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="pricing-grid">
-        <!-- Free Plan -->
-        <div class="pricing-card">
-            <div class="pricing-card-header">
-                <h2>Free</h2>
-                <div class="price">
-                    <span class="currency">$</span>
-                    <span class="amount">0</span>
-                    <span class="period">/month</span>
-                </div>
-                <div class="billing-info">Billed monthly — cancel anytime</div>
-            </div>
-            <div class="pricing-card-body">
-                <ul class="features-list">
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> 1 logo</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Basic outputs</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Pay per logo after first</li>
-                </ul>
-            </div>
-            <div class="pricing-card-footer">
-                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Get Started</a>
-            </div>
-        </div>
-        
-        <!-- Pro Plan -->
-        <div class="pricing-card popular">
-            <div class="pricing-card-header">
-                <h2>Pro</h2>
-                <div class="price">
-                    <span class="currency">$</span>
-                    <span class="amount">9.99</span>
-                    <span class="period">/month</span>
-                </div>
-                <div class="billing-info">Billed monthly — cancel anytime</div>
-                <div class="annual-price" style="display: none;">
-                    <span class="currency">$</span>
-                    <span class="amount">7.99</span>
-                    <span class="period">/month</span>
-                    <div class="billing-info">Billed $95.90 yearly — save 20%</div>
-                </div>
-            </div>
-            <div class="pricing-card-body">
-                <ul class="features-list">
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Unlimited uploads</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> PNG/JPG/SVG formats</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Effects Tab Variations</li>
-                </ul>
-            </div>
-            <div class="pricing-card-footer">
-                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Select Plan</a>
-            </div>
-        </div>
-        
-        <!-- Studio Plan -->
-        <div class="pricing-card">
-            <div class="pricing-card-header">
-                <h2>Studio</h2>
-                <div class="price">
-                    <span class="currency">$</span>
-                    <span class="amount">29</span>
-                    <span class="period">/month</span>
-                </div>
-                <div class="billing-info">Billed monthly — cancel anytime</div>
-                <div class="annual-price" style="display: none;">
-                    <span class="currency">$</span>
-                    <span class="amount">23.20</span>
-                    <span class="period">/month</span>
-                    <div class="billing-info">Billed $278.40 yearly — save 20%</div>
-                </div>
-            </div>
-            <div class="pricing-card-body">
-                <ul class="features-list">
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> API plug-ins (beta)</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> All Pro Features</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Social Tab Variations</li>
-                </ul>
-            </div>
-            <div class="pricing-card-footer">
-                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Select Plan</a>
-            </div>
-        </div>
-        
-        <!-- Enterprise Plan -->
-        <div class="pricing-card">
-            <div class="pricing-card-header">
-                <h2>Enterprise</h2>
-                <div class="price">
-                    <span class="currency">$</span>
-                    <span class="amount">99</span>
-                    <span class="period">+/month</span>
-                </div>
-                <div class="billing-info">Billed monthly — cancel anytime</div>
-                <div class="annual-price" style="display: none;">
-                    <span class="currency">$</span>
-                    <span class="amount">79.20</span>
-                    <span class="period">+/month</span>
-                    <div class="billing-info">Billed $950.40+ yearly — save 20%</div>
-                </div>
-            </div>
-            <div class="pricing-card-body">
-                <ul class="features-list">
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Batch upload</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> All Studio Features</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Multi-users</li>
-                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Personalized support</li>
-                </ul>
-            </div>
-            <div class="pricing-card-footer">
-                <a href="{{ url_for('main.contact') }}" class="btn btn-primary">Contact Us</a>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
+    /* Modern Tech Font Import */
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+    
     .pricing-section {
         padding: 4rem 0;
-        background: var(--content-bg);
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        min-height: 100vh;
         position: relative;
-        overflow: hidden;
-        color: var(--text-color);
-        margin: 0;
-        width: 100%;
-        max-width: 100%;
     }
 
-    .pricing-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(59, 94, 247, 0.03) 0%, rgba(96, 165, 250, 0.03) 100%);
-        z-index: -1;
+    [data-theme="dark"] .pricing-section {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
 
     .pricing-header {
         text-align: center;
         margin-bottom: 3rem;
         position: relative;
-        z-index: 1;
+        z-index: 2;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .pricing-header h1 {
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-        font-size: 2.5rem;
+        font-family: 'JetBrains Mono', 'Inter', monospace;
+        font-size: 3.5rem;
         font-weight: 700;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        background: linear-gradient(135deg, var(--zyppts-orange) 0%, #FAA52D 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        text-shadow: 0 4px 8px rgba(250, 165, 45, 0.1);
+        text-align: center;
+    }
+
+    [data-theme="dark"] .pricing-header h1 {
+        background: linear-gradient(135deg, var(--zyppts-orange) 0%, #FAA52D 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .pricing-header p {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.25rem;
         color: var(--text-color);
-        font-size: 1.2rem;
-        max-width: 600px;
-        margin: 0 auto 2rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
         opacity: 0.9;
+        text-align: center;
     }
 
-    /* Billing Toggle Styles */
     .billing-toggle {
-        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 2rem 0;
     }
 
     .toggle-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 1.5rem;
-        background: white;
-        padding: 1rem 2rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.8);
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    [data-theme="dark"] .toggle-container {
+        background: rgba(30, 41, 59, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .toggle-container:hover {
@@ -205,10 +91,16 @@
     }
 
     .toggle-label {
+        font-family: 'JetBrains Mono', 'Inter', monospace;
         font-size: 1rem;
         font-weight: 600;
         color: var(--text-color);
         transition: all 0.3s ease;
+    }
+
+    [data-theme="dark"] .toggle-label {
+        color: var(--zyppts-orange) !important;
+        font-weight: 700;
     }
     
     .annual-label {
@@ -226,6 +118,7 @@
         font-weight: 700;
         box-shadow: 0 4px 8px rgba(255, 140, 56, 0.3);
         animation: pulse 2s infinite;
+        font-family: 'JetBrains Mono', 'Inter', monospace;
     }
     
     @keyframes pulse {
@@ -243,10 +136,15 @@
     .pricing-grid {
         display: flex;
         justify-content: center;
+        align-items: stretch;
         gap: 2rem;
         margin-top: 3rem;
         position: relative;
         z-index: 1;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+        flex-wrap: wrap;
     }
 
     .pricing-card {
@@ -257,8 +155,11 @@
         overflow: hidden;
         flex: 1;
         max-width: 300px;
+        min-width: 280px;
         position: relative;
         border: 1px solid rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
     }
 
     .pricing-card:hover {
@@ -285,6 +186,7 @@
         transform: rotate(45deg);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         z-index: 1;
+        font-family: 'JetBrains Mono', 'Inter', monospace;
     }
 
     .pricing-card-header {
@@ -296,10 +198,16 @@
     }
 
     .pricing-card-header h2 {
+        font-family: 'JetBrains Mono', 'Inter', monospace;
         font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--text-color);
+        font-weight: 700;
+        color: var(--zyppts-orange);
         margin-bottom: 1rem;
+        letter-spacing: -0.01em;
+    }
+
+    [data-theme="dark"] .pricing-card-header h2 {
+        color: var(--zyppts-orange);
     }
 
     .pricing-card-header .price {
@@ -308,6 +216,7 @@
         justify-content: center;
         margin-bottom: 0.5rem;
         color: var(--text-color);
+        font-family: 'JetBrains Mono', 'Inter', monospace;
     }
 
     .pricing-card-header .price .currency,
@@ -315,13 +224,15 @@
         font-size: 0.9rem;
         font-weight: 400;
         color: var(--text-color);
-        opacity: 1; /* Ensure visibility */
+        opacity: 1;
+        font-family: 'JetBrains Mono', 'Inter', monospace;
     }
 
     .billing-info {
+        font-family: 'Inter', sans-serif;
         font-size: 0.85rem;
         color: var(--text-color);
-        opacity: 1; /* Ensure visibility */
+        opacity: 1;
         margin-top: 0.5rem;
         font-weight: 500;
     }
@@ -345,11 +256,11 @@
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
-        color: #111827; /* Hard-coded dark color instead of variable */
+        color: var(--text-color);
         transition: all 0.3s ease;
-        font-weight: 600; /* Increased font weight */
-        opacity: 1 !important; /* Force visibility with !important */
-        text-shadow: 0 0 0 #111827; /* Text shadow for better visibility */
+        font-weight: 600;
+        opacity: 1 !important;
+        font-family: 'Inter', sans-serif;
     }
 
     .features-list li:hover {
@@ -387,6 +298,7 @@
         overflow: hidden;
         width: 100%;
         box-shadow: 0 4px 10px rgba(59, 94, 247, 0.2);
+        font-family: 'JetBrains Mono', 'Inter', monospace;
     }
 
     .btn-primary::before {
@@ -513,10 +425,9 @@
         }
     }
 
-    /* Dark mode specific styling for features list */
+    /* Dark mode specific styling */
     [data-theme="dark"] .features-list li {
-        color: #e0e0e0 !important;
-        text-shadow: 0 0 0 #e0e0e0;
+        color: var(--dark-text) !important;
     }
     
     [data-theme="dark"] .features-list li:hover {
@@ -537,6 +448,7 @@
     }
     
     .monthly-equivalent {
+        font-family: 'JetBrains Mono', 'Inter', monospace;
         font-size: 0.9rem;
         color: var(--primary-color);
         font-weight: 500;
@@ -547,79 +459,236 @@
         display: inline-block;
     }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-section">
+    <div class="pricing-header">
+        <h1>Choose Your Plan</h1>
+        <p>Select the perfect plan for your logo processing needs</p>
+        
+        <!-- Billing Toggle -->
+        <div class="billing-toggle">
+            <div class="toggle-container">
+                <span class="toggle-label">Monthly Billing</span>
+                <label class="switch">
+                    <input type="checkbox" id="billingToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label annual-label">Annual Billing <span class="save-badge">Save 20%</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="pricing-grid">
+        <!-- Free Plan -->
+        <div class="pricing-card">
+            <div class="pricing-card-header">
+                <h2>Free</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">0</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> 3 Logo Uploads/Month</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Basic Tab Variations</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Upgrade After Limit</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <a href="{{ url_for('main.logo_processor') }}" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+        
+        <!-- Pro Plan -->
+        <div class="pricing-card popular">
+            <div class="pricing-card-header">
+                <h2>Pro</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">9.99</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+                <div class="annual-price" style="display: none;">
+                    <span class="currency">$</span>
+                    <span class="amount">7.99</span>
+                    <span class="period">/month</span>
+                    <div class="billing-info">Billed $95.90 yearly — save 20%</div>
+                </div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Unlimited Uploads</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Effects Tab Variations</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Priority Support</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <button class="btn btn-primary" onclick="startCheckout('pro')">Upgrade to Pro</button>
+            </div>
+        </div>
+        
+        <!-- Studio Plan -->
+        <div class="pricing-card">
+            <div class="pricing-card-header">
+                <h2>Studio</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">29</span>
+                    <span class="period">/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+                <div class="annual-price" style="display: none;">
+                    <span class="currency">$</span>
+                    <span class="amount">23</span>
+                    <span class="period">/month</span>
+                    <div class="billing-info">Billed $276 yearly — save 20%</div>
+                </div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> All Pro Features</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Content Repurposing</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Batch Processing</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <button class="btn btn-primary" onclick="startCheckout('studio')">Upgrade to Studio</button>
+            </div>
+        </div>
+        
+        <!-- Enterprise Plan -->
+        <div class="pricing-card">
+            <div class="pricing-card-header">
+                <h2>Enterprise</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">99</span>
+                    <span class="period">+/month</span>
+                </div>
+                <div class="billing-info">Billed monthly — cancel anytime</div>
+                <div class="annual-price" style="display: none;">
+                    <span class="currency">$</span>
+                    <span class="amount">79.20</span>
+                    <span class="period">+/month</span>
+                    <div class="billing-info">Billed $950.40+ yearly — save 20%</div>
+                </div>
+            </div>
+            <div class="pricing-card-body">
+                <ul class="features-list">
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> All Studio Features</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Workflow Automation</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Multi-User Access</li>
+                    <li style="color: #111827; font-weight: 600; opacity: 1;"><i class="fas fa-check"></i> Personal Support Agent</li>
+                </ul>
+            </div>
+            <div class="pricing-card-footer">
+                <a href="{{ url_for('main.contact') }}" class="btn btn-primary">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
+// Billing toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
     const billingToggle = document.getElementById('billingToggle');
-    const monthlyPrices = document.querySelectorAll('.price');
-    const annualPrices = document.querySelectorAll('.annual-price');
-    const billingInfo = document.querySelectorAll('.billing-info');
-    const toggleLabels = document.querySelectorAll('.toggle-label');
-
-    // Add visual feedback when toggling
-    billingToggle.addEventListener('change', function() {
-        if (this.checked) {
-            // Show annual prices
-            monthlyPrices.forEach(price => price.style.display = 'none');
-            annualPrices.forEach(price => price.style.display = 'flex');
-            
-            // Update billing info visibility
-            billingInfo.forEach(info => {
-                if (info.textContent.includes('monthly')) {
-                    info.style.display = 'none';
-                } else {
-                    info.style.display = 'block';
-                }
-            });
-            
-            // Update toggle label styles
-            toggleLabels.forEach(label => {
-                if (label.classList.contains('annual-label')) {
-                    label.style.color = 'var(--primary-color)';
-                    label.style.fontWeight = '700';
-                } else {
-                    label.style.color = 'var(--text-color)';
-                    label.style.fontWeight = '500';
-                    label.style.opacity = '0.7';
-                }
-            });
-        } else {
-            // Show monthly prices
-            monthlyPrices.forEach(price => price.style.display = 'flex');
-            annualPrices.forEach(price => price.style.display = 'none');
-            
-            // Update billing info visibility
-            billingInfo.forEach(info => {
-                if (info.textContent.includes('monthly')) {
-                    info.style.display = 'block';
-                } else {
-                    info.style.display = 'none';
-                }
-            });
-            
-            // Update toggle label styles
-            toggleLabels.forEach(label => {
-                if (!label.classList.contains('annual-label')) {
-                    label.style.color = 'var(--primary-color)';
-                    label.style.fontWeight = '700';
-                } else {
-                    label.style.color = 'var(--text-color)';
-                    label.style.fontWeight = '500';
-                    label.style.opacity = '0.7';
-                }
-            });
+    const monthlyLabels = document.querySelectorAll('.toggle-label:not(.annual-label)');
+    const annualLabels = document.querySelectorAll('.annual-label');
+    
+    // Price data for each plan
+    const pricingData = {
+        'pro': {
+            monthly: { price: 9.99, period: '/month', info: 'Billed monthly — cancel anytime' },
+            annual: { price: 7.99, period: '/month', info: 'Billed $95.90 yearly — save 20%' }
+        },
+        'studio': {
+            monthly: { price: 29, period: '/month', info: 'Billed monthly — cancel anytime' },
+            annual: { price: 23, period: '/month', info: 'Billed $276 yearly — save 20%' }
+        },
+        'enterprise': {
+            monthly: { price: 99, period: '+/month', info: 'Billed monthly — cancel anytime' },
+            annual: { price: 79.20, period: '+/month', info: 'Billed $950.40+ yearly — save 20%' }
         }
+    };
+    
+    function updatePricing(isAnnual) {
+        // Update toggle labels
+        monthlyLabels.forEach(label => {
+            label.style.opacity = isAnnual ? '0.5' : '1';
+            label.style.fontWeight = isAnnual ? '400' : '600';
+        });
+        
+        annualLabels.forEach(label => {
+            label.style.opacity = isAnnual ? '1' : '0.5';
+            label.style.fontWeight = isAnnual ? '600' : '400';
+        });
+        
+        // Update pricing cards
+        Object.keys(pricingData).forEach(plan => {
+            const card = document.querySelector(`[onclick*="${plan}"]`).closest('.pricing-card');
+            const priceElement = card.querySelector('.price');
+            const billingInfo = card.querySelector('.billing-info');
+            const annualPriceElement = card.querySelector('.annual-price');
+            
+            const pricing = isAnnual ? pricingData[plan].annual : pricingData[plan].monthly;
+            
+            if (isAnnual) {
+                // Show annual pricing
+                priceElement.style.display = 'none';
+                if (annualPriceElement) {
+                    annualPriceElement.style.display = 'flex';
+                    annualPriceElement.querySelector('.amount').textContent = pricing.price;
+                    annualPriceElement.querySelector('.period').textContent = pricing.period;
+                    annualPriceElement.querySelector('.billing-info').textContent = pricing.info;
+                }
+            } else {
+                // Show monthly pricing
+                priceElement.style.display = 'flex';
+                if (annualPriceElement) {
+                    annualPriceElement.style.display = 'none';
+                }
+                priceElement.querySelector('.amount').textContent = pricing.price;
+                priceElement.querySelector('.period').textContent = pricing.period;
+                billingInfo.textContent = pricing.info;
+            }
+        });
+    }
+    
+    // Add event listener to toggle
+    billingToggle.addEventListener('change', function() {
+        updatePricing(this.checked);
     });
     
-    // Initialize the toggle labels based on initial state
-    toggleLabels.forEach(label => {
-        if (!label.classList.contains('annual-label')) {
-            label.style.color = 'var(--primary-color)';
-            label.style.fontWeight = '700';
-        } else {
-            label.style.opacity = '0.7';
-        }
-    });
+    // Initialize with monthly pricing
+    updatePricing(false);
 });
+
+async function startCheckout(plan) {
+    const billingToggle = document.getElementById('billingToggle');
+    const isAnnual = billingToggle.checked;
+    
+    const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            plan: plan,
+            billing: isAnnual ? 'annual' : 'monthly'
+        })
+    });
+    const data = await response.json();
+    if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+    } else if (data.redirect) {
+        window.location.href = data.redirect;
+    } else {
+        alert(data.error || 'Payment setup failed');
+    }
+}
 </script>
 {% endblock %} 

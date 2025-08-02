@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Upgrade Required - Zyppts{% endblock %}
+{% block content %}
+<div class="container text-center" style="margin-top: 6rem; max-width: 600px;">
+    <div class="card shadow-lg p-4 border-0" style="background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);">
+        <div class="card-body">
+            <h1 class="display-4 text-primary mb-3"><i class="fas fa-lock"></i> Upgrade Required</h1>
+            <p class="lead mb-4">This feature is available to Pro, Studio, or Enterprise subscribers.<br>
+            Unlock all features and unlimited downloads by upgrading your plan.</p>
+            {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+            {% endif %}
+            <a href="{{ url_for('main.subscription_plans') }}" class="btn btn-lg btn-gradient-primary mt-3" style="background: linear-gradient(135deg, #3b5ef7 0%, #60a5fa 100%); color: #fff; border: none; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 16px rgba(59,94,247,0.12);">
+                <i class="fas fa-arrow-up"></i> View Subscription Plans
+            </a>
+            <div class="mt-4">
+                <img src="/static/images/locked_feature.svg" alt="Upgrade Illustration" style="max-width: 220px; opacity: 0.9;">
+            </div>
+        </div>
+    </div>
+    <div class="mt-5 text-muted small">
+        &copy; {{ now.year }} Zyppts. All rights reserved.
+    </div>
+</div>
+{% endblock %} 

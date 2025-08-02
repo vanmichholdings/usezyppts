@@ -1,0 +1,198 @@
+{% extends "admin/base.html" %}
+{% block title %}Subscriptions{% endblock %}
+{% block page_title %}Subscription Management{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('admin.export_subscriptions') }}" class="btn btn-admin">
+    <i class="fas fa-download me-1"></i>Export Subscriptions
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Filter Subscriptions</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <select class="form-select" name="status">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="plan">
+                    <option value="">All Plans</option>
+                    <option value="free" {% if plan == 'free' %}selected{% endif %}>Free</option>
+                    <option value="pro" {% if plan == 'pro' %}selected{% endif %}>Pro</option>
+                    <option value="studio" {% if plan == 'studio' %}selected{% endif %}>Studio</option>
+                    <option value="enterprise" {% if plan == 'enterprise' %}selected{% endif %}>Enterprise</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-admin w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Subscriptions ({{ subscriptions.total }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                        <th>Credits</th>
+                        <th>Used</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Auto Renew</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subscription in subscriptions.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('admin.user_detail', user_id=subscription.user.id) }}">{{ subscription.user.username }}</a>
+                        </td>
+                        <td>{{ subscription.user.email }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ subscription.plan.title() }}</span>
+                        </td>
+                        <td>
+                            {% if subscription.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif subscription.status == 'cancelled' %}
+                                <span class="badge bg-warning">Cancelled</span>
+                            {% elif subscription.status == 'expired' %}
+                                <span class="badge bg-danger">Expired</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ subscription.status.title() }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ subscription.monthly_credits }}</td>
+                        <td>{{ subscription.used_credits }}</td>
+                        <td>{{ subscription.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ subscription.end_date.strftime('%Y-%m-%d') if subscription.end_date else 'None' }}</td>
+                        <td>
+                            {% if subscription.auto_renew %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                    onclick="updateCredits({{ subscription.id }}, {{ subscription.monthly_credits }})">
+                                Update Credits
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if subscriptions.pages > 1 %}
+        <nav aria-label="Subscription pagination">
+            <ul class="pagination justify-content-center">
+                {% if subscriptions.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.subscriptions', page=subscriptions.prev_num, status=status, plan=plan) }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in subscriptions.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == subscriptions.page else '' }}">
+                            <a class="page-link" href="{{ url_for('admin.subscriptions', page=page_num, status=status, plan=plan) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if subscriptions.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.subscriptions', page=subscriptions.next_num, status=status, plan=plan) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Update Credits Modal -->
+<div class="modal fade" id="updateCreditsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Credits</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateCreditsForm">
+                    <div class="mb-3">
+                        <label for="credits" class="form-label">New Credit Amount</label>
+                        <input type="number" class="form-control" id="credits" name="credits" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-admin" onclick="submitCreditsUpdate()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentSubscriptionId = null;
+
+function updateCredits(subscriptionId, currentCredits) {
+    currentSubscriptionId = subscriptionId;
+    document.getElementById('credits').value = currentCredits;
+    new bootstrap.Modal(document.getElementById('updateCreditsModal')).show();
+}
+
+function submitCreditsUpdate() {
+    const credits = document.getElementById('credits').value;
+    
+    fetch(`/admin/api/subscription/${currentSubscriptionId}/update_credits`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ credits: parseInt(credits) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('updateCreditsModal')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+    });
+}
+</script>
+{% endblock %} 

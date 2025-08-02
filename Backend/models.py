@@ -18,9 +18,19 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)  # Add admin flag
+    is_beta = db.Column(db.Boolean, default=False)
+    
+    # Promo code support
+    promo_code = db.Column(db.String(50))  # Store the promo code used during registration
+    upload_credits = db.Column(db.Integer, default=3)  # Upload credits for promo users
+    
+    # Registration metadata for admin tracking
+    registration_ip = db.Column(db.String(45))  # IPv6 compatible
+    registration_user_agent = db.Column(db.Text)
+    
     subscription = db.relationship('Subscription', backref='user', uselist=False)
     uploads = db.relationship('LogoUpload', backref='user', lazy=True)
-    is_beta = db.Column(db.Boolean, default=False)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -35,13 +45,39 @@ class User(UserMixin, db.Model):
         return self.subscription and self.subscription.is_active()
     
     def can_generate_files(self):
+        # Check if user has upload credits (for promo users) or subscription credits
+        if self.upload_credits > 0:
+            return True
         if not self.subscription:
             return False
         return self.subscription.has_credits() and not self.subscription.is_expired()
     
+    def use_upload_credit(self):
+        """Use one upload credit and return True if successful"""
+        if self.upload_credits > 0:
+            self.upload_credits -= 1
+            return True
+        return False
+    
+    def get_remaining_credits(self):
+        """Get remaining credits (upload credits for promo users, subscription credits for others)"""
+        if self.upload_credits > 0:
+            return self.upload_credits
+        if self.subscription:
+            return self.subscription.monthly_credits - self.subscription.used_credits
+        return 0
+    
+    def is_promo_user(self):
+        """Check if user is a promo user (has promo code and upload credits)"""
+        return self.promo_code is not None and self.upload_credits > 0
+    
     def is_studio_plan(self):
-        """Check if the user has an active Studio subscription."""
-        return self.has_active_subscription() and self.subscription.plan == 'studio'
+        """Check if the user has an active Studio or Enterprise subscription for batch processing."""
+        return self.has_active_subscription() and self.subscription.plan in ['studio', 'enterprise']
+    
+    def is_administrator(self):
+        """Check if user is an administrator"""
+        return self.is_admin
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -51,7 +87,7 @@ class Subscription(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    plan = db.Column(db.String(20), nullable=False)  # 'free', 'pro', 'studio', 'enterprise'
+    plan = db.Column(db.String(20), nullable=False)  # 'free', 'pro', 'studio', 'enterprise', 'promo_pro_studio'
     status = db.Column(db.String(20), default='active')  # 'active', 'cancelled', 'expired'
     monthly_credits = db.Column(db.Integer, nullable=False)
     used_credits = db.Column(db.Integer, default=0)
@@ -60,6 +96,7 @@ class Subscription(db.Model):
     last_reset = db.Column(db.DateTime, default=datetime.utcnow)
     auto_renew = db.Column(db.Boolean, default=True)
     payment_id = db.Column(db.String(100))  # For storing payment processor ID
+    billing_cycle = db.Column(db.String(20), default='monthly')  # 'monthly' or 'annual'
     
     def is_active(self):
         return self.status == 'active' and (not self.end_date or self.end_date > datetime.utcnow())

@@ -1,0 +1,253 @@
+{% extends "admin/base.html" %}
+{% block title %}User Detail{% endblock %}
+{% block page_title %}User: {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>ID:</strong></td>
+                        <td>{{ user.id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Username:</strong></td>
+                        <td>{{ user.username }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created:</strong></td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Last Login:</strong></td>
+                        <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Admin:</strong></td>
+                        <td>
+                            {% if user.is_admin %}
+                                <span class="badge bg-danger">Administrator</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">User</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Beta User:</strong></td>
+                        <td>
+                            {% if user.is_beta %}
+                                <span class="badge bg-warning">Beta Tester</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">Regular User</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Subscription Information</h5>
+            </div>
+            <div class="card-body">
+                {% if subscription %}
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Plan:</strong></td>
+                        <td><span class="badge bg-primary">{{ subscription.plan.title() }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            {% if subscription.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif subscription.status == 'cancelled' %}
+                                <span class="badge bg-warning">Cancelled</span>
+                            {% elif subscription.status == 'expired' %}
+                                <span class="badge bg-danger">Expired</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ subscription.status.title() }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Credits:</strong></td>
+                        <td>{{ subscription.used_credits }} / {{ subscription.monthly_credits }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Start Date:</strong></td>
+                        <td>{{ subscription.start_date.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>End Date:</strong></td>
+                        <td>{{ subscription.end_date.strftime('%Y-%m-%d') if subscription.end_date else 'None' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auto Renew:</strong></td>
+                        <td>
+                            {% if subscription.auto_renew %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                {% else %}
+                <p class="text-muted">No subscription found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Upload History ({{ uploads|length }} files)</h5>
+            </div>
+            <div class="card-body">
+                {% if uploads %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Size</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Upload Date</th>
+                                <th>Variations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for upload in uploads %}
+                            <tr>
+                                <td>{{ upload.original_filename }}</td>
+                                <td>{{ (upload.file_size / 1024)|round(1) }} KB</td>
+                                <td>{{ upload.file_type }}</td>
+                                <td>
+                                    {% if upload.status == 'processed' %}
+                                        <span class="badge bg-success">Processed</span>
+                                    {% elif upload.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif upload.status == 'failed' %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ upload.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ upload.upload_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ upload.variations|length }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No uploads found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recent_activity %}
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Action</th>
+                                <th>Page</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activity %}
+                            <tr>
+                                <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ activity.action_performed }}</td>
+                                <td>{{ activity.page_visited or 'N/A' }}</td>
+                                <td>{{ activity.ip_address }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if sessions %}
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Sessions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Device</th>
+                                <th>Browser</th>
+                                <th>Actions</th>
+                                <th>Files Processed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                            <tr>
+                                <td>{{ session.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ session.end_time.strftime('%Y-%m-%d %H:%M') if session.end_time else 'Active' }}</td>
+                                <td>{{ session.device_type }}</td>
+                                <td>{{ session.browser }}</td>
+                                <td>{{ session.total_actions }}</td>
+                                <td>{{ session.files_processed }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

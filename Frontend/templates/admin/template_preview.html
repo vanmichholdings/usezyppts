@@ -1,0 +1,186 @@
+{% extends "admin/base.html" %}
+{% block title %}Template Preview - {{ template_name }}{% endblock %}
+{% block page_title %}Email Template Preview{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📧 Template Preview: {{ template_name.replace('_', ' ').title() }}</h5>
+                <div>
+                    <a href="{{ url_for('admin.notifications') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Notifications
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="sendTestEmail()">
+                                <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-info" onclick="togglePreviewMode()">
+                                <i class="fas fa-desktop me-2"></i>Toggle Preview Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Template Preview -->
+                <div class="template-preview-container">
+                    <div class="preview-frame" id="previewFrame">
+                        {{ html_content | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Email Modal -->
+<div class="modal fade" id="testEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Test Email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin.send_template_test') }}" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="template_name" value="{{ template_name }}">
+                    
+                    <div class="mb-3">
+                        <label for="testEmail" class="form-label">Test Email Address:</label>
+                        <input type="email" class="form-control" id="testEmail" name="test_email" 
+                               value="{{ config.ADMIN_ALERT_EMAIL }}" required>
+                        <div class="form-text">Email will be sent to this address using the {{ template_name }} template.</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Template:</strong> {{ template_name.replace('_', ' ').title() }}<br>
+                        <strong>Sender:</strong> Zyppts HQ<br>
+                        <strong>Sample Data:</strong> Will be used for testing
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.template-preview-container {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8f9fa;
+    padding: 20px;
+}
+
+.preview-frame {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.preview-frame img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile preview mode */
+.preview-frame.mobile-preview {
+    max-width: 375px;
+    margin: 0 auto;
+    border: 2px solid #007bff;
+}
+
+/* Desktop preview mode */
+.preview-frame.desktop-preview {
+    max-width: 100%;
+}
+
+.preview-controls {
+    background: #f8f9fa;
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 20px;
+}
+
+.preview-controls .btn {
+    margin-right: 10px;
+}
+
+.template-info {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.template-info h6 {
+    color: #1976d2;
+    margin-bottom: 10px;
+}
+
+.template-info ul {
+    margin-bottom: 0;
+    padding-left: 20px;
+}
+
+.template-info li {
+    margin-bottom: 5px;
+    color: #424242;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let previewMode = 'desktop';
+
+function sendTestEmail() {
+    const modal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+    modal.show();
+}
+
+function togglePreviewMode() {
+    const frame = document.getElementById('previewFrame');
+    const button = event.target;
+    
+    if (previewMode === 'desktop') {
+        previewMode = 'mobile';
+        frame.classList.remove('desktop-preview');
+        frame.classList.add('mobile-preview');
+        button.innerHTML = '<i class="fas fa-desktop me-2"></i>Desktop View';
+    } else {
+        previewMode = 'desktop';
+        frame.classList.remove('mobile-preview');
+        frame.classList.add('desktop-preview');
+        button.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>Mobile View';
+    }
+}
+
+// Initialize preview mode
+document.addEventListener('DOMContentLoaded', function() {
+    const frame = document.getElementById('previewFrame');
+    frame.classList.add('desktop-preview');
+});
+</script>
+{% endblock %} 

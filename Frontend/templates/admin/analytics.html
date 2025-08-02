@@ -1,0 +1,170 @@
+{% extends "admin/base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="metric-card text-center">
+            <div class="metric-value">{{ data.new_users }}</div>
+            <div class="metric-label">New Users ({{ data.period_days }} days)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card text-center">
+            <div class="metric-value">{{ data.active_subscriptions }}</div>
+            <div class="metric-label">Active Subscriptions</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card text-center">
+            <div class="metric-value">{{ data.total_uploads }}</div>
+            <div class="metric-label">Total Uploads</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card text-center">
+            <div class="metric-value">{{ data.recent_uploads }}</div>
+            <div class="metric-label">Recent Uploads ({{ data.period_days }} days)</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Subscription Plan Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="planChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top Active Users</h5>
+            </div>
+            <div class="card-body">
+                {% if data.top_users %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Activity Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in data.top_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.activity_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No analytics data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Daily Activity ({{ data.period_days }} days)</h5>
+            </div>
+            <div class="card-body">
+                {% if data.daily_activity %}
+                <canvas id="activityChart" width="800" height="300"></canvas>
+                {% else %}
+                <p class="text-muted">No daily activity data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Plan Distribution Chart
+const planCtx = document.getElementById('planChart').getContext('2d');
+const planData = {{ data.plan_distribution | tojson }};
+
+if (planData && planData.length > 0) {
+    new Chart(planCtx, {
+        type: 'doughnut',
+        data: {
+            labels: planData.map(item => item.plan.charAt(0).toUpperCase() + item.plan.slice(1)),
+            datasets: [{
+                data: planData.map(item => item.count),
+                backgroundColor: [
+                    '#3B5EF7',
+                    '#60A5FA',
+                    '#FAA52D',
+                    '#8A8D93'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Daily Activity Chart
+const activityCtx = document.getElementById('activityChart').getContext('2d');
+const activityData = {{ data.daily_activity | tojson }};
+
+if (activityData && activityData.length > 0) {
+    new Chart(activityCtx, {
+        type: 'line',
+        data: {
+            labels: activityData.map(item => item.date),
+            datasets: [{
+                label: 'User Actions',
+                data: activityData.map(item => item.actions),
+                borderColor: '#3B5EF7',
+                backgroundColor: 'rgba(59, 94, 247, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %} 

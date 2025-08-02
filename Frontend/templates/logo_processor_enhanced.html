@@ -7,21 +7,16 @@
 <style>
     /* Add styles for multi-file preview */
     .preview-container {
-        display: flex !important;
-        flex-direction: column;
-        gap: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
         margin-top: 1rem;
-        max-height: 400px;
+        max-height: 300px;
         overflow-y: auto;
         padding: 1rem;
         border: 1px solid var(--silver-gray);
         border-radius: 12px;
         background: rgba(248, 249, 250, 0.5);
-        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .preview-container:empty {
-        display: none !important;
     }
 
     .preview-item {
@@ -245,35 +240,10 @@
     }
     
     .file-item {
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        margin-bottom: 0.5rem;
-        padding: 0.75rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .file-item:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transform: translateY(-1px);
-    }
-
-    .file-item .btn-outline-danger {
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .file-item .btn-outline-danger:hover {
-        background-color: #dc3545;
-        border-color: #dc3545;
-        color: white;
+        background: #f8f9fa;
+        border-radius: 4px;
+        padding: 8px 12px;
+        border-left: 3px solid #6c757d;
     }
     
     .file-item .file-name {
@@ -440,23 +410,12 @@
         border: 1px solid rgba(13, 110, 253, 0.2) !important;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
-        margin-bottom: 1rem;
     }
 
     .batch-header h6 {
         color: var(--primary-color);
         font-weight: 600;
         margin: 0;
-    }
-    
-    /* Enhanced drop zone styling for batch mode */
-    .drop-zone.batch-mode {
-        border-color: var(--primary-color);
-        background: rgba(13, 110, 253, 0.02);
-    }
-    
-    .drop-zone.batch-mode .drop-zone-content {
-        opacity: 0.7;
     }
 
     .batch-info {
@@ -479,138 +438,6 @@
         to {
             transform: translateX(0);
             opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    /* File Upload Queue Styles */
-    #file-queue-container {
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    #file-queue-container .card {
-        border: none;
-        border-radius: 12px;
-    }
-    
-    #file-queue-container .card-header {
-        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.05) 100%);
-        border-bottom: 1px solid rgba(13, 110, 253, 0.2);
-        padding: 1rem;
-    }
-    
-    #file-queue-container .card-header h6 {
-        color: var(--primary-color);
-        font-weight: 600;
-        margin: 0;
-    }
-    
-    .file-queue-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
-        border-bottom: 1px solid #e9ecef;
-        transition: all 0.3s ease;
-        background: white;
-    }
-    
-    .file-queue-item:last-child {
-        border-bottom: none;
-    }
-    
-    .file-queue-item:hover {
-        background: #f8f9fa;
-    }
-    
-    .file-queue-item .file-info {
-        display: flex;
-        align-items: center;
-        flex-grow: 1;
-    }
-    
-    .file-queue-item .file-icon {
-        font-size: 1.2rem;
-        margin-right: 0.75rem;
-        width: 24px;
-        text-align: center;
-    }
-    
-    .file-queue-item .file-details {
-        flex-grow: 1;
-    }
-    
-    .file-queue-item .file-name {
-        font-weight: 600;
-        color: var(--text-color);
-        margin-bottom: 0.25rem;
-        word-break: break-word;
-    }
-    
-    .file-queue-item .file-size {
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-    
-    .file-queue-item .remove-btn {
-        background: none;
-        border: none;
-        color: #dc3545;
-        font-size: 1.1rem;
-        padding: 0.5rem;
-        border-radius: 50%;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        margin-left: 1rem;
-    }
-    
-    .file-queue-item .remove-btn:hover {
-        background: #dc3545;
-        color: white;
-        transform: scale(1.1);
-    }
-    
-    .file-queue-item .remove-btn:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
-    }
-    
-    /* Animation for new files */
-    .file-queue-item.new-file {
-        animation: slideInRight 0.3s ease-out;
-    }
-    
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
         }
     }
 </style>
@@ -654,71 +481,24 @@
                             <div class="drop-zone" id="drop-zone">
                                 <input type="file" name="logo" id="logo-input" 
                                        accept=".png,.jpg,.jpeg,.gif,.svg,.pdf,.webp" 
-                                       {% if current_user.is_studio_plan() or (current_user.subscription and current_user.subscription.plan == 'promo_pro_studio') %}multiple{% endif %} 
+                                       {% if current_user.is_studio_plan() %}multiple{% endif %} 
                                        required>
                                 <div class="drop-zone-content" id="drop-zone-prompt">
                                     <i class="fas fa-cloud-upload-alt mb-2 fa-2x text-muted"></i>
-                                    <p>Drag and drop your logo{% if current_user.is_studio_plan() or (current_user.subscription and current_user.subscription.plan == 'promo_pro_studio') %}s{% endif %} here or click to browse</p>
+                                    <p>Drag and drop your logo{% if current_user.is_studio_plan() %}s{% endif %} here or click to browse</p>
                                     <small class="text-muted">Supported formats: PNG, JPG, GIF, SVG, PDF, WEBP (max 16MB each)</small>
                                     {% if current_user.is_studio_plan() %}
                                     <br><small class="text-info">Studio Plan: Upload multiple files for batch processing.</small>
-                                    {% elif current_user.subscription and current_user.subscription.plan == 'promo_pro_studio' %}
-                                    <br><small class="text-info">Promo Plan: Upload multiple files for batch processing.</small>
                                     {% endif %}
                                 </div>
-                            </div>
-                            
-                            <!-- File Upload Queue -->
-                            <div id="file-queue-container" class="mt-3" style="display: none;">
-                                <div class="card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-list me-2"></i>Upload Queue
-                                            <span id="file-count" class="badge bg-primary ms-2">0</span>
-                                        </h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" id="clear-all-btn" onclick="clearAllFiles()">
-                                            <i class="fas fa-trash me-1"></i>Clear All
-                                        </button>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <div id="file-queue" class="list-group list-group-flush">
-                                            <!-- File items will be added here -->
-                                        </div>
-                                    </div>
+                                <!-- Container for file previews -->
+                                <div class="preview-container" id="preview-area" style="display: none;">
+                                    <!-- Batch header will be added here for Studio/Enterprise users -->
                                 </div>
                             </div>
-                            
                             <div class="invalid-feedback">Please select at least one logo file.</div>
                             <!-- Add hidden input to track if files are selected for validation -->
                             <input type="hidden" id="files-selected-indicator" value="0">
-                            
-                            <!-- Upload Credits Tracker -->
-                            {% if current_user.is_promo_user() %}
-                            <div class="mt-3">
-                                <div class="alert alert-info d-flex align-items-center" role="alert">
-                                    <i class="fas fa-gift me-2"></i>
-                                    <div>
-                                        <strong>Promo User:</strong> You have <span class="badge bg-success">{{ current_user.upload_credits }}</span> upload credit{{ 's' if current_user.upload_credits != 1 else '' }} remaining
-                                        {% if current_user.upload_credits == 0 %}
-                                        <br><small class="text-warning">Your promo credits have been used up. <a href="{{ url_for('main.subscription_plans') }}" class="alert-link">Upgrade to continue!</a></small>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% elif current_user.subscription %}
-                            <div class="mt-3">
-                                <div class="alert alert-secondary d-flex align-items-center" role="alert">
-                                    <i class="fas fa-credit-card me-2"></i>
-                                    <div>
-                                        <strong>{{ current_user.subscription.plan.title() }} Plan:</strong> 
-                                        <span class="badge bg-primary">{{ current_user.subscription.monthly_credits - current_user.subscription.used_credits }}</span> credit{{ 's' if (current_user.subscription.monthly_credits - current_user.subscription.used_credits) != 1 else '' }} remaining
-                                        {% if current_user.subscription.monthly_credits - current_user.subscription.used_credits == 0 %}
-                                        <br><small class="text-warning">No credits remaining. <a href="{{ url_for('main.subscription_plans') }}" class="alert-link">Upgrade your plan!</a></small>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
                         </div>
 
                         <!-- Options Tabs -->
@@ -1241,8 +1021,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const formElement = document.getElementById('logoForm'); // Get the form element
     // Read the studio plan status from the form's data attribute
     const isStudioPlan = formElement ? formElement.dataset.isStudio === 'true' : false;
-        console.log('Studio Plan Status:', isStudioPlan);
-        console.log('Form data-is-studio attribute:', formElement ? formElement.dataset.isStudio : 'not found');
     const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
     const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'application/pdf', 'image/webp'];
     let selectedFiles = []; // Store selected File objects
@@ -1275,10 +1053,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(fileInput) {
         fileInput.addEventListener('change', (e) => {
-            console.log('File input change event triggered');
-            console.log('Files selected:', e.target.files.length);
-            console.log('Multiple attribute:', e.target.hasAttribute('multiple'));
-            console.log('File input element:', e.target);
             handleFiles(e.target.files);
             // REMOVED: e.target.value = null; // This was preventing multiple file selection
         });
@@ -1286,21 +1060,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- File Handling Logic ---
     function handleFiles(files) {
-        console.log('=== handleFiles Debug Info ===');
-        console.log('handleFiles called with:', files.length, 'files');
-        console.log('isStudioPlan:', isStudioPlan);
-        console.log('Current selectedFiles length:', selectedFiles.length);
-        console.log('Files received:', Array.from(files).map(f => f.name));
-        
         // For Studio/Enterprise users, add files to the existing list
         // For Free/Pro users, replace the single file
         if (!isStudioPlan) {
-            console.log('Non-Studio user: Clearing existing files');
             previewArea.innerHTML = ''; 
             selectedFiles = []; 
-        } else {
-            console.log('Studio user: Adding to existing file list');
-            // Don't clear the preview area for Studio users - we want to keep existing files
         }
 
         let filesAdded = 0;
@@ -1314,7 +1078,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (isDuplicate) {
                 duplicateCount++;
-                console.log(`Skipping duplicate file: ${file.name}`);
                 continue;
             }
             
@@ -1329,17 +1092,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!isValidType) {
                 invalidCount++;
-                console.log(`Skipping invalid file type: ${file.name} (${file.type})`);
                 continue; 
             }
             if (file.size > MAX_FILE_SIZE) {
                 invalidCount++;
-                console.log(`Skipping oversized file: ${file.name} (${formatFileSize(file.size)})`);
                 continue; 
             }
 
             selectedFiles.push(file);
-            console.log('Added file:', file.name, 'Total files:', selectedFiles.length);
             createPreview(file);
             filesAdded++;
         }
@@ -1348,31 +1108,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isStudioPlan && (duplicateCount > 0 || invalidCount > 0)) {
             let message = '';
             if (filesAdded > 0) {
-                message += `✅ Added ${filesAdded} file(s) to batch. `;
+                message += `Added ${filesAdded} file(s) to batch. `;
             }
             if (duplicateCount > 0) {
-                message += `⚠️ Skipped ${duplicateCount} duplicate file(s). `;
+                message += `Skipped ${duplicateCount} duplicate file(s). `;
             }
             if (invalidCount > 0) {
-                message += `❌ Skipped ${invalidCount} invalid file(s).`;
+                message += `Skipped ${invalidCount} invalid file(s).`;
             }
             
             // Show a temporary notification
             showBatchNotification(message, 'info');
-        } else if (filesAdded > 0) {
-            showBatchNotification(`✅ Added ${filesAdded} file(s) to batch`, 'success');
         }
 
-        // For Studio users, don't update file input as it interferes with multiple selection
-        if (!isStudioPlan) { 
         updateFileInput();
-        }
         updateUIState(); 
-        
-        // Clear the file input value to allow selecting the same file again
-        if (fileInput && isStudioPlan) {
-            fileInput.value = '';
-        }
 
         // --- Auto-generate previews for all checked effects ---
         const effectCheckboxes = document.querySelectorAll('input[name^="effect_"]');
@@ -1385,110 +1135,99 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Create File List Item ---
+    // --- Create Preview Element ---
     function createPreview(file) {
-        console.log('=== createPreview Debug ===');
-        console.log('Creating preview for file:', file.name);
-        console.log('previewArea element:', previewArea);
-        
+        const reader = new FileReader();
         const fileId = `${file.name}-${file.size}-${file.lastModified}`;
 
-        const fileItem = document.createElement('div');
-        fileItem.classList.add('file-item', 'd-flex', 'align-items-center', 'justify-content-between', 'p-3', 'mb-2', 'border', 'rounded', 'bg-light');
-        fileItem.dataset.fileId = fileId;
-        fileItem.style.transition = 'all 0.3s ease';
+        const previewItem = document.createElement('div');
+        previewItem.classList.add('preview-item');
+        previewItem.dataset.fileId = fileId; 
 
-        const fileInfo = document.createElement('div');
-        fileInfo.className = 'd-flex align-items-center flex-grow-1';
-
-        const fileIcon = document.createElement('i');
-        fileIcon.className = getFileIcon(file.name);
-        fileIcon.style.fontSize = '1.2rem';
-        fileIcon.style.marginRight = '0.75rem';
-
-        const fileDetails = document.createElement('div');
-        fileDetails.className = 'flex-grow-1';
-        
-        const fileName = document.createElement('div');
-        fileName.className = 'fw-bold text-dark';
-        fileName.textContent = file.name;
-        fileName.style.wordBreak = 'break-word';
-
-        const fileSize = document.createElement('small');
-        fileSize.className = 'text-muted';
-        fileSize.textContent = formatFileSize(file.size);
-
-        fileDetails.appendChild(fileName);
-        fileDetails.appendChild(fileSize);
-        fileInfo.appendChild(fileIcon);
-        fileInfo.appendChild(fileDetails);
+        const img = document.createElement('img');
+        img.alt = 'Preview';
+        const filenameP = document.createElement('p');
+        filenameP.classList.add('filename');
+        filenameP.textContent = file.name;
         
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'btn btn-sm btn-outline-danger remove-file-btn';
+        removeBtn.classList.add('btn', 'btn-sm', 'btn-outline-danger', 'remove-file');
         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-        removeBtn.title = `Remove ${file.name}`;
+        removeBtn.title = 'Remove file';
         removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
-        removeBtn.style.marginLeft = '1rem';
-        removeBtn.style.flexShrink = '0';
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation(); 
-            console.log(`Removing file: ${file.name}`);
             removeFile(fileId);
         });
 
-        fileItem.appendChild(fileInfo);
-        fileItem.appendChild(removeBtn);
+        previewItem.appendChild(img);
+        previewItem.appendChild(filenameP);
+        previewItem.appendChild(removeBtn);
+        if(previewArea) previewArea.appendChild(previewItem);
 
-        if(previewArea) {
-            // Ensure preview area is visible
-            previewArea.style.display = 'flex';
-            previewArea.style.visibility = 'visible';
-            previewArea.style.opacity = '1';
-            
-            previewArea.appendChild(fileItem);
-            console.log('Added file item to preview area');
-            console.log('Preview area now has', previewArea.children.length, 'children');
-            
-            // Add a subtle animation
-            fileItem.style.opacity = '0';
-            fileItem.style.transform = 'translateY(10px)';
-            setTimeout(() => {
-                fileItem.style.opacity = '1';
-                fileItem.style.transform = 'translateY(0)';
-            }, 10);
+        reader.onload = function(e) {
+            if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+                img.src = e.target.result;
+                // Add preview functionality for images
+                previewItem.addEventListener('click', () => {
+                    showPreviewModal(file.name, e.target.result);
+                });
+            } else if (file.type === 'application/pdf') {
+                img.src = "{{ url_for('static', filename='images/pdf_icon.png') }}"; 
+                img.style.width = '50px'; 
+                img.style.height = 'auto';
+            } else if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')){
+                img.src = "{{ url_for('static', filename='images/svg_icon.png') }}"; 
+                img.style.width = '50px';
+                img.style.height = 'auto';
             } else { 
-            console.error('previewArea is null!');
+                img.src = "{{ url_for('static', filename='images/file_icon.png') }}"; 
+                img.style.width = '50px';
+                img.style.height = 'auto';
+            }
         }
+        reader.onerror = function() {
+            console.error("FileReader error for file:", file.name);
+            img.src = "{{ url_for('static', filename='images/file_icon.png') }}";
+            img.style.width = '50px';
+            img.style.height = 'auto';
+            filenameP.textContent = `${file.name} (preview error)`;
+        };
+        reader.readAsDataURL(file);
     }
 
-    // --- Get File Icon Based on File Type ---
-    function getFileIcon(filename) {
-        const extension = filename.split('.').pop().toLowerCase();
-        switch(extension) {
-            case 'png':
-            case 'jpg':
-            case 'jpeg':
-            case 'gif':
-            case 'webp':
-                return 'fas fa-image text-primary';
-            case 'svg':
-                return 'fas fa-vector-square text-success';
-            case 'pdf':
-                return 'fas fa-file-pdf text-danger';
-            default:
-                return 'fas fa-file text-secondary';
-        }
-    }
-
-    // --- Format File Size ---
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-
+    // --- Preview Modal Functionality ---
+    function showPreviewModal(filename, imageData) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'previewModal';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('aria-labelledby', 'previewModalLabel');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="previewModalLabel">Preview: ${filename}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${imageData}" class="img-fluid" alt="Preview">
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+        
+        // Clean up modal after it's closed
+        modal.addEventListener('hidden.bs.modal', () => {
+            document.body.removeChild(modal);
+        });
     }
 
     // --- Remove File Logic ---
@@ -1502,41 +1241,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (previewItemToRemove) {
             previewArea.removeChild(previewItemToRemove);
         }
-        // For Studio users, don't update file input as it interferes with multiple selection
-        if (!isStudioPlan) { 
         updateFileInput();
-        }
         updateUIState();
     }
 
     // --- Update Hidden Input and UI State ---
     function updateUIState() {
-        console.log('=== updateUIState Debug ===');
-        console.log('selectedFiles length:', selectedFiles.length);
-        console.log('previewArea element:', previewArea);
-        console.log('promptElement element:', promptElement);
-        
         if (selectedFiles.length > 0) {
-            console.log('Files selected - showing preview area');
-            if(promptElement) {
-                promptElement.style.display = 'none'; 
-                console.log('Hidden prompt element');
-            }
-            if(previewArea) {
-                previewArea.style.display = 'flex'; 
-                previewArea.style.visibility = 'visible';
-                previewArea.style.opacity = '1';
-                console.log('Showed preview area with display: flex');
-            }
-            if(filesSelectedIndicator) {
-                filesSelectedIndicator.value = '1'; 
-                console.log('Set files selected indicator to 1');
-            }
-            
-            // Add batch mode styling to drop zone
-            if (dropZone && isStudioPlan) {
-                dropZone.classList.add('batch-mode');
-            }
+            if(promptElement) promptElement.style.display = 'none'; 
+            if(previewArea) previewArea.style.display = 'flex'; 
+            if(filesSelectedIndicator) filesSelectedIndicator.value = '1'; 
             
             // Clear validation state for dropzone
             if (fileInput) fileInput.setCustomValidity('');
@@ -1550,7 +1264,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add batch header for Studio/Enterprise users with multiple files
             if (isStudioPlan && selectedFiles.length > 1) {
-                console.log('Adding batch header for Studio user with multiple files');
                 // Check if batch header already exists
                 let batchHeader = previewArea.querySelector('.batch-header');
                 if (!batchHeader) {
@@ -1570,13 +1283,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     `;
                     previewArea.insertBefore(batchHeader, previewArea.firstChild);
-                    console.log('Added batch header');
-        } else {
+                } else {
                     // Update existing header
                     const fileCount = batchHeader.querySelector('small');
                     if (fileCount) {
                         fileCount.textContent = `${selectedFiles.length} file(s) will be processed together`;
-                        console.log('Updated batch header file count');
                     }
                 }
             } else {
@@ -1584,7 +1295,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const batchHeader = previewArea.querySelector('.batch-header');
                 if (batchHeader) {
                     batchHeader.remove();
-                    console.log('Removed batch header');
                 }
             }
             
@@ -1610,34 +1320,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     dropZone.appendChild(batchInfo);
-                    console.log('Added batch info to drop zone');
                 }
             }
         } else {
-            console.log('No files selected - hiding preview area');
-            if(promptElement) {
-                promptElement.style.display = 'block'; 
-                console.log('Showed prompt element');
-            }
-            if(previewArea) {
-                previewArea.style.display = 'none'; 
-                console.log('Hidden preview area');
-            }
-            if(filesSelectedIndicator) {
-                filesSelectedIndicator.value = '0'; 
-                console.log('Set files selected indicator to 0');
-            }
-            
-            // Remove batch mode styling from drop zone
-            if (dropZone) {
-                dropZone.classList.remove('batch-mode');
-            }
+            if(promptElement) promptElement.style.display = 'block'; 
+            if(previewArea) previewArea.style.display = 'none'; 
+            if(filesSelectedIndicator) filesSelectedIndicator.value = '0'; 
             
             // Remove batch info when no files
             const existingBatchInfo = dropZone.querySelector('.batch-info');
             if (existingBatchInfo) {
                 existingBatchInfo.remove();
-                console.log('Removed batch info');
             }
         }
         
@@ -1650,7 +1343,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 processButton.innerHTML = `<i class="fas fa-cogs me-2"></i>Process`;
             }
-            console.log('Updated process button text');
         }
     }
     
@@ -1660,10 +1352,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (previewArea) {
             previewArea.innerHTML = '';
         }
-        // For Studio users, don't update file input as it interferes with multiple selection
-        if (!isStudioPlan) { 
-            updateFileInput(); 
-        }
+        updateFileInput();
         updateUIState();
         
         // Show notification
@@ -1672,11 +1361,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- Update File Input with selectedFiles --- 
     function updateFileInput() {
-        // REMOVED: This function was causing issues with file input behavior
-        // The DataTransfer API is not well-supported and interferes with native file input
-        // For Studio users, we don't need to update the file input manually
-        // The browser's native multiple file selection will handle this correctly
-        console.log('updateFileInput called - this function has been disabled for Studio users');
+        if (!fileInput) return; // Exit if file input doesn't exist
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => {
+             if (file instanceof File) { 
+                dataTransfer.items.add(file);
+             } else {
+                 console.warn('Attempted to add non-File object to DataTransfer:', file);
+             }
+        });
+        
+        try {
+            fileInput.files = dataTransfer.files;
+        } catch (err) {
+            console.error("Error updating file input files property:", err);
+        }
     }
 
     // --- Form Submission and Progress Indicator Logic ---
@@ -1821,10 +1520,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleFormSubmit(event) {
         event.preventDefault();
         
-        console.log('=== Form Submit Debug ===');
-        console.log('isStudioPlan:', isStudioPlan);
-        console.log('selectedFiles length:', selectedFiles.length);
-        
         // Reset any previous state
         processingAborted = false;
         
@@ -1834,35 +1529,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Submit form using fetch API
         const formData = new FormData(form);
         
-        // Always use selectedFiles array for consistency
-        if (selectedFiles.length > 0) {
-            // Remove the original file input data
-            formData.delete('logo');
-            
-            // Add all files from the queue
-            selectedFiles.forEach((file, index) => {
-                console.log(`Adding file ${index + 1}: ${file.name}`);
-                formData.append('logo', file);
-            });
-            
-            // Add batch mode if multiple files
-            if (selectedFiles.length > 1) {
-                console.log('Adding batch_mode=true for multiple files');
-                formData.append('batch_mode', 'true');
-            }
-            
-            console.log('FormData contents after adding files:');
-            for (let [key, value] of formData.entries()) {
-                if (value instanceof File) {
-                    console.log(`${key}: File(${value.name}, ${value.size} bytes)`);
-                } else {
-                    console.log(`${key}: ${value}`);
-                }
-            }
-        } else {
-            console.error('No files selected for processing');
-            showNotification('Please select at least one file to process', 'error');
-            return;
+        // Add batch mode if Studio/Enterprise user has multiple files
+        const fileInput = document.getElementById('logo-input');
+        const isStudioPlan = document.querySelector('[data-is-studio="true"]') !== null;
+        
+        if (isStudioPlan && fileInput && fileInput.files.length > 1) {
+            formData.append('batch_mode', 'true');
         }
         
         fetch(form.action, {
@@ -1892,17 +1564,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update progress to complete
             updateProgress('complete', 100, 'Processing complete! Your download should start shortly.');
-            
-            // Clear the file queue after successful processing
-            selectedFiles = [];
-            fileQueue.innerHTML = '';
-            updateQueueDisplay();
-            showNotification('Processing complete! Files have been downloaded.', 'success');
         })
         .catch(error => {
             console.error('Error:', error);
             updateProgress('error', 0, 'An error occurred while processing your request. Please try again.');
-            showNotification('Processing failed. Please try again.', 'error');
         });
     }
     
@@ -2053,295 +1718,277 @@ document.addEventListener('DOMContentLoaded', function() {
     function showPreviewError(effect) {
         const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
         if (previewTabDiv) {
-            previewTabDiv.innerHTML = '<span class="text-danger">Error loading preview</span>';
+            previewTabDiv.innerHTML = '<span class="text-danger">Failed to generate preview</span>';
         }
     }
-
-    // File Upload Queue Management
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('logo-input');
-    const fileQueueContainer = document.getElementById('file-queue-container');
-    const fileQueue = document.getElementById('file-queue');
-    const fileCount = document.getElementById('file-count');
-    const promptElement = document.getElementById('drop-zone-prompt');
-    const filesSelectedIndicator = document.getElementById('files-selected-indicator');
-    const processButton = document.getElementById('process-button');
-    const formElement = document.getElementById('logoForm');
-    
-    // Read the studio plan status from the form's data attribute
-    const isStudioPlan = formElement ? formElement.dataset.isStudio === 'true' : false;
-    console.log('Studio Plan Status:', isStudioPlan);
-    console.log('Form data-is-studio attribute:', formElement ? formElement.dataset.isStudio : 'not found');
-    
-    const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'application/pdf', 'image/webp'];
-    let selectedFiles = []; // Store selected File objects
-
-    // --- Drag and Drop Handlers ---
-    if (dropZone) {
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            handleFiles(files);
-        });
-
-        // --- Click to Browse Handler ---
-        dropZone.addEventListener('click', (event) => { 
-            if (event.target !== fileInput && (event.target === dropZone || promptElement.contains(event.target))) {
-                fileInput.click();
+    function showPreviewImage(effect, imgSrc, altText) {
+        const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
+        if (previewTabDiv) {
+            previewTabDiv.innerHTML = `<img src="${imgSrc}" alt="${altText}" class="img-fluid rounded shadow-sm preview-img-modal" tabindex="0" style="cursor:zoom-in;max-height:110px;max-width:100%;object-fit:contain;">`;
+            // Modal enlarge on click/enter
+            const img = previewTabDiv.querySelector('img');
+            if (img) {
+                img.addEventListener('click', () => openPreviewModal(imgSrc, altText));
+                img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') openPreviewModal(imgSrc, altText); });
             }
-        });
-    }
-
-    if(fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            console.log('File input change event triggered');
-            console.log('Files selected:', e.target.files.length);
-            console.log('Multiple attribute:', e.target.hasAttribute('multiple'));
-            handleFiles(e.target.files);
-        });
-    }
-
-    // --- File Handling Logic ---
-    function handleFiles(files) {
-        console.log('=== handleFiles Debug Info ===');
-        console.log('handleFiles called with:', files.length, 'files');
-        console.log('isStudioPlan:', isStudioPlan);
-        console.log('Current selectedFiles length:', selectedFiles.length);
-        console.log('Files received:', Array.from(files).map(f => f.name));
-        
-        // For Studio/Enterprise users, add files to the existing list
-        // For Free/Pro users, replace the single file
-        if (!isStudioPlan) {
-            console.log('Non-Studio user: Clearing existing files');
-            selectedFiles = [];
-            fileQueue.innerHTML = '';
-        } else {
-            console.log('Studio user: Adding to existing file list');
         }
+    }
+    function openPreviewModal(imgSrc, altText) {
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        const modalImg = document.querySelector('#previewModal img');
+        if (modalImg) {
+            modalImg.src = imgSrc;
+            modalImg.alt = altText;
+        }
+        modal.show();
+    }
+    // --- Overwrite generateEffectPreview for new UI ---
+    function generateEffectPreview(effect, previewTabDiv = null) {
+        if (!selectedFiles.length) return;
+        // Remap effect for preview as requested
+        let previewEffect = effect;
+        let altText = '';
+        if (effect === 'effect_vector') {
+            previewEffect = 'effect_transparent';
+            altText = 'Transparent PNG Preview';
+        } else if (effect === 'effect_color_separations') {
+            previewEffect = 'effect_black';
+            altText = 'One Color Black Version Preview';
+        } else if (effect === 'effect_distressed') {
+            altText = 'Distressed Effect Preview';
+        } else if (effect === 'effect_outline') {
+            altText = 'Contour Cutline Preview';
+        }
+        showPreviewLoading(effect);
+        const formData = new FormData();
+        formData.append('file', selectedFiles[0]);
+        formData.append('effect', previewEffect);
+        formData.append('preview', 'true');
+        fetch("{{ url_for('main.logo_processor') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.preview) {
+                showPreviewImage(effect, data.preview, altText);
+            } else {
+                showPreviewError(effect);
+            }
+        })
+        .catch(error => {
+            console.error('Error generating preview:', error);
+            showPreviewError(effect);
+        });
+    }
 
-        let filesAdded = 0;
-        let duplicateCount = 0;
-        let invalidCount = 0;
+    // Update progress tracking with detailed information
+    function updateProgress(stage, progress, message, currentFile = null, totalFiles = 0, processedFiles = 0) {
+        const progressBar = document.querySelector('#progress-container .progress-bar');
+        const progressMessage = document.getElementById('progress-message');
+        const previewContainer = document.getElementById('preview-container');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const processedCountEl = document.getElementById('processed-count');
+        const totalCountEl = document.getElementById('total-count');
+        const fileList = document.getElementById('file-list');
+        const currentStage = document.getElementById('current-stage');
 
-        for (const file of files) {
-            // Check if we already have this file (for batch processing)
-            const fileId = `${file.name}-${file.size}-${file.lastModified}`;
-            const isDuplicate = selectedFiles.some(f => `${f.name}-${f.size}-${f.lastModified}` === fileId);
+        if (!progressBar || !progressMessage) return;
+
+        // Update current progress
+        currentProgress = progress;
+        
+        // Update progress bar
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+            progressPercentage.textContent = `${progress}%`;
             
-            if (isDuplicate) {
-                duplicateCount++;
-                console.log(`Skipping duplicate file: ${file.name}`);
-                continue;
+            // Update progress bar color based on stage
+            if (progress >= 100) {
+                progressBar.classList.remove('bg-primary', 'bg-warning');
+                progressBar.classList.add('bg-success');
+            } else if (stage === 'error') {
+                progressBar.classList.remove('bg-primary', 'bg-success');
+                progressBar.classList.add('bg-danger');
+            } else {
+                progressBar.classList.remove('bg-warning', 'bg-success', 'bg-danger');
+                progressBar.classList.add('bg-primary');
+            }
+        }
+        
+        // Update current stage
+        if (currentStage) {
+            const stageTitles = {
+                'loading': 'Loading file...',
+                'processing': 'Processing image...',
+                'saving': 'Saving files...',
+                'zipping': 'Creating download package...',
+                'complete': 'Processing complete!',
+                'error': 'Error occurred'
+            };
+            currentStage.textContent = stageTitles[stage] || 'Processing';
+        }
+        
+        // Update progress message with icon based on stage
+        if (progressMessage) {
+            const icons = {
+                'loading': '<i class="fas fa-spinner fa-spin me-2"></i>',
+                'processing': '<i class="fas fa-cog fa-spin me-2"></i>',
+                'saving': '<i class="fas fa-save me-2"></i>',
+                'zipping': '<i class="fas fa-file-archive me-2"></i>',
+                'complete': '<i class="fas fa-check-circle me-2"></i>',
+                'error': '<i class="fas fa-exclamation-triangle me-2"></i>'
+            };
+            
+            // Add more descriptive messages for zip stage
+            let displayMessage = message || 'Processing...';
+            if (stage === 'zipping' && currentFile) {
+                displayMessage = `Adding ${currentFile} to archive...`;
+            } else if (stage === 'zipping' && processedFiles > 0 && totalFiles > 0) {
+                displayMessage = `Added ${processedFiles} of ${totalFiles} files to archive...`;
             }
             
-            let isValidType = allowedTypes.includes(file.type);
-            if (!isValidType && file.type === '') {
-                const extension = file.name.split('.').pop().toLowerCase();
-                if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'pdf', 'webp'].includes(extension)) {
-                    console.warn(`File type for ${file.name} is empty, allowing based on extension.`);
-                    isValidType = true;
-                }
-            }
-
-            if (!isValidType) {
-                invalidCount++;
-                console.log(`Skipping invalid file type: ${file.name} (${file.type})`);
-                continue; 
-            }
-            if (file.size > MAX_FILE_SIZE) {
-                invalidCount++;
-                console.log(`Skipping oversized file: ${file.name} (${formatFileSize(file.size)})`);
-                continue; 
-            }
-
-            selectedFiles.push(file);
-            console.log('Added file:', file.name, 'Total files:', selectedFiles.length);
-            addFileToQueue(file);
-            filesAdded++;
+            progressMessage.innerHTML = `${icons[stage] || '<i class="fas fa-info-circle me-2"></i>'} ${displayMessage}`;
         }
-
-        // Show feedback messages for batch processing
-        if (isStudioPlan && (duplicateCount > 0 || invalidCount > 0)) {
-            let message = '';
-            if (filesAdded > 0) {
-                message += `✅ Added ${filesAdded} file(s) to queue. `;
+        
+        // Update time remaining estimation
+        if (timeRemaining && progress > 0 && progress < 100) {
+            const timeElapsed = (new Date() - processingStartTime) / 1000; // in seconds
+            const estimatedTotalTime = (timeElapsed / progress) * 100;
+            const remainingTime = Math.max(0, estimatedTotalTime - timeElapsed);
+            
+            if (remainingTime < 60) {
+                timeRemaining.textContent = `About ${Math.ceil(remainingTime)} seconds remaining`;
+            } else {
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = Math.ceil(remainingTime % 60);
+                timeRemaining.textContent = `About ${minutes}m ${seconds}s remaining`;
             }
-            if (duplicateCount > 0) {
-                message += `⚠️ Skipped ${duplicateCount} duplicate file(s). `;
-            }
-            if (invalidCount > 0) {
-                message += `❌ Skipped ${invalidCount} invalid file(s).`;
+        } else if (timeRemaining && progress >= 100) {
+            const totalTime = Math.ceil((new Date() - processingStartTime) / 1000);
+            timeRemaining.textContent = `Completed in ${totalTime} seconds`;
+        }
+        
+        // Update file counts
+        if (processedCount && processedFiles !== undefined) {
+            processedCount.textContent = processedFiles;
+        }
+        
+        if (totalCount && totalFiles !== undefined) {
+            totalCount.textContent = totalFiles;
+        }
+        
+        // Update file list if current file is provided
+        if (currentFile && fileList) {
+            // Add or update file in the list
+            const fileId = currentFile.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            let fileItem = document.getElementById(`file-${fileId}`);
+            
+            if (!fileItem) {
+                fileItem = document.createElement('div');
+                fileItem.id = `file-${fileId}`;
+                fileItem.className = 'file-item mb-3 p-2 border rounded';
+                fileItem.style.transition = 'all 0.3s ease';
+                fileItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="file-name text-truncate me-2" style="max-width: 70%;" title="${currentFile}">
+                            <i class="far fa-file me-2"></i>${currentFile}
+                        </span>
+                        <span class="badge">Pending</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" role="progressbar" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
             }
             
-            showNotification(message, 'info');
-        } else if (filesAdded > 0) {
-            showNotification(`✅ Added ${filesAdded} file(s) to queue`, 'success');
-        }
-
-        updateQueueDisplay();
-        
-        // Clear the file input value to allow selecting the same file again
-        if (fileInput && isStudioPlan) {
-            fileInput.value = '';
-        }
-    }
-
-    // --- Add File to Queue ---
-    function addFileToQueue(file) {
-        const fileId = `${file.name}-${file.size}-${file.lastModified}`;
-        
-        const fileItem = document.createElement('div');
-        fileItem.className = 'file-queue-item new-file';
-        fileItem.dataset.fileId = fileId;
-
-        const fileInfo = document.createElement('div');
-        fileInfo.className = 'file-info';
-
-        const fileIcon = document.createElement('i');
-        fileIcon.className = `file-icon ${getFileIcon(file.name)}`;
-
-        const fileDetails = document.createElement('div');
-        fileDetails.className = 'file-details';
-        
-        const fileName = document.createElement('div');
-        fileName.className = 'file-name';
-        fileName.textContent = file.name;
-
-        const fileSize = document.createElement('div');
-        fileSize.className = 'file-size';
-        fileSize.textContent = formatFileSize(file.size);
-
-        fileDetails.appendChild(fileName);
-        fileDetails.appendChild(fileSize);
-        fileInfo.appendChild(fileIcon);
-        fileInfo.appendChild(fileDetails);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-btn';
-        removeBtn.innerHTML = '❌';
-        removeBtn.title = `Remove ${file.name}`;
-        removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
-        removeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            console.log(`Removing file: ${file.name}`);
-            removeFileFromQueue(fileId);
-        });
-
-        fileItem.appendChild(fileInfo);
-        fileItem.appendChild(removeBtn);
-
-        fileQueue.appendChild(fileItem);
-        
-        // Remove animation class after animation completes
-        setTimeout(() => {
-            fileItem.classList.remove('new-file');
-        }, 300);
-    }
-
-    // --- Remove File from Queue ---
-    function removeFileFromQueue(fileId) {
-        // Remove from selectedFiles array
-        selectedFiles = selectedFiles.filter(f => `${f.name}-${f.size}-${f.lastModified}` !== fileId);
-        
-        // Remove from DOM
-        const fileItem = fileQueue.querySelector(`[data-file-id="${fileId}"]`);
-        if (fileItem) {
-            fileItem.style.animation = 'slideOutRight 0.3s ease-out';
-            setTimeout(() => {
-                if (fileItem.parentNode) {
-                    fileItem.parentNode.removeChild(fileItem);
-                }
-            }, 300);
-        }
-        
-        updateQueueDisplay();
-        showNotification('File removed from queue', 'info');
-    }
-
-    // --- Clear All Files ---
-    window.clearAllFiles = function() {
-        selectedFiles = [];
-        fileQueue.innerHTML = '';
-        updateQueueDisplay();
-        showNotification('All files cleared from queue', 'info');
-    };
-
-    // --- Update Queue Display ---
-    function updateQueueDisplay() {
-        if (selectedFiles.length > 0) {
-            fileQueueContainer.style.display = 'block';
-            fileCount.textContent = selectedFiles.length;
-            filesSelectedIndicator.value = '1';
+            // Update progress for this file
+            const fileProgress = fileItem.querySelector('.progress-bar');
+            if (fileProgress) {
+                fileProgress.style.width = `${progress}%`;
+                fileProgress.setAttribute('aria-valuenow', progress);
+            }
             
-            // Update process button text
-            if (processButton) {
-                if (selectedFiles.length > 1) {
-                    processButton.innerHTML = `<i class="fas fa-cogs me-2"></i>Process ${selectedFiles.length} Logos`;
+            // Update status badge
+            const statusBadge = fileItem.querySelector('.badge');
+            if (statusBadge) {
+                if (progress >= 100) {
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.innerHTML = '<i class="fas fa-check me-1"></i>Complete';
+                    fileItem.classList.add('bg-light');
+                } else if (stage === 'error') {
+                    statusBadge.className = 'badge bg-danger';
+                    statusBadge.innerHTML = '<i class="fas fa-times me-1"></i>Error';
+                    fileItem.classList.add('bg-light', 'border-danger');
+                } else if (progress > 0) {
+                    statusBadge.className = 'badge bg-primary';
+                    statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing';
+                    fileItem.classList.remove('bg-light');
                 } else {
-                    processButton.innerHTML = `<i class="fas fa-cogs me-2"></i>Process Logo`;
+                    statusBadge.className = 'badge bg-secondary';
+                    statusBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Pending';
+                    fileItem.classList.remove('bg-light');
+                }
+            }
+        }
+        
+        // Scroll the file list to show the latest item
+        if (fileList && fileList.lastElementChild) {
+            fileList.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // If processing is complete, update the UI
+        if (progress >= 100 || stage === 'complete' || stage === 'error') {
+            if (cancelButton) {
+                cancelButton.disabled = true;
+                cancelButton.innerHTML = '<i class="fas fa-check me-1"></i>Done';
+            }
+            
+            if (processButton) {
+                processButton.disabled = false;
+                if (stage === 'error') {
+                    processButton.innerHTML = '<i class="fas fa-redo me-2"></i>Try Again';
+                } else {
+                    processButton.innerHTML = '<i class="fas fa-download me-2"></i>Download Again';
+                }
+            }
+            
+            // Remove loading animation when complete
+            if (progressBar) {
+                progressBar.classList.remove('progress-bar-animated');
+                progressBar.classList.remove('progress-bar-striped');
+                
+                // Change progress bar color based on status
+                if (stage === 'complete') {
+                    progressBar.classList.remove('bg-info');
+                    progressBar.classList.add('bg-success');
+                } else {
+                    progressBar.classList.remove('bg-info');
+                    progressBar.classList.add('bg-danger');
                 }
             }
         } else {
-            fileQueueContainer.style.display = 'none';
-            fileCount.textContent = '0';
-            filesSelectedIndicator.value = '0';
-            
-            if (processButton) {
-                processButton.innerHTML = `<i class="fas fa-cogs me-2"></i>Process`;
+            // Ensure loading styles are applied for in-progress states
+            if (progressBar) {
+                progressBar.classList.add('progress-bar-animated');
+                progressBar.classList.add('progress-bar-striped');
+                progressBar.classList.add('bg-info');
             }
         }
     }
 
-    // --- Get File Icon Based on File Type ---
-    function getFileIcon(filename) {
-        const extension = filename.split('.').pop().toLowerCase();
-        switch(extension) {
-            case 'png':
-            case 'jpg':
-            case 'jpeg':
-            case 'gif':
-            case 'webp':
-                return 'fas fa-image text-primary';
-            case 'svg':
-                return 'fas fa-vector-square text-success';
-            case 'pdf':
-                return 'fas fa-file-pdf text-danger';
-            default:
-                return 'fas fa-file text-secondary';
-        }
-    }
-
-    // --- Format File Size ---
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // --- Show Notification ---
-    function showNotification(message, type = 'info') {
+    // --- Batch Notification Function ---
+    function showBatchNotification(message, type = 'info') {
         // Remove any existing notifications
-        const existingNotification = document.querySelector('.upload-notification');
+        const existingNotification = document.querySelector('.batch-notification');
         if (existingNotification) {
             existingNotification.remove();
         }
 
         const notification = document.createElement('div');
-        notification.className = `upload-notification alert alert-${type} alert-dismissible fade show`;
+        notification.className = `batch-notification alert alert-${type} alert-dismissible fade show`;
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -2367,6 +2014,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 5000);
     }
-});
+
+    // Initial setup on page load
+    updateUIState(); 
+
+}); // End DOMContentLoaded
 </script>
 {% endblock %}

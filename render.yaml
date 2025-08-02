@@ -1,0 +1,71 @@
+services:
+  - type: web
+    name: zyppts-logo-processor
+    env: python
+    plan: starter
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: cd Backend && gunicorn --config gunicorn.conf.py app_config:create_app()
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: False
+      - key: FLASK_ENV
+        value: production
+      - key: SESSION_COOKIE_SECURE
+        value: True
+      - key: RENDER
+        value: true
+      - key: REDIS_URL
+        fromService:
+          name: zyppts-redis
+          type: redis
+          property: connectionString
+      - key: DATABASE_URL
+        fromService:
+          name: zyppts-database
+          type: pserv
+          property: connectionString
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SITE_URL
+        value: https://usezyppts.com
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MAX_CONTENT_LENGTH
+        value: 16777216
+      - key: UPLOAD_EXTENSIONS
+        value: .png,.jpg,.jpeg,.gif,.bmp,.tiff,.svg,.pdf,.webp
+      - key: CACHE_TYPE
+        value: redis
+      - key: SESSION_TYPE
+        value: redis
+      - key: RATELIMIT_STORAGE_URL
+        fromService:
+          name: zyppts-redis
+          type: redis
+          property: connectionString
+
+  - type: redis
+    name: zyppts-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+
+  - type: pserv
+    name: zyppts-database
+    env: postgresql
+    plan: starter
+    ipAllowList: [] 

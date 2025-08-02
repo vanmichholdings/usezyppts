@@ -1,0 +1,268 @@
+{% extends "admin/base.html" %}
+{% block title %}Email Notifications{% endblock %}
+{% block page_title %}Email Notification Management{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📧 Notification Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Admin Alert Email:</label>
+                    <div class="input-group">
+                        <input type="email" class="form-control" value="{{ settings.admin_alert_email }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ settings.admin_alert_email }}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Configure this in your environment variables</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Email Status:</label>
+                    {% if settings.email_enabled %}
+                        <span class="badge bg-success">✅ Enabled</span>
+                    {% else %}
+                        <span class="badge bg-danger">❌ Disabled</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Sender Name:</label>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Zyppts HQ</strong> - All emails will be sent from this sender name
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Notification Types:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked disabled>
+                        <label class="form-check-label">New User Registrations</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked disabled>
+                        <label class="form-check-label">Security Alerts</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked disabled>
+                        <label class="form-check-label">Daily Summaries</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked disabled>
+                        <label class="form-check-label">Weekly Reports</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">⚡ Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="showTemplateSelector()">
+                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                    </button>
+                    <a href="{{ url_for('admin.send_daily_summary_manual') }}" class="btn btn-info">
+                        <i class="fas fa-chart-line me-2"></i>Send Daily Summary
+                    </a>
+                    <a href="{{ url_for('admin.send_weekly_report_manual') }}" class="btn btn-warning">
+                        <i class="fas fa-chart-bar me-2"></i>Send Weekly Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Email Templates</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-plus fa-2x text-primary mb-2"></i>
+                                <h6>New User Registration</h6>
+                                <small class="text-muted">Sent when new users register</small>
+                                <div class="mt-3">
+                                    <a href="{{ url_for('admin.template_preview', template_name='new_account_notification') }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>Preview
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-envelope fa-2x text-success mb-2"></i>
+                                <h6>Welcome Email</h6>
+                                <small class="text-muted">Sent to new users</small>
+                                <div class="mt-3">
+                                    <a href="{{ url_for('admin.template_preview', template_name='welcome_email') }}" 
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-eye me-1"></i>Preview
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-2x text-warning mb-2"></i>
+                                <h6>Daily Summary</h6>
+                                <small class="text-muted">Daily statistics report</small>
+                                <div class="mt-3">
+                                    <span class="badge bg-secondary">Coming Soon</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shield-alt fa-2x text-danger mb-2"></i>
+                                <h6>Security Alerts</h6>
+                                <small class="text-muted">Security event notifications</small>
+                                <div class="mt-3">
+                                    <span class="badge bg-secondary">Coming Soon</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">⏰ Scheduled Tasks</h5>
+            </div>
+            <div class="card-body">
+                {% if scheduled_jobs %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Schedule</th>
+                                <th>Next Run</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in scheduled_jobs %}
+                            <tr>
+                                <td>{{ job.name }}</td>
+                                <td>{{ job.trigger }}</td>
+                                <td>{{ job.next_run_time.strftime('%Y-%m-%d %H:%M:%S') if job.next_run_time else 'N/A' }}</td>
+                                <td>
+                                    {% if job.next_run_time %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No scheduled tasks found. Tasks will be created automatically.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template Selector Modal -->
+<div class="modal fade" id="templateSelectorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Template for Test Email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin.send_template_test') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="templateSelect" class="form-label">Choose Template:</label>
+                        <select class="form-select" id="templateSelect" name="template_name" required>
+                            <option value="">Select a template...</option>
+                            <option value="test_notification">Test Notification</option>
+                            <option value="welcome_email">Welcome Email</option>
+                            <option value="new_account_notification">New User Registration</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="testEmailAddress" class="form-label">Test Email Address:</label>
+                        <input type="email" class="form-control" id="testEmailAddress" name="test_email" 
+                               value="{{ settings.admin_alert_email }}" required>
+                        <div class="form-text">Email will be sent to this address using the selected template.</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Sender:</strong> Zyppts HQ<br>
+                        <strong>Sample Data:</strong> Will be used for testing<br>
+                        <strong>Template Preview:</strong> Available for each template
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-success');
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    });
+}
+
+function showTemplateSelector() {
+    const modal = new bootstrap.Modal(document.getElementById('templateSelectorModal'));
+    modal.show();
+}
+</script>
+{% endblock %} 

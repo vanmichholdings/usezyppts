@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %} - ZYPPTS</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .admin-sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B1464 0%, #2C3E50 100%);
+            color: white;
+        }
+        
+        .admin-sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        .admin-sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .admin-content {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .admin-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 0;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1B1464;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn-admin {
+            background: linear-gradient(135deg, #1B1464 0%, #2C3E50 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(27, 20, 100, 0.3);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0">
+                <div class="admin-sidebar p-3">
+                    <div class="text-center mb-4">
+                        <h4><i class="fas fa-shield-alt"></i> Admin Panel</h4>
+                        <small>Welcome, {{ current_user.username }}</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" 
+                           href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" 
+                           href="{{ url_for('admin.users') }}">
+                            <i class="fas fa-users"></i> Users
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'admin.subscriptions' %}active{% endif %}" 
+                           href="{{ url_for('admin.subscriptions') }}">
+                            <i class="fas fa-credit-card"></i> Subscriptions
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}" 
+                           href="{{ url_for('admin.analytics') }}">
+                            <i class="fas fa-chart-line"></i> Analytics
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'admin.system' %}active{% endif %}" 
+                           href="{{ url_for('admin.system') }}">
+                            <i class="fas fa-server"></i> System
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'admin.notifications' %}active{% endif %}" 
+                           href="{{ url_for('admin.notifications') }}">
+                            <i class="fas fa-envelope"></i> Notifications
+                        </a>
+                        
+                        <hr class="my-3">
+                        
+                        <a class="nav-link" href="{{ url_for('main.home') }}">
+                            <i class="fas fa-home"></i> Back to Site
+                        </a>
+                        <a class="nav-link" href="{{ url_for('main.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-0">
+                <div class="admin-content">
+                    <!-- Header -->
+                    <div class="admin-header">
+                        <div class="container-fluid">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h1 class="h3 mb-0">{% block page_title %}Dashboard{% endblock %}</h1>
+                                </div>
+                                <div class="col-auto">
+                                    {% block header_actions %}{% endblock %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Page Content -->
+                    <div class="container-fluid py-4">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

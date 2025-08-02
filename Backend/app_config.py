@@ -3,7 +3,9 @@ App configuration for the new Frontend/Backend structure
 """
 
 import os
-from flask import Flask
+import logging
+from logging.handlers import RotatingFileHandler
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -18,7 +20,8 @@ login_manager = LoginManager()
 mail = Mail()
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"]
+    default_limits=["100 per hour", "500 per day"],
+    storage_uri=os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 )
 cache = Cache()
 session = Session()
@@ -52,21 +55,90 @@ def create_app():
     app.config['CACHE_FOLDER'] = os.path.join(backend_dir, 'cache')
     app.config['TEMP_FOLDER'] = os.path.join(backend_dir, 'temp')
     
+    # Configure logging for production
+    if not app.debug and not app.testing:
+        # Create logs directory
+        logs_dir = os.path.join(backend_dir, 'logs')
+        if not os.path.exists(logs_dir):
+            os.makedirs(logs_dir, mode=0o750)
+        
+        # Set up file logging
+        file_handler = RotatingFileHandler(
+            os.path.join(logs_dir, 'zyppts.log'),
+            maxBytes=10240000,  # 10MB
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Zyppts startup')
+    
+    # Configure Redis connections for production
+    import redis
+    redis_configured = False
+    
+    try:
+        # Get Redis configuration from environment
+        redis_url = os.environ.get('REDIS_URL')
+        if redis_url:
+            # Parse Redis URL for production (Render format)
+            app.logger.info(f"Configuring Redis with URL: {redis_url}")
+            
+            # Configure Flask-Session for Redis
+            app.config['SESSION_TYPE'] = 'redis'
+            app.config['SESSION_REDIS'] = redis.from_url(f"{redis_url}/1", decode_responses=False)
+            app.config['SESSION_PERMANENT'] = False
+            app.config['SESSION_USE_SIGNER'] = True
+            app.config['SESSION_KEY_PREFIX'] = 'zyppts:'
+            
+            # Configure Flask-Limiter for Redis  
+            app.config['RATELIMIT_STORAGE_URL'] = f"{redis_url}/0"
+            
+            # Configure Flask-Cache for Redis
+            app.config['CACHE_TYPE'] = 'redis'
+            app.config['CACHE_REDIS_URL'] = f"{redis_url}/0"
+            app.config['CACHE_DEFAULT_TIMEOUT'] = 300
+            
+            # Test connection
+            test_redis = redis.from_url(redis_url)
+            test_redis.ping()
+            redis_configured = True
+            app.logger.info("✅ Redis connections configured successfully")
+            
+    except Exception as redis_error:
+        app.logger.warning(f"⚠️ Redis not available ({redis_error}), falling back to filesystem storage")
+        redis_configured = False
+    
+    # Fallback to filesystem if Redis is not available
+    if not redis_configured:
+        app.logger.info("🔧 Using filesystem sessions and simple cache")
+        app.config['SESSION_TYPE'] = 'filesystem'
+        app.config['SESSION_FILE_DIR'] = os.path.join(backend_dir, 'sessions')
+        app.config['SESSION_PERMANENT'] = False
+        app.config['SESSION_USE_SIGNER'] = True
+        app.config['SESSION_KEY_PREFIX'] = 'zyppts:'
+        
+        # Simple cache configuration (remove Redis-specific options)
+        app.config['CACHE_TYPE'] = 'simple'
+        app.config['CACHE_DEFAULT_TIMEOUT'] = 300
+        # Remove Redis-specific options that don't work with SimpleCache
+        app.config.pop('CACHE_REDIS_URL', None)
+        app.config.pop('CACHE_REDIS_HOST', None)
+        app.config.pop('CACHE_REDIS_PORT', None)
+        app.config.pop('CACHE_REDIS_PASSWORD', None)
+        app.config.pop('CACHE_REDIS_DB', None)
+        app.config.pop('CACHE_OPTIONS', None)
+        
+        # Create sessions directory if it doesn't exist
+        sessions_dir = os.path.join(backend_dir, 'sessions')
+        if not os.path.exists(sessions_dir):
+            os.makedirs(sessions_dir, mode=0o750)
+    
     # Initialize SQLAlchemy with app
     db.init_app(app)
-    
-    # Set up logging
-    logs_dir = os.path.join(backend_dir, 'logs')
-    if not os.path.exists(logs_dir):
-        os.makedirs(logs_dir, mode=0o750)
-    
-    file_handler = logging.FileHandler(os.path.join(logs_dir, 'zyppts.log'))
-    file_handler.setFormatter(
-        logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-    )
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    app.logger.setLevel(logging.INFO)
     
     # Initialize Flask-Login
     login_manager.init_app(app)
@@ -89,24 +161,58 @@ def create_app():
     cache.init_app(app)
     session.init_app(app)
     
-    # Configure Redis
-    app.config['CACHE_TYPE'] = 'redis'
-    app.config['CACHE_REDIS_HOST'] = 'localhost'
-    app.config['CACHE_REDIS_PORT'] = 6379
-    app.config['CACHE_DEFAULT_TIMEOUT'] = 300
-    app.config['RATELIMIT_STORAGE_URL'] = 'redis://localhost:6379/0'
+    # Add error handlers for production
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        app.logger.error(f'Server Error: {error}')
+        return "Internal server error occurred. Please try again later.", 500
+    
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return "Page not found.", 404
+    
+    # Add session error handling
+    @app.errorhandler(UnicodeDecodeError)
+    def handle_session_corruption(error):
+        """Handle corrupted session data gracefully"""
+        try:
+            from flask import session as flask_session
+            flask_session.clear()
+            return redirect(url_for('main.home'))
+        except Exception as e:
+            app.logger.error(f"Session corruption error: {str(e)}")
+            return "Session error occurred. Please clear your browser cookies and try again.", 500
     
     # Initialize app configuration
     Config.init_app(app)
     
     # Create database tables
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+            app.logger.info("Database tables created successfully")
+        except Exception as e:
+            app.logger.error(f"Error creating database tables: {e}")
     
     # Register blueprints
     from routes import bp as main_bp
     app.register_blueprint(main_bp)
     
-    return app
-
-import logging 
+    # Register admin blueprint if available
+    try:
+        from admin_routes import admin_bp
+        app.register_blueprint(admin_bp)
+        app.logger.info("Admin routes registered")
+    except ImportError:
+        app.logger.info("Admin routes not available")
+    
+    # Initialize scheduled tasks for email notifications
+    try:
+        from utils.scheduled_tasks import start_scheduled_tasks
+        start_scheduled_tasks()
+        app.logger.info("📧 Email scheduling system initialized")
+    except Exception as e:
+        app.logger.error(f"Failed to initialize email scheduling: {e}")
+    
+    return app 

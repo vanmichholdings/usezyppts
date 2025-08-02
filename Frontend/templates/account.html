@@ -77,7 +77,10 @@
                     
                     {% if current_user.subscription.status == 'active' %}
                         <div class="subscription-actions">
-                            <form action="{{ url_for('main.cancel_subscription') }}" method="POST" class="cancel-form">
+                            <button type="button" class="btn btn-primary me-2" onclick="openPaymentPortal()">
+                                <i class="fas fa-credit-card me-2"></i>Change Payment Method
+                            </button>
+                            <form action="{{ url_for('main.cancel_subscription') }}" method="POST" class="cancel-form d-inline">
                                 <button type="submit" class="btn btn-danger">
                                     <i class="fas fa-times-circle me-2"></i>Cancel Subscription
                                 </button>
@@ -190,8 +193,27 @@
     text-align: center;
 }
 
+.subscription-actions .btn {
+    margin: 0.5rem;
+}
+
 .cancel-form {
     margin-top: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #3B5EF7);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(27, 20, 100, 0.2);
 }
 
 .btn-danger {
@@ -229,4 +251,72 @@
     }
 }
 </style>
+
+<script>
+async function openPaymentPortal() {
+    try {
+        // Show loading state
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+        button.disabled = true;
+        
+        // Create portal session
+        const response = await fetch('/api/create-portal-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.portal_url) {
+            // Redirect to Stripe Customer Portal
+            window.location.href = data.portal_url;
+        } else {
+            // Show error message
+            alert(data.error || 'Unable to open payment portal. Please try again.');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error opening payment portal:', error);
+        alert('An error occurred while opening the payment portal. Please try again.');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Check for portal success message
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('portal') === 'success') {
+        // Show success message
+        const successMessage = document.createElement('div');
+        successMessage.className = 'alert alert-success';
+        successMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>Payment method updated successfully!';
+        successMessage.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 1rem;
+            border-radius: 8px;
+            background: #10B981;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        `;
+        document.body.appendChild(successMessage);
+        
+        // Remove message after 5 seconds
+        setTimeout(() => {
+            successMessage.remove();
+        }, 5000);
+        
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
 {% endblock %} 

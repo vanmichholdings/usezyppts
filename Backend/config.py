@@ -6,8 +6,10 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file in root directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENV_FILE = os.path.join(BASE_DIR, '.env')
+load_dotenv(ENV_FILE)
 
 class Config:
     # Flask configuration
@@ -21,31 +23,50 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=31)
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     
-    # Database configuration
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+    # Database configuration for production
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 5,
+        'pool_size': 10,
         'pool_recycle': 3600,
-        'pool_timeout': 30
+        'pool_timeout': 30,
+        'pool_pre_ping': True
     }
     
     # Email configuration
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'zyppts@gmail.com')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'stnvdfagbjeazski')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'team@zyppts.com')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'Zyppts HQ <zyppts@gmail.com>')
     
-    # File upload configuration
+    # Admin email configuration
+    ADMIN_ALERT_EMAIL = os.environ.get('ADMIN_ALERT_EMAIL', os.environ.get('MAIL_USERNAME'))
+    SITE_URL = os.environ.get('SITE_URL', 'https://usezyppts.com')
+    
+    # File upload configuration for production
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
     FRONTEND_DIR = os.path.join(BASE_DIR, 'Frontend')
-    UPLOAD_FOLDER = os.path.join(BACKEND_DIR, 'uploads')
-    OUTPUT_FOLDER = os.path.join(BACKEND_DIR, 'outputs')
-    CACHE_FOLDER = os.path.join(BACKEND_DIR, 'cache')
-    TEMP_FOLDER = os.path.join(BACKEND_DIR, 'temp')
+    
+    # Use environment variable for storage path in production
+    if os.environ.get('RENDER'):
+        STORAGE_PATH = '/opt/render/project/src/storage'
+        UPLOAD_FOLDER = os.path.join(STORAGE_PATH, 'uploads')
+        OUTPUT_FOLDER = os.path.join(STORAGE_PATH, 'outputs')
+        CACHE_FOLDER = os.path.join(STORAGE_PATH, 'cache')
+        TEMP_FOLDER = os.path.join(STORAGE_PATH, 'temp')
+    else:
+        UPLOAD_FOLDER = os.path.join(BACKEND_DIR, 'uploads')
+        OUTPUT_FOLDER = os.path.join(BACKEND_DIR, 'outputs')
+        CACHE_FOLDER = os.path.join(BACKEND_DIR, 'cache')
+        TEMP_FOLDER = os.path.join(BACKEND_DIR, 'temp')
+        
     TEMPLATES_FOLDER = os.path.join(FRONTEND_DIR, 'templates')
     STATIC_FOLDER = os.path.join(FRONTEND_DIR, 'static')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -62,17 +83,25 @@ class Config:
         }
     }
     
+    # Redis Configuration for production
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+    REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+    REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+    REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+    REDIS_DB = int(os.environ.get('REDIS_DB', 0))
+    
     # Rate limiting with Redis
-    RATELIMIT_DEFAULT = "200 per day"
-    RATELIMIT_STORAGE_URL = "redis://localhost:6379/0"
+    RATELIMIT_DEFAULT = "100 per hour"  # Reduced for production
+    RATELIMIT_STORAGE_URL = f"{REDIS_URL}/0"
     RATELIMIT_STRATEGY = "fixed-window"
     RATELIMIT_ENABLED = True
     
     # Session configuration with Redis
     SESSION_TYPE = 'redis'
     SESSION_REDIS = {
-        'host': 'localhost',
-        'port': 6379,
+        'host': REDIS_HOST,
+        'port': REDIS_PORT,
+        'password': REDIS_PASSWORD,
         'db': 1,
         'prefix': 'session:',
         'socket_timeout': 5,
@@ -82,8 +111,9 @@ class Config:
     
     # Cache Configuration with Redis
     CACHE_TYPE = 'redis'
-    CACHE_REDIS_HOST = 'localhost'
-    CACHE_REDIS_PORT = 6379
+    CACHE_REDIS_HOST = REDIS_HOST
+    CACHE_REDIS_PORT = REDIS_PORT
+    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
     CACHE_REDIS_DB = 0
     CACHE_DEFAULT_TIMEOUT = 300
     CACHE_KEY_PREFIX = 'zyppts_'
@@ -204,6 +234,7 @@ class Config:
     SUBSCRIPTION_PLANS = {
         'free': {
             'price': 0,
+            'monthly_credits': 3,  # 3 logo credits per month
             'features': [
                 '5 Projects',
                 '2 Team Members',
@@ -212,7 +243,10 @@ class Config:
             ]
         },
         'pro': {
-            'price': 29,
+            'price': 9.99,
+            'monthly_credits': 100,  # 100 logo credits per month
+            'stripe_price_id': 'price_1RnCQDI1902kkwjouP5vvijE',
+            'stripe_annual_price_id': 'price_1Rr9JxI1902kkwjoIOBPETYv',  # Pro Annual
             'features': [
                 'Unlimited Projects',
                 '5 Team Members',
@@ -222,18 +256,23 @@ class Config:
             ]
         },
         'studio': {
-            'price': 79,
+            'price': 29.99,
+            'monthly_credits': 500,  # 500 logo credits per month
+            'stripe_price_id': 'price_1RnCRWI1902kkwjoq18LY3eB',
+            'stripe_annual_price_id': 'price_1Rr9MII1902kkwjomfiuG44B',  # Studio Annual
             'features': [
                 'Unlimited Projects',
                 '15 Team Members',
                 'Premium Analytics',
                 '24/7 Priority Support',
                 'Custom Branding',
-                'API Access'
+                'API Access',
+                'Batch Processing'  # New feature for Studio plan
             ]
         },
         'enterprise': {
             'price': 199,
+            'monthly_credits': -1,  # Unlimited logo credits
             'features': [
                 'Unlimited Everything',
                 'Unlimited Team Members',
@@ -270,25 +309,19 @@ class Config:
         }
     }
     
-    # Redis Configuration
-    REDIS_HOST = 'localhost'
-    REDIS_PORT = 6379
-    REDIS_DB = 0
-    REDIS_PASSWORD = None
-    REDIS_SOCKET_TIMEOUT = 120.0
-    REDIS_SOCKET_CONNECT_TIMEOUT = 10.0
-    REDIS_RETRY_ON_TIMEOUT = True
-    REDIS_SOCKET_KEEPALIVE = True
-    REDIS_MAX_CONNECTIONS = 1000
-
-    # Celery Configuration
-    CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
-    CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
-    CELERY_REDIS_MAX_CONNECTIONS = REDIS_MAX_CONNECTIONS
-    CELERY_REDIS_SOCKET_TIMEOUT = REDIS_SOCKET_TIMEOUT
-    CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = REDIS_SOCKET_CONNECT_TIMEOUT
-    CELERY_REDIS_RETRY_ON_TIMEOUT = REDIS_RETRY_ON_TIMEOUT
-    CELERY_REDIS_SOCKET_KEEPALIVE = REDIS_SOCKET_KEEPALIVE
+    # Stripe Configuration - Use environment variables
+    STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+    STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+    STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    
+    # Celery Configuration (uses Redis)
+    CELERY_BROKER_URL = f'{REDIS_URL}/{REDIS_DB}'
+    CELERY_RESULT_BACKEND = f'{REDIS_URL}/{REDIS_DB}'
+    CELERY_REDIS_MAX_CONNECTIONS = 1000
+    CELERY_REDIS_SOCKET_TIMEOUT = 120.0
+    CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = 10.0
+    CELERY_REDIS_RETRY_ON_TIMEOUT = True
+    CELERY_REDIS_SOCKET_KEEPALIVE = True
     
     @classmethod
     def init_app(cls, app):
@@ -296,13 +329,8 @@ class Config:
         # Create required directories with proper permissions
         for directory in [cls.UPLOAD_FOLDER, cls.OUTPUT_FOLDER, 
                          cls.CACHE_FOLDER, cls.TEMP_FOLDER]:
-            os.makedirs(directory, exist_ok=True)
-            os.chmod(directory, 0o750)  # rwxr-x---
-            
-            # Set ownership if possible
             try:
-                import pwd
-                uid = pwd.getpwnam(os.environ.get('USER', '')).pw_uid
-                os.chown(directory, uid, -1)
-            except (ImportError, KeyError):
-                pass 
+                os.makedirs(directory, exist_ok=True)
+                os.chmod(directory, 0o750)  # rwxr-x---
+            except OSError as e:
+                app.logger.error(f"Error creating directory {directory}: {e}") 
