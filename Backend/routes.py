@@ -1162,6 +1162,10 @@ def register():
             user.registration_ip = request.remote_addr
             user.registration_user_agent = request.headers.get('User-Agent', 'Unknown')
             
+            user.set_password(password)
+            db.session.add(user)
+            db.session.flush()  # This ensures user.id is available
+            
             # Handle promo code
             if promo_code and promo_code.upper() == 'EARLYZYPPTS':
                 # Valid promo code - create promo user
@@ -1195,8 +1199,6 @@ def register():
                     auto_renew=False
                 )
             
-            user.set_password(password)
-            db.session.add(user)
             db.session.add(subscription)
             db.session.commit()
             
