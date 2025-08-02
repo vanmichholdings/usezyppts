@@ -36,11 +36,19 @@ def print_startup_info():
     print("=" * 50)
     
     # Production vs Development messaging
-    is_production = os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production'
+    is_production = os.environ.get('RENDER') or os.environ.get('RAILWAY') or os.environ.get('FLASK_ENV') == 'production'
     if is_production:
         print("🚀 Starting in PRODUCTION mode")
         port = os.environ.get('PORT', 10000)
         print(f"✓ Server will start on port {port}")
+        
+        # Detect platform
+        if os.environ.get('RENDER'):
+            print("✓ Deployed on Render")
+        elif os.environ.get('RAILWAY'):
+            print("✓ Deployed on Railway")
+        else:
+            print("✓ Deployed on other platform")
     else:
         print("🔧 Starting in DEVELOPMENT mode")
         port = 5003
@@ -53,11 +61,11 @@ if __name__ == '__main__':
     print_startup_info()
     app = create_app()
     
-    # Get port from environment (Render sets PORT automatically)
+    # Get port from environment (Railway/Render sets PORT automatically)
     port = int(os.environ.get('PORT', 5003))
     
     # Determine if we're in production
-    is_production = os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production'
+    is_production = os.environ.get('RENDER') or os.environ.get('RAILWAY') or os.environ.get('FLASK_ENV') == 'production'
     
     if is_production:
         # Production mode - let gunicorn handle this

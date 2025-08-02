@@ -1,5 +1,6 @@
 # =============================================================================
 # ZYPPTS - Logo Processing Application Requirements
+# Compatible with Railway, Render, and other cloud platforms
 # =============================================================================
 # Core Flask and Web Framework
 Flask==3.1.1

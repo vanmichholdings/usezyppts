@@ -1,12 +1,12 @@
 import os
 import multiprocessing
 
-# Server socket
+# Server socket - Railway uses PORT environment variable
 bind = f"0.0.0.0:{os.environ.get('PORT', '10000')}"
 backlog = 2048
 
-# Worker processes
-workers = min(multiprocessing.cpu_count() * 2 + 1, 8)  # Cap at 8 workers for starter plan
+# Worker processes - Railway has different resource constraints
+workers = min(multiprocessing.cpu_count() * 2 + 1, 4)  # Reduced for Railway
 worker_class = 'sync'
 worker_connections = 1000
 timeout = 120
@@ -35,12 +35,12 @@ user = None
 group = None
 tmp_upload_dir = None
 
-# SSL (handled by Render)
+# SSL (handled by Railway)
 keyfile = None
 certfile = None
 
-# Memory and performance tuning
-worker_tmp_dir = '/dev/shm'  # Use shared memory for better performance
+# Memory and performance tuning - Railway optimized
+worker_tmp_dir = '/tmp'  # Use /tmp for Railway compatibility
 max_requests_per_child = 1000
 
 # Graceful timeout

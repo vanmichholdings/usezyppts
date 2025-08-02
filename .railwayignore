@@ -1,0 +1,58 @@
+# Development files
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local development
+.env.local
+.env.development
+.env.test
+
+# Test files
+Backend/tests/
+Backend/scripts/
+Backend/backups/
+Backend/demo_logos/
+Backend/test_files/
+Backend/test_results/
+
+# Documentation
+*.md
+docs/
+
+# Frontend (if not needed for backend deployment)
+Frontend/ 
