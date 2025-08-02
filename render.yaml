@@ -4,24 +4,41 @@ services:
     env: python
     plan: starter
     buildCommand: |
-      # Install system dependencies for Rust compilation
-      apt-get update && apt-get install -y build-essential pkg-config libssl-dev libffi-dev
-      
-      # Install Rust toolchain for vtracer and cryptography compilation
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      source $HOME/.cargo/env
-      export PATH="$HOME/.cargo/bin:$PATH"
-      
-      # Install additional Rust dependencies that might be needed
-      cargo install maturin
-      
-      # Set environment variables for Rust compilation
+      # Set up user-writable directories for Rust (avoid read-only system paths)
       export CARGO_HOME="$HOME/.cargo"
       export RUSTUP_HOME="$HOME/.rustup"
-      export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
+      export PATH="$HOME/.cargo/bin:$PATH"
       
-      # Upgrade pip and install dependencies
+      # Install system dependencies (with error handling)
+      apt-get update || true
+      apt-get install -y build-essential pkg-config libssl-dev libffi-dev || true
+      
+      # Install Rust toolchain in user directory (avoid system paths)
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+      source "$HOME/.cargo/env"
+      
+      # Verify Rust installation
+      rustc --version
+      cargo --version
+      
+      # Install maturin in user directory
+      cargo install maturin --root "$HOME/.cargo"
+      
+      # Set additional environment variables for compilation
+      export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
+      export RUST_BACKTRACE=1
+      
+      # Upgrade pip first
       pip install --upgrade pip
+      
+      # Install problematic packages with specific flags
+      pip install --no-cache-dir --force-reinstall cryptography==42.0.0
+      pip install --no-cache-dir --force-reinstall bcrypt==4.3.0
+      
+      # Install vtracer with specific flags to avoid compilation issues
+      pip install --no-cache-dir --force-reinstall vtracer==0.6.11
+      
+      # Install remaining dependencies
       pip install -r requirements.txt
     startCommand: cd Backend && gunicorn --config gunicorn.conf.py app_config:create_app()
     healthCheckPath: /health
