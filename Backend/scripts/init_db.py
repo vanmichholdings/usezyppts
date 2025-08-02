@@ -1,12 +1,12 @@
-from zyppts import create_app
-from zyppts.models import User, Subscription
+from app_config import create_app
+from models import User, Subscription
 from datetime import datetime, timedelta
 
 def init_db():
     app = create_app()
     with app.app_context():
         # Create all tables
-        from zyppts import db
+        from app_config import db
         db.create_all()
         
         try:
