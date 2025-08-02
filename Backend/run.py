@@ -1,3 +1,4 @@
+import os
 from app_config import create_app
 import sys
 import importlib.util
@@ -33,11 +34,34 @@ def print_startup_info():
     print("✓ Vector tracing")
     print("✓ SVG path optimization")
     print("=" * 50)
-    print("Starting server on http://localhost:5003")
+    
+    # Production vs Development messaging
+    is_production = os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production'
+    if is_production:
+        print("🚀 Starting in PRODUCTION mode")
+        port = os.environ.get('PORT', 10000)
+        print(f"✓ Server will start on port {port}")
+    else:
+        print("🔧 Starting in DEVELOPMENT mode")
+        port = 5003
+        print(f"✓ Server starting on http://localhost:{port}")
+    
     print("Press Ctrl+C to stop the server")
     print("=" * 50)
 
 if __name__ == '__main__':
     print_startup_info()
     app = create_app()
-    app.run(host='0.0.0.0', port=5003, debug=True)
+    
+    # Get port from environment (Render sets PORT automatically)
+    port = int(os.environ.get('PORT', 5003))
+    
+    # Determine if we're in production
+    is_production = os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production'
+    
+    if is_production:
+        # Production mode - let gunicorn handle this
+        app.run(host='0.0.0.0', port=port, debug=False)
+    else:
+        # Development mode
+        app.run(host='0.0.0.0', port=port, debug=True)

@@ -1,0 +1,24 @@
+# Minimal Dependencies for Email Notification System
+# These are the essential packages needed for the email system to work
+
+# Core Flask dependencies for email
+Flask==3.1.1
+Flask-Mail==0.10.0
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+Werkzeug==3.1.3
+
+# Email and scheduling
+APScheduler==3.10.4
+email-validator>=2.1.0,<3.0.0
+
+# Environment and configuration
+python-dotenv==1.1.1
+
+# Database (for user management)
+SQLAlchemy==2.0.41
+
+# Notes:
+# - This minimal set includes only the packages needed for email notifications
+# - The full requirements.txt includes all dependencies for the complete application
+# - To install: pip install -r requirements_email_minimal.txt 

@@ -41,10 +41,11 @@ def create_app():
     db.init_app(app)
     
     # Set up logging
-    if not os.path.exists('logs'):
-        os.makedirs('logs', mode=0o750)
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir, mode=0o750)
     
-    file_handler = logging.FileHandler('logs/zyppts.log')
+    file_handler = logging.FileHandler(os.path.join(logs_dir, 'zyppts.log'))
     file_handler.setFormatter(
         logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
     )

@@ -1,0 +1,1716 @@
+{% extends "base.html" %}
+
+{% block title %}Logo Processor - Zyppts{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Add styles for multi-file preview */
+    .preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .preview-item {
+        position: relative;
+        border: 1px solid var(--silver-gray);
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        max-width: 150px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .preview-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .preview-item img {
+        max-width: 100px;
+        max-height: 100px;
+        display: block;
+        margin: 0 auto 0.5rem auto;
+        object-fit: contain;
+    }
+
+    .preview-item .filename {
+        font-size: 0.9rem;
+        word-break: break-all;
+        margin-bottom: 0.5rem;
+        flex-grow: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-clamp: 2;
+        box-orient: vertical;
+        color: var(--text-color);
+    }
+
+    .preview-item .remove-file {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        line-height: 22px;
+        font-size: 0.9rem;
+        padding: 0;
+        text-align: center;
+        border: 1px solid var(--silver-gray);
+        color: var(--primary-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .preview-item .remove-file:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .drop-zone {
+        border: 2px dashed var(--silver-gray);
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        min-height: 200px;
+        position: relative;
+        background: var(--bg-color);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .drop-zone:hover {
+        border-color: var(--primary-color);
+        background: rgba(44, 60, 175, 0.02);
+    }
+
+    .drop-zone-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .drop-zone-content i {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .drop-zone-content p {
+        font-size: 1.1rem;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .drop-zone-content small {
+        color: var(--silver-gray);
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: var(--bg-color);
+        border-bottom: 1px solid var(--silver-gray);
+        padding: 1rem 1.5rem;
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-check {
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin-top: 0.2em;
+        border: 2px solid var(--silver-gray);
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .form-check-label {
+        font-size: 1rem;
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-check-label i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, #FAA52D 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #FAA52D 0%, var(--secondary-color) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-primary::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(250, 165, 45, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-primary:hover::before {
+        opacity: 1;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(255, 165, 45, 0.2);
+    }
+    
+    /* Progress bar styles */
+    #progress-percentage {
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    }
+    
+    .file-item {
+        background: #f8f9fa;
+        border-radius: 4px;
+        padding: 8px 12px;
+        border-left: 3px solid #6c757d;
+    }
+    
+    .file-item .file-name {
+        font-size: 0.85rem;
+    }
+    
+    .file-status {
+        font-size: 0.7rem;
+        padding: 0.25em 0.5em;
+    }
+    
+    /* Ensure the progress bar is visible during animation */
+    .progress {
+        overflow: visible;
+    }
+    
+    /* Success state for progress bar */
+    .progress-bar.bg-success {
+        background-color: #28a745 !important;
+    }
+    
+    /* Error state for progress bar */
+    .progress-bar.bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .btn-primary i {
+        margin-right: 0.5rem;
+    }
+
+    .progress {
+        height: 0.5rem;
+        border-radius: 0.5rem;
+        background-color: var(--bg-color);
+        margin-bottom: 1rem;
+    }
+
+    .progress-bar {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, #ff6b35 100%);
+        border-radius: 0.5rem;
+    }
+
+    .social-card {
+        border: 1px solid var(--silver-gray);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .social-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
+
+    .social-card .card-header {
+        background: var(--bg-color);
+        border-bottom: 1px solid var(--silver-gray);
+        padding: 1rem 1.5rem;
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    .social-card .card-header span {
+        color: var(--primary-color);
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .social-card .card-header i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+    }
+
+    .social-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .select-all-platform {
+        cursor: pointer;
+    }
+
+    .select-all-platform:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .social-checkbox:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .drop-zone {
+            min-height: 150px;
+            padding: 1.5rem;
+        }
+
+        .drop-zone-content i {
+            font-size: 2rem;
+        }
+
+        .drop-zone-content p {
+            font-size: 1rem;
+        }
+
+        .card {
+            margin-bottom: 1rem;
+        }
+
+        .social-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-magic me-2"></i>Logo/Design Processor
+                    </h3>
+                    
+                    {% if not current_user.is_authenticated %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-lock fa-3x mb-3 text-muted"></i>
+                        <h4>Login Required</h4>
+                        <p class="text-muted">Please sign in to access the design processor.</p>
+                        <div class="mt-4">
+                            <a href="{{ url_for('main.login') }}" class="btn btn-primary me-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </a>
+                            <a href="{{ url_for('main.register') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <form action="{{ url_for('main.logo_processor') }}" method="POST" enctype="multipart/form-data" id="logoForm" class="needs-validation" novalidate data-is-studio="{{ current_user.is_studio_plan()|lower }}">
+                        <!-- File Upload Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                {% if current_user.is_studio_plan() %}
+                                Upload Logos (Batch Processing Enabled)
+                                {% else %}
+                                Upload Logo
+                                {% endif %}
+                            </label>
+                            <div class="drop-zone" id="drop-zone">
+                                <input type="file" name="logo" id="logo-input" 
+                                       accept=".png,.jpg,.jpeg,.gif,.svg,.pdf,.webp" 
+                                       {% if current_user.is_studio_plan() %}multiple{% endif %} 
+                                       required>
+                                <div class="drop-zone-content" id="drop-zone-prompt">
+                                    <i class="fas fa-cloud-upload-alt mb-2 fa-2x text-muted"></i>
+                                    <p>Drag and drop your logo{% if current_user.is_studio_plan() %}s{% endif %} here or click to browse</p>
+                                    <small class="text-muted">Supported formats: PNG, JPG, GIF, SVG, PDF, WEBP (max 16MB each)</small>
+                                    {% if current_user.is_studio_plan() %}
+                                    <br><small class="text-info">Studio Plan: Upload multiple files for batch processing.</small>
+                                    {% endif %}
+                                </div>
+                                <!-- Container for file previews -->
+                                <div class="preview-container" id="preview-area" style="display: none;"></div> 
+                            </div>
+                            <div class="invalid-feedback">Please select at least one logo file.</div>
+                            <!-- Add hidden input to track if files are selected for validation -->
+                            <input type="hidden" id="files-selected-indicator" value="0">
+                        </div>
+
+                        <!-- Options Tabs -->
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#basic-tab" type="button">
+                                    <i class="fas fa-shapes me-1"></i>Basic
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#effects-tab" type="button">
+                                    <i class="fas fa-star me-1"></i>Effects
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#preview-tab" type="button">
+                                    <i class="fas fa-eye me-1"></i>Preview
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#social-tab" type="button">
+                                    <i class="fas fa-share-alt me-1"></i>Social
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content">
+                            <!-- Basic Formats -->
+                            <div class="tab-pane fade show active" id="basic-tab">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="transparent_png" id="transparent_png">
+                                            <label class="form-check-label" for="transparent_png">
+                                                <i class="fas fa-square me-1"></i>Transparent PNG (Background Removal)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="pdf_version" id="pdf_version">
+                                            <label class="form-check-label" for="pdf_version">
+                                                <i class="fas fa-file-pdf me-1"></i>PDF (Raster)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="webp_version" id="webp_version">
+                                            <label class="form-check-label" for="webp_version">
+                                                <i class="fas fa-file-image me-1"></i>WebP
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="black_version" id="black_version">
+                                            <label class="form-check-label" for="black_version">
+                                                <i class="fas fa-circle me-1"></i>One Color Black Version
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="favicon" id="favicon">
+                                            <label class="form-check-label" for="favicon">
+                                                <i class="fas fa-favicon me-1"></i>Favicon
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="email_header" id="email_header">
+                                            <label class="form-check-label" for="email_header">
+                                                <i class="fas fa-envelope me-1"></i>Email Header
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Effects -->
+                            <div class="tab-pane fade" id="effects-tab">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="effect_vector" id="effect_vector">
+                                            <label class="form-check-label" for="effect_vector">
+                                                <i class="fas fa-vector-square me-1"></i>Vector Trace (PDF/SVG/.AI)
+                                            </label>
+                                            <div class="effect-preview" id="preview_vector" style="display: none;">
+                                                <img src="" alt="Vector Trace Preview" class="img-fluid mt-2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="effect_color_separations" id="effect_color_separations">
+                                            <label class="form-check-label" for="effect_color_separations">
+                                                <i class="fas fa-layer-group me-1"></i>Color Separations (PNG/PSD)
+                                            </label>
+                                            <div class="effect-preview" id="preview_color_separations" style="display: none;">
+                                                <img src="" alt="Color Separations Preview" class="img-fluid mt-2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="effect_distressed" id="effect_distressed">
+                                            <label class="form-check-label" for="effect_distressed">
+                                                <i class="fas fa-brush me-1"></i>Distressed Effect
+                                            </label>
+                                            <div class="effect-preview" id="preview_distressed" style="display: none;">
+                                                <img src="" alt="Distressed Preview" class="img-fluid mt-2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="effect_outline" id="effect_outline">
+                                            <label class="form-check-label" for="effect_outline">
+                                                <i class="fas fa-cut me-1"></i>Contour Cutline (PDF/SVG)
+                                            </label>
+                                            <div class="effect-preview" id="preview_outline" style="display: none;">
+                                                <img src="" alt="Contour Cutline Preview" class="img-fluid mt-2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="effect_halftone" id="effect_halftone">
+                                            <label class="form-check-label" for="effect_halftone">
+                                                <i class="fas fa-dot-circle me-1"></i>Halftone Effect
+                                            </label>
+                                            <div class="effect-preview" id="preview_halftone" style="display: none;">
+                                                <img src="" alt="Halftone Preview" class="img-fluid mt-2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Tab (Upgraded) -->
+                            <div class="tab-pane fade" id="preview-tab">
+                                <div class="row g-4" id="all-effects-preview">
+                                    <!-- Transparent PNG Preview Card -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <div class="card effect-preview-card text-center h-100 shadow-sm">
+                                            <div class="card-header bg-light border-0">
+                                                <span class="fw-bold" title="Transparent PNG Preview">Transparent PNG</span>
+                                            </div>
+                                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                                <div class="preview-img-wrapper position-relative w-100" style="min-height:120px;">
+                                                    <div id="preview_vector_tab" class="effect-preview-img d-flex align-items-center justify-content-center w-100 h-100" style="min-height:120px;">
+                                                    <span class="text-muted">No preview</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <!-- Black Version Preview Card -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <div class="card effect-preview-card text-center h-100 shadow-sm">
+                                            <div class="card-header bg-light border-0">
+                                                <span class="fw-bold" title="One Color Black Version Preview">Black Version</span>
+                                            </div>
+                                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                                <div class="preview-img-wrapper position-relative w-100" style="min-height:120px;">
+                                                    <div id="preview_color_separations_tab" class="effect-preview-img d-flex align-items-center justify-content-center w-100 h-100" style="min-height:120px;">
+                                                    <span class="text-muted">No preview</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <!-- Distressed Effect Preview Card -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <div class="card effect-preview-card text-center h-100 shadow-sm">
+                                            <div class="card-header bg-light border-0">
+                                                <span class="fw-bold">Distressed Effect</span>
+                                            </div>
+                                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                                <div class="preview-img-wrapper position-relative w-100" style="min-height:120px;">
+                                                    <div id="preview_distressed_tab" class="effect-preview-img d-flex align-items-center justify-content-center w-100 h-100" style="min-height:120px;">
+                                                    <span class="text-muted">No preview</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <!-- Contour Cutline Preview Card -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <div class="card effect-preview-card text-center h-100 shadow-sm">
+                                            <div class="card-header bg-light border-0">
+                                                <span class="fw-bold">Contour Cutline</span>
+                                            </div>
+                                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                                <div class="preview-img-wrapper position-relative w-100" style="min-height:120px;">
+                                                    <div id="preview_outline_tab" class="effect-preview-img d-flex align-items-center justify-content-center w-100 h-100" style="min-height:120px;">
+                                                    <span class="text-muted">No preview</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-muted mt-3 text-center">Previews update live as you toggle effects.</div>
+                            </div>
+
+                            <!-- Social Media Sizes -->
+                            <div class="tab-pane fade" id="social-tab">
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="selectAllSocial">Select All</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllSocial">Deselect All</button>
+                                </div>
+                                <div class="row g-3">
+                                    <!-- Instagram -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-instagram me-1"></i>Instagram</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All Instagram">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_instagram_profile" id="social_instagram_profile">
+                                                    <label class="form-check-label" for="social_instagram_profile">
+                                                        <i class="fas fa-user-circle me-1"></i>Profile (180x180)
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_instagram_post" id="social_instagram_post">
+                                                    <label class="form-check-label" for="social_instagram_post">
+                                                        <i class="fas fa-image me-1"></i>Post (1080x1080)
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_instagram_story" id="social_instagram_story">
+                                                    <label class="form-check-label" for="social_instagram_story">
+                                                        <i class="fas fa-camera me-1"></i>Story (1080x1920)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Facebook -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-facebook me-1"></i>Facebook</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All Facebook">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_facebook_profile" id="social_facebook_profile">
+                                                    <label class="form-check-label" for="social_facebook_profile">Profile (170x170)</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_facebook_post" id="social_facebook_post">
+                                                    <label class="form-check-label" for="social_facebook_post">Post (1200x630)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_facebook_cover" id="social_facebook_cover">
+                                                    <label class="form-check-label" for="social_facebook_cover">Cover (820x312)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Twitter/X -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-twitter me-1"></i>X (Twitter)</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All Twitter">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_twitter_profile" id="social_twitter_profile">
+                                                    <label class="form-check-label" for="social_twitter_profile">Profile (400x400)</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_twitter_post" id="social_twitter_post">
+                                                    <label class="form-check-label" for="social_twitter_post">Post (1024x512)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_twitter_header" id="social_twitter_header">
+                                                    <label class="form-check-label" for="social_twitter_header">Header (1500x500)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- LinkedIn -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-linkedin me-1"></i>LinkedIn</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All LinkedIn">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_linkedin_profile" id="social_linkedin_profile">
+                                                    <label class="form-check-label" for="social_linkedin_profile">Profile (400x400)</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_linkedin_post" id="social_linkedin_post">
+                                                    <label class="form-check-label" for="social_linkedin_post">Post (1104x736)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_linkedin_banner" id="social_linkedin_banner">
+                                                    <label class="form-check-label" for="social_linkedin_banner">Banner (1128x191)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- YouTube -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-youtube me-1"></i>YouTube</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All YouTube">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_youtube_profile" id="social_youtube_profile">
+                                                    <label class="form-check-label" for="social_youtube_profile">Profile (800x800)</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_youtube_thumbnail" id="social_youtube_thumbnail">
+                                                    <label class="form-check-label" for="social_youtube_thumbnail">Thumbnail (1280x720)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_youtube_banner" id="social_youtube_banner">
+                                                    <label class="form-check-label" for="social_youtube_banner">Banner (2560x1440)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- TikTok -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-tiktok me-1"></i>TikTok</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All TikTok">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_tiktok_profile" id="social_tiktok_profile">
+                                                    <label class="form-check-label" for="social_tiktok_profile">Profile (200x200)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_tiktok_video" id="social_tiktok_video">
+                                                    <label class="form-check-label" for="social_tiktok_video">Video (1080x1920)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Slack -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-slack me-1"></i>Slack</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All Slack">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_slack" id="social_slack">
+                                                    <label class="form-check-label" for="social_slack">Profile (512x512)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Discord -->
+                                    <div class="col-md-4">
+                                        <div class="card h-100 social-card">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <span><i class="fab fa-discord me-1"></i>Discord</span>
+                                                <input type="checkbox" class="form-check-input select-all-platform" title="Select/Deselect All Discord">
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input social-checkbox" name="social_discord" id="social_discord">
+                                                    <label class="form-check-label" for="social_discord">Profile (512x512)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div id="progress-container" class="my-3" style="display:none;">
+                            <div class="progress" style="height: 24px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; font-weight: bold; font-size: 1rem;">0%</div>
+                            </div>
+                            <div id="progress-message" class="mt-2 text-center small text-muted"></div>
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="process-button">
+                                <i class="fas fa-cogs me-2"></i>Process
+                            </button>
+                        </div>
+                        
+                        <!-- Preview Modal -->
+                        <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="previewModalLabel">Effect Preview</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <img src="" class="img-fluid" alt="Effect Preview">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Indicator -->
+                        <div id="progress-container" class="mt-4 p-4 border rounded-3 bg-light" style="display: none; transition: all 0.3s ease;">
+                            <h5 class="mb-3"><i class="fas fa-cog fa-spin me-2"></i>Processing Your Files</h5>
+                            
+                            <div class="progress mb-3" style="height: 25px; border-radius: 12px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                     role="progressbar" 
+                                     style="width: 0%; transition: width 0.3s ease;" 
+                                     aria-valuenow="0" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    <span id="progress-percentage" class="fw-bold">0%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+                                <div>
+                                    <small class="text-muted" id="current-stage">Initializing...</small>
+                                </div>
+                                <div>
+                                    <small class="text-muted">
+                                        <span id="processed-count" class="fw-bold">0</span> of 
+                                        <span id="total-count" class="fw-bold">0</span> files processed
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info p-2 mb-3" id="progress-message">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>Preparing to process files...</span>
+                            </div>
+                            
+                            <div id="file-list" class="mb-3">
+                                <!-- Individual file progress will be added here -->
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                <button type="button" id="cancel-processing" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-times me-1"></i> Cancel Processing
+                                </button>
+                                <small class="text-muted" id="time-remaining">Estimating time remaining...</small>
+                            </div>
+                            
+                            <div id="preview-container" class="row mt-3 g-2" style="display: none;">
+                                <!-- Preview thumbnails will be added here -->
+                            </div>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrap Form Validation (enhanced for dropzone)
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        var fileIndicator = document.getElementById('files-selected-indicator');
+        var dropZoneElement = document.getElementById('drop-zone');
+        var feedbackElement = dropZoneElement ? dropZoneElement.nextElementSibling : null;
+
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                let isFileSelected = fileIndicator ? fileIndicator.value === '1' : false;
+                
+                // Custom check: ensure at least one file is selected
+                if (!isFileSelected) {
+                    if (fileInput) fileInput.setCustomValidity('Please select at least one logo file.');
+                    if (dropZoneElement) dropZoneElement.classList.add('is-invalid'); 
+                    if (feedbackElement) feedbackElement.style.display = 'block';
+                } else {
+                    if (fileInput) fileInput.setCustomValidity(''); // Clear custom validity
+                    if (dropZoneElement) dropZoneElement.classList.remove('is-invalid');
+                    if (feedbackElement) feedbackElement.style.display = 'none'; // Hide feedback
+                }
+
+                // Check basic HTML5 validation + our custom file check
+                if (!form.checkValidity() || !isFileSelected) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    // If form is valid (including file selection), show progress indicator
+                    showProgressIndicator(); 
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })(); // End Bootstrap validation IIFE
+
+    // File Drop Zone & Preview Logic
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('logo-input');
+    const previewArea = document.getElementById('preview-area');
+    const promptElement = document.getElementById('drop-zone-prompt');
+    const filesSelectedIndicator = document.getElementById('files-selected-indicator');
+    const processButton = document.getElementById('process-button');
+    const formElement = document.getElementById('logoForm'); // Get the form element
+    // Read the studio plan status from the form's data attribute
+    const isStudioPlan = formElement ? formElement.dataset.isStudio === 'true' : false;
+    const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'application/pdf', 'image/webp'];
+    let selectedFiles = []; // Store selected File objects
+
+    // --- Drag and Drop Handlers ---
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        // --- Click to Browse Handler ---
+        dropZone.addEventListener('click', (event) => { 
+            if (event.target !== fileInput && (event.target === dropZone || promptElement.contains(event.target))) {
+                 fileInput.click();
+            }
+        });
+    }
+
+    if(fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            e.target.value = null; // Reset input value
+        });
+    }
+
+    // --- File Handling Logic ---
+    function handleFiles(files) {
+        if (!isStudioPlan) {
+            previewArea.innerHTML = ''; 
+            selectedFiles = []; 
+        }
+
+        let currentFileCount = selectedFiles.length;
+        let filesAdded = 0;
+
+        for (const file of files) {
+            if (!isStudioPlan && currentFileCount + filesAdded >= 1) {
+                if (filesAdded === 0) { 
+                    alert('Only Studio plan users can upload multiple files. The first valid file was selected.');
+                }
+                break; 
+            }
+            
+            let isValidType = allowedTypes.includes(file.type);
+            if (!isValidType && file.type === '') {
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'pdf', 'webp'].includes(extension)) {
+                    console.warn(`File type for ${file.name} is empty, allowing based on extension.`);
+                    isValidType = true;
+                }
+            }
+
+            if (!isValidType) {
+                alert(`Invalid file type: ${file.name}. Only PNG, JPG, GIF, SVG, PDF, WEBP are allowed.`);
+                continue; 
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`File too large: ${file.name}. Maximum size is 16MB.`);
+                continue; 
+            }
+            const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+            if (selectedFiles.some(f => `${f.name}-${f.size}-${f.lastModified}` === fileId)) {
+                console.log(`Skipping duplicate file: ${file.name}`);
+                continue; 
+            }
+
+            selectedFiles.push(file);
+            createPreview(file);
+            filesAdded++;
+        }
+
+        updateFileInput();
+        updateUIState(); 
+
+        // --- Auto-generate previews for all checked effects ---
+        const effectCheckboxes = document.querySelectorAll('input[name^="effect_"]');
+        effectCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const effect = checkbox.name;
+                const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
+                generateEffectPreview(effect, previewTabDiv);
+            }
+        });
+    }
+
+    // --- Create Preview Element ---
+    function createPreview(file) {
+        const reader = new FileReader();
+        const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+
+        const previewItem = document.createElement('div');
+        previewItem.classList.add('preview-item');
+        previewItem.dataset.fileId = fileId; 
+
+        const img = document.createElement('img');
+        img.alt = 'Preview';
+        const filenameP = document.createElement('p');
+        filenameP.classList.add('filename');
+        filenameP.textContent = file.name;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.classList.add('btn', 'btn-sm', 'btn-outline-danger', 'remove-file');
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.title = 'Remove file';
+        removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            removeFile(fileId);
+        });
+
+        previewItem.appendChild(img);
+        previewItem.appendChild(filenameP);
+        previewItem.appendChild(removeBtn);
+        if(previewArea) previewArea.appendChild(previewItem);
+
+        reader.onload = function(e) {
+            if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+                img.src = e.target.result;
+                // Add preview functionality for images
+                previewItem.addEventListener('click', () => {
+                    showPreviewModal(file.name, e.target.result);
+                });
+            } else if (file.type === 'application/pdf') {
+                img.src = "{{ url_for('static', filename='images/pdf_icon.png') }}"; 
+                img.style.width = '50px'; 
+                img.style.height = 'auto';
+            } else if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')){
+                img.src = "{{ url_for('static', filename='images/svg_icon.png') }}"; 
+                img.style.width = '50px';
+                img.style.height = 'auto';
+            } else { 
+                img.src = "{{ url_for('static', filename='images/file_icon.png') }}"; 
+                img.style.width = '50px';
+                img.style.height = 'auto';
+            }
+        }
+        reader.onerror = function() {
+            console.error("FileReader error for file:", file.name);
+            img.src = "{{ url_for('static', filename='images/file_icon.png') }}";
+            img.style.width = '50px';
+            img.style.height = 'auto';
+            filenameP.textContent = `${file.name} (preview error)`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // --- Preview Modal Functionality ---
+    function showPreviewModal(filename, imageData) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'previewModal';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('aria-labelledby', 'previewModalLabel');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="previewModalLabel">Preview: ${filename}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${imageData}" class="img-fluid" alt="Preview">
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+        
+        // Clean up modal after it's closed
+        modal.addEventListener('hidden.bs.modal', () => {
+            document.body.removeChild(modal);
+        });
+    }
+
+    // --- Remove File Logic ---
+    function removeFile(fileId) {
+        const fileToRemove = selectedFiles.find(f => `${f.name}-${f.size}-${f.lastModified}` === fileId);
+        if (fileToRemove) {
+            selectedFiles = selectedFiles.filter(f => f !== fileToRemove);
+        }
+        
+        const previewItemToRemove = previewArea ? previewArea.querySelector(`[data-file-id="${CSS.escape(fileId)}"]`) : null;
+        if (previewItemToRemove) {
+            previewArea.removeChild(previewItemToRemove);
+        }
+        updateFileInput();
+        updateUIState();
+    }
+
+    // --- Update Hidden Input and UI State ---
+    function updateUIState() {
+        if (selectedFiles.length > 0) {
+            if(promptElement) promptElement.style.display = 'none'; 
+            if(previewArea) previewArea.style.display = 'flex'; 
+            if(filesSelectedIndicator) filesSelectedIndicator.value = '1'; 
+            // Clear validation state for dropzone
+            if (fileInput) fileInput.setCustomValidity('');
+            if (dropZone) {
+                 dropZone.classList.remove('is-invalid');
+                 const feedback = dropZone.nextElementSibling;
+                 if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.style.display = 'none';
+                 }
+            }
+        } else {
+            if(promptElement) promptElement.style.display = 'block'; 
+            if(previewArea) previewArea.style.display = 'none'; 
+            if(filesSelectedIndicator) filesSelectedIndicator.value = '0'; 
+        }
+        // Update button text
+        if (processButton) {
+            if (selectedFiles.length > 1) {
+                processButton.innerHTML = `<i class="fas fa-cogs me-2"></i>Process ${selectedFiles.length} Logos`;
+            } else {
+                 processButton.innerHTML = `<i class="fas fa-cogs me-2"></i>Process Logo`;
+            } 
+        }
+    }
+    
+    // --- Update File Input with selectedFiles --- 
+    function updateFileInput() {
+        if (!fileInput) return; // Exit if file input doesn't exist
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => {
+             if (file instanceof File) { 
+                dataTransfer.items.add(file);
+             } else {
+                 console.warn('Attempted to add non-File object to DataTransfer:', file);
+             }
+        });
+        
+        try {
+            fileInput.files = dataTransfer.files;
+        } catch (err) {
+            console.error("Error updating file input files property:", err);
+        }
+    }
+
+    // --- Form Submission and Progress Indicator Logic ---
+    const form = document.getElementById('logoForm');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = progressContainer ? progressContainer.querySelector('.progress-bar') : null;
+    const progressMessage = document.getElementById('progress-message').querySelector('span');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const processedCount = document.getElementById('processed-count');
+    const totalCount = document.getElementById('total-count');
+    const currentStage = document.getElementById('current-stage');
+    const timeRemaining = document.getElementById('time-remaining');
+    const fileList = document.getElementById('file-list');
+    const cancelButton = document.getElementById('cancel-processing');
+    
+    let eventSource = null;
+    let processingStartTime = null;
+    let currentProgress = 0;
+    let processingAborted = false;
+
+    function showProgressIndicator() {
+        if (!processButton || !progressContainer || !progressBar || !progressMessage) return;
+        
+        // Reset progress UI
+        processButton.disabled = true;
+        processButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', '0');
+        progressPercentage.textContent = '0%';
+        progressMessage.textContent = 'Preparing to process files...';
+        currentStage.textContent = 'Initializing...';
+        timeRemaining.textContent = 'Estimating time remaining...';
+        fileList.innerHTML = '';
+        processedCount.textContent = '0';
+        totalCount.textContent = '0';
+        currentProgress = 0;
+        processingStartTime = new Date();
+        processingAborted = false;
+        
+        // Show cancel button
+        if (cancelButton) {
+            cancelButton.disabled = false;
+            cancelButton.innerHTML = '<i class="fas fa-times me-1"></i> Cancel Processing';
+        }
+        
+        // Start server-sent events for progress updates
+        startProgressTracking();
+    }
+    
+    function startProgressTracking() {
+        // Close any existing connection
+        if (eventSource) {
+            eventSource.close();
+        }
+        
+        // Create a unique ID for this processing session
+        const sessionId = 'lp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Store the session ID in the form data
+        const sessionInput = document.createElement('input');
+        sessionInput.type = 'hidden';
+        sessionInput.name = 'session_id';
+        sessionInput.value = sessionId;
+        form.appendChild(sessionInput);
+        
+        // Set up server-sent events for progress updates
+        eventSource = new EventSource(`/progress/${sessionId}`);
+        
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            updateProgress(data.stage, data.progress, data.message, data.file, data.total_files, data.processed_files);
+            
+            // If processing is complete, close the connection
+            if (data.progress >= 100 || data.stage === 'error') {
+                eventSource.close();
+                if (data.stage === 'complete') {
+                    processButton.disabled = false;
+                    processButton.innerHTML = '<i class="fas fa-check me-2"></i>Processing Complete';
+                }
+            }
+        };
+        
+        eventSource.onerror = function() {
+            console.error('EventSource failed.');
+            updateProgress('error', 0, 'Connection to server lost. Please try again.');
+            eventSource.close();
+        };
+        
+        // Update the form to use fetch API for better progress tracking
+        form.addEventListener('submit', handleFormSubmit);
+    }
+    
+    function cancelProcessing() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        
+        processingAborted = true;
+        
+        // Update UI to show cancellation
+        if (progressBar) {
+            progressBar.classList.remove('bg-primary');
+            progressBar.classList.add('bg-warning');
+            progressBar.style.width = '100%';
+            progressBar.setAttribute('aria-valuenow', '100');
+            progressPercentage.textContent = '100%';
+        }
+        
+        if (progressMessage) {
+            progressMessage.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Processing cancelled by user';
+        }
+        
+        if (currentStage) {
+            currentStage.textContent = 'Cancelled';
+        }
+        
+        if (timeRemaining) {
+            timeRemaining.textContent = 'Operation was cancelled';
+        }
+        
+        if (cancelButton) {
+            cancelButton.disabled = true;
+            cancelButton.innerHTML = '<i class="fas fa-ban me-1"></i> Cancelled';
+        }
+        
+        // Re-enable the process button after a short delay
+        setTimeout(() => {
+            if (processButton) {
+                processButton.disabled = false;
+                processButton.innerHTML = '<i class="fas fa-redo me-2"></i>Try Again';
+            }
+        }, 2000);
+    }
+    
+    // Add event listener for cancel button
+    if (cancelButton) {
+        cancelButton.addEventListener('click', cancelProcessing);
+    }
+    
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        
+        // Reset any previous state
+        processingAborted = false;
+        
+        // Show progress indicator
+        showProgressIndicator();
+        
+        // Submit form using fetch API
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (processingAborted) {
+                throw new Error('Processing was cancelled by user');
+            }
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create a download link for the zip file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'processed_logos.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Update progress to complete
+            updateProgress('complete', 100, 'Processing complete! Your download should start shortly.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            updateProgress('error', 0, 'An error occurred while processing your request. Please try again.');
+        });
+    }
+    
+    // --- Select/Deselect All Social Media Options ---
+    const selectAllSocialBtn = document.getElementById('selectAllSocial');
+    const deselectAllSocialBtn = document.getElementById('deselectAllSocial');
+    const socialCheckboxes = document.querySelectorAll('#social-tab .social-checkbox');
+    const platformMasterCheckboxes = document.querySelectorAll('#social-tab .select-all-platform');
+
+    if (selectAllSocialBtn) {
+        selectAllSocialBtn.addEventListener('click', () => {
+            socialCheckboxes.forEach(cb => cb.checked = true);
+            platformMasterCheckboxes.forEach(cb => cb.checked = true);
+        });
+    }
+    if (deselectAllSocialBtn) {
+        deselectAllSocialBtn.addEventListener('click', () => {
+            socialCheckboxes.forEach(cb => cb.checked = false);
+            platformMasterCheckboxes.forEach(cb => { 
+                cb.checked = false;
+                cb.indeterminate = false; 
+            });
+        });
+    }
+    platformMasterCheckboxes.forEach(masterCheckbox => {
+        masterCheckbox.addEventListener('change', (e) => {
+            const cardBody = e.target.closest('.card')?.querySelector('.card-body');
+            if (cardBody) {
+                cardBody.querySelectorAll('.social-checkbox').forEach(cb => cb.checked = e.target.checked);
+            }
+        });
+    });
+    socialCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+            const cardBody = card.querySelector('.card-body');
+            const masterCheckbox = card.querySelector('.select-all-platform');
+            if (!cardBody || !masterCheckbox) return;
+
+            const platformCheckboxes = cardBody.querySelectorAll('.social-checkbox');
+            const allChecked = Array.from(platformCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(platformCheckboxes).some(cb => cb.checked);
+
+            masterCheckbox.checked = allChecked;
+            masterCheckbox.indeterminate = !allChecked && someChecked;
+        });
+    });
+
+    // Effect Preview Handling
+    const effectCheckboxes = document.querySelectorAll('input[name^="effect_"]');
+    effectCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const effect = this.name;
+            const previewDiv = document.getElementById(`preview_${effect.replace('effect_', '')}`);
+            const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
+            if (this.checked) {
+                // Show loading state
+                previewDiv.style.display = 'block';
+                previewDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+                if (previewTabDiv) {
+                    previewTabDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+                }
+                // Generate preview
+                generateEffectPreview(effect, previewTabDiv);
+            } else {
+                previewDiv.style.display = 'none';
+                if (previewTabDiv) {
+                    previewTabDiv.innerHTML = '<span class="text-muted">No preview</span>';
+                }
+            }
+        });
+    });
+
+    // --- Modernized Effect Preview Logic ---
+    function showPreviewLoading(effect) {
+        const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
+        if (previewTabDiv) {
+            previewTabDiv.innerHTML = '<div class="spinner-border text-primary" role="status" aria-label="Loading preview..."></div>';
+        }
+    }
+    function showPreviewError(effect) {
+        const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
+        if (previewTabDiv) {
+            previewTabDiv.innerHTML = '<span class="text-danger">Failed to generate preview</span>';
+        }
+    }
+    function showPreviewImage(effect, imgSrc, altText) {
+        const previewTabDiv = document.getElementById(`preview_${effect.replace('effect_', '')}_tab`);
+        if (previewTabDiv) {
+            previewTabDiv.innerHTML = `<img src="${imgSrc}" alt="${altText}" class="img-fluid rounded shadow-sm preview-img-modal" tabindex="0" style="cursor:zoom-in;max-height:110px;max-width:100%;object-fit:contain;">`;
+            // Modal enlarge on click/enter
+            const img = previewTabDiv.querySelector('img');
+            if (img) {
+                img.addEventListener('click', () => openPreviewModal(imgSrc, altText));
+                img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') openPreviewModal(imgSrc, altText); });
+            }
+        }
+    }
+    function openPreviewModal(imgSrc, altText) {
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        const modalImg = document.querySelector('#previewModal img');
+        if (modalImg) {
+            modalImg.src = imgSrc;
+            modalImg.alt = altText;
+        }
+        modal.show();
+    }
+    // --- Overwrite generateEffectPreview for new UI ---
+    function generateEffectPreview(effect, previewTabDiv = null) {
+        if (!selectedFiles.length) return;
+        // Remap effect for preview as requested
+        let previewEffect = effect;
+        let altText = '';
+        if (effect === 'effect_vector') {
+            previewEffect = 'effect_transparent';
+            altText = 'Transparent PNG Preview';
+        } else if (effect === 'effect_color_separations') {
+            previewEffect = 'effect_black';
+            altText = 'One Color Black Version Preview';
+        } else if (effect === 'effect_distressed') {
+            altText = 'Distressed Effect Preview';
+        } else if (effect === 'effect_outline') {
+            altText = 'Contour Cutline Preview';
+        }
+        showPreviewLoading(effect);
+        const formData = new FormData();
+        formData.append('file', selectedFiles[0]);
+        formData.append('effect', previewEffect);
+        formData.append('preview', 'true');
+        fetch("{{ url_for('main.logo_processor') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.preview) {
+                showPreviewImage(effect, data.preview, altText);
+            } else {
+                showPreviewError(effect);
+            }
+        })
+        .catch(error => {
+            console.error('Error generating preview:', error);
+            showPreviewError(effect);
+        });
+    }
+
+    // Update progress tracking with detailed information
+    function updateProgress(stage, progress, message, currentFile = null, totalFiles = 0, processedFiles = 0) {
+        const progressBar = document.querySelector('#progress-container .progress-bar');
+        const progressMessage = document.getElementById('progress-message');
+        const previewContainer = document.getElementById('preview-container');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const processedCountEl = document.getElementById('processed-count');
+        const totalCountEl = document.getElementById('total-count');
+        const fileList = document.getElementById('file-list');
+        const currentStage = document.getElementById('current-stage');
+
+        if (!progressBar || !progressMessage) return;
+
+        // Update current progress
+        currentProgress = progress;
+        
+        // Update progress bar
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+            progressPercentage.textContent = `${progress}%`;
+            
+            // Update progress bar color based on stage
+            if (progress >= 100) {
+                progressBar.classList.remove('bg-primary', 'bg-warning');
+                progressBar.classList.add('bg-success');
+            } else if (stage === 'error') {
+                progressBar.classList.remove('bg-primary', 'bg-success');
+                progressBar.classList.add('bg-danger');
+            } else {
+                progressBar.classList.remove('bg-warning', 'bg-success', 'bg-danger');
+                progressBar.classList.add('bg-primary');
+            }
+        }
+        
+        // Update current stage
+        if (currentStage) {
+            const stageTitles = {
+                'loading': 'Loading file...',
+                'processing': 'Processing image...',
+                'saving': 'Saving files...',
+                'zipping': 'Creating download package...',
+                'complete': 'Processing complete!',
+                'error': 'Error occurred'
+            };
+            currentStage.textContent = stageTitles[stage] || 'Processing';
+        }
+        
+        // Update progress message with icon based on stage
+        if (progressMessage) {
+            const icons = {
+                'loading': '<i class="fas fa-spinner fa-spin me-2"></i>',
+                'processing': '<i class="fas fa-cog fa-spin me-2"></i>',
+                'saving': '<i class="fas fa-save me-2"></i>',
+                'zipping': '<i class="fas fa-file-archive me-2"></i>',
+                'complete': '<i class="fas fa-check-circle me-2"></i>',
+                'error': '<i class="fas fa-exclamation-triangle me-2"></i>'
+            };
+            
+            // Add more descriptive messages for zip stage
+            let displayMessage = message || 'Processing...';
+            if (stage === 'zipping' && currentFile) {
+                displayMessage = `Adding ${currentFile} to archive...`;
+            } else if (stage === 'zipping' && processedFiles > 0 && totalFiles > 0) {
+                displayMessage = `Added ${processedFiles} of ${totalFiles} files to archive...`;
+            }
+            
+            progressMessage.innerHTML = `${icons[stage] || '<i class="fas fa-info-circle me-2"></i>'} ${displayMessage}`;
+        }
+        
+        // Update time remaining estimation
+        if (timeRemaining && progress > 0 && progress < 100) {
+            const timeElapsed = (new Date() - processingStartTime) / 1000; // in seconds
+            const estimatedTotalTime = (timeElapsed / progress) * 100;
+            const remainingTime = Math.max(0, estimatedTotalTime - timeElapsed);
+            
+            if (remainingTime < 60) {
+                timeRemaining.textContent = `About ${Math.ceil(remainingTime)} seconds remaining`;
+            } else {
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = Math.ceil(remainingTime % 60);
+                timeRemaining.textContent = `About ${minutes}m ${seconds}s remaining`;
+            }
+        } else if (timeRemaining && progress >= 100) {
+            const totalTime = Math.ceil((new Date() - processingStartTime) / 1000);
+            timeRemaining.textContent = `Completed in ${totalTime} seconds`;
+        }
+        
+        // Update file counts
+        if (processedCount && processedFiles !== undefined) {
+            processedCount.textContent = processedFiles;
+        }
+        
+        if (totalCount && totalFiles !== undefined) {
+            totalCount.textContent = totalFiles;
+        }
+        
+        // Update file list if current file is provided
+        if (currentFile && fileList) {
+            // Add or update file in the list
+            const fileId = currentFile.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            let fileItem = document.getElementById(`file-${fileId}`);
+            
+            if (!fileItem) {
+                fileItem = document.createElement('div');
+                fileItem.id = `file-${fileId}`;
+                fileItem.className = 'file-item mb-3 p-2 border rounded';
+                fileItem.style.transition = 'all 0.3s ease';
+                fileItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="file-name text-truncate me-2" style="max-width: 70%;" title="${currentFile}">
+                            <i class="far fa-file me-2"></i>${currentFile}
+                        </span>
+                        <span class="badge">Pending</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" role="progressbar" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            }
+            
+            // Update progress for this file
+            const fileProgress = fileItem.querySelector('.progress-bar');
+            if (fileProgress) {
+                fileProgress.style.width = `${progress}%`;
+                fileProgress.setAttribute('aria-valuenow', progress);
+            }
+            
+            // Update status badge
+            const statusBadge = fileItem.querySelector('.badge');
+            if (statusBadge) {
+                if (progress >= 100) {
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.innerHTML = '<i class="fas fa-check me-1"></i>Complete';
+                    fileItem.classList.add('bg-light');
+                } else if (stage === 'error') {
+                    statusBadge.className = 'badge bg-danger';
+                    statusBadge.innerHTML = '<i class="fas fa-times me-1"></i>Error';
+                    fileItem.classList.add('bg-light', 'border-danger');
+                } else if (progress > 0) {
+                    statusBadge.className = 'badge bg-primary';
+                    statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing';
+                    fileItem.classList.remove('bg-light');
+                } else {
+                    statusBadge.className = 'badge bg-secondary';
+                    statusBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Pending';
+                    fileItem.classList.remove('bg-light');
+                }
+            }
+        }
+        
+        // Scroll the file list to show the latest item
+        if (fileList && fileList.lastElementChild) {
+            fileList.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // If processing is complete, update the UI
+        if (progress >= 100 || stage === 'complete' || stage === 'error') {
+            if (cancelButton) {
+                cancelButton.disabled = true;
+                cancelButton.innerHTML = '<i class="fas fa-check me-1"></i>Done';
+            }
+            
+            if (processButton) {
+                processButton.disabled = false;
+                if (stage === 'error') {
+                    processButton.innerHTML = '<i class="fas fa-redo me-2"></i>Try Again';
+                } else {
+                    processButton.innerHTML = '<i class="fas fa-download me-2"></i>Download Again';
+                }
+            }
+            
+            // Remove loading animation when complete
+            if (progressBar) {
+                progressBar.classList.remove('progress-bar-animated');
+                progressBar.classList.remove('progress-bar-striped');
+                
+                // Change progress bar color based on status
+                if (stage === 'complete') {
+                    progressBar.classList.remove('bg-info');
+                    progressBar.classList.add('bg-success');
+                } else {
+                    progressBar.classList.remove('bg-info');
+                    progressBar.classList.add('bg-danger');
+                }
+            }
+        } else {
+            // Ensure loading styles are applied for in-progress states
+            if (progressBar) {
+                progressBar.classList.add('progress-bar-animated');
+                progressBar.classList.add('progress-bar-striped');
+                progressBar.classList.add('bg-info');
+            }
+        }
+    }
+
+    // Initial setup on page load
+    updateUIState(); 
+
+}); // End DOMContentLoaded
+</script>
+{% endblock %}
