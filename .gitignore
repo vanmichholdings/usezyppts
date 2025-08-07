@@ -7,6 +7,14 @@
 *.env
 .env.*
 
+# Data storage (user uploads and processed files)
+data/
+Backend/storage/
+Backend/uploads/
+Backend/outputs/
+Backend/cache/
+Backend/temp/
+
 # Python
 __pycache__/
 *.py[cod]

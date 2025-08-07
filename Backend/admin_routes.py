@@ -13,15 +13,14 @@ from io import StringIO
 import os
 import logging
 
-from app_config import db
-from models import User, Subscription, LogoUpload, LogoVariation
+from models import db, User, Subscription, LogoUpload, LogoVariation
 
 # Create admin blueprint
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Security configuration
 ADMIN_IP_WHITELIST = os.environ.get('ADMIN_IP_WHITELIST', '').split(',')  # Comma-separated IPs
-ADMIN_ALLOWED_EMAILS = os.environ.get('ADMIN_ALLOWED_EMAILS', 'mike@usezyppts.com,test@zyppts.com').split(',')  # Comma-separated emails
+ADMIN_ALLOWED_EMAILS = os.environ.get('ADMIN_ALLOWED_EMAILS', 'mike@usezyppts.com,test@zyppts.com,admin@zyppts.com').split(',')  # Comma-separated emails
 ADMIN_SESSION_TIMEOUT = int(os.environ.get('ADMIN_SESSION_TIMEOUT', 86400))  # 24 hours default
 
 # Set up admin-specific logging
@@ -65,7 +64,7 @@ def check_admin_email():
     admin_emails_env = os.environ.get('ADMIN_ALLOWED_EMAILS')
     if not admin_emails_env:
         # Use default values if no environment variable is set
-        admin_emails = 'mike@usezyppts.com,test@zyppts.com'
+        admin_emails = 'mike@usezyppts.com,test@zyppts.com,admin@zyppts.com'
     else:
         admin_emails = admin_emails_env
     

@@ -1,0 +1,63 @@
+# Fly.io configuration for Zyppts Logo Processor
+app = "zyppts-logo-processor"
+primary_region = "iad"  # Washington DC - good for US users
+
+[build]
+  dockerfile = "../../Dockerfile"
+
+[env]
+  FLASK_ENV = "production"
+  FLASK_DEBUG = "False"
+  PYTHON_VERSION = "3.11.0"
+  SESSION_COOKIE_SECURE = "True"
+  CACHE_TYPE = "redis"
+  SESSION_TYPE = "redis"
+  LOG_LEVEL = "INFO"
+  MAX_CONTENT_LENGTH = "16777216"
+  UPLOAD_EXTENSIONS = ".png,.jpg,.jpeg,.gif,.bmp,.tiff,.svg,.pdf,.webp"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[processes]
+  app = "gunicorn --config ../config/gunicorn.conf.py app_config:create_app()"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 4096
+
+# Volume for persistent storage
+[[mounts]]
+  source = "zyppts_data"
+  destination = "/app/Backend/storage"
+
+# Health check configuration
+[checks]
+  [checks.app]
+    port = 8080
+    type = "http"
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/health"
+    protocol = "http"
+    tls_skip_verify = false
+
+# Metrics and monitoring
+[metrics]
+  port = 9091
+  path = "/metrics"

@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Redis for development
+  redis:
+    image: redis:7-alpine
+    container_name: zyppts_redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    restart: unless-stopped
+
+  # Development application with hot reload
+  app:
+    build: ..
+    container_name: zyppts_app_dev
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///app.db
+    volumes:
+      - ..:/app
+      - ../data:/app/data
+      - app_logs_dev:/app/Backend/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+
+  # Development Celery worker
+  worker:
+    build: ..
+    container_name: zyppts_worker_dev
+    command: celery -A utils.celery_worker worker --loglevel=DEBUG --concurrency=1 --queues=logo_processing
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///app.db
+    volumes:
+      - ..:/app
+      - ../data:/app/data
+      - app_logs_dev:/app/Backend/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  redis_data_dev:
+    driver: local
+  app_logs_dev:
+    driver: local
+
+networks:
+  default:
+    name: zyppts_network_dev 

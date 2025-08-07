@@ -1,9 +1,22 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, jsonify, current_app, Response, stream_with_context
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
-from app_config import db, mail
-from models import User, Subscription
-from config import Config
+
+try:
+    from .models import db, User, Subscription
+except ImportError:
+    from models import db, User, Subscription
+
+try:
+    from .app_config import mail
+except ImportError:
+    from app_config import mail
+
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
+
 from PIL import Image, ImageOps, ImageDraw, ImageFilter, ImageChops, ImageEnhance
 import os
 import shutil
@@ -14,7 +27,17 @@ from io import BytesIO
 import time
 import math
 from werkzeug.utils import secure_filename
-from utils.logo_processor import LogoProcessor
+
+try:
+    from .utils.logo_processor import LogoProcessor
+except ImportError:
+    from utils.logo_processor import LogoProcessor
+
+try:
+    from .utils.analytics_tracker import track_user_action, track_upload, track_processing_completion
+except ImportError:
+    from utils.analytics_tracker import track_user_action, track_upload, track_processing_completion
+
 import logging
 from flask_mail import Message
 from flask import after_this_request
@@ -42,10 +65,10 @@ bp = Blueprint('main', __name__)
 progress_data = defaultdict(dict)
 progress_lock = threading.Lock()
 
-# Health check endpoint for Render
+# Health check endpoint
 @bp.route('/health')
 def health_check():
-    """Health check endpoint for Render deployment monitoring"""
+    """Health check endpoint for deployment monitoring"""
     try:
         # Check database connection
         from sqlalchemy import text
@@ -79,6 +102,85 @@ def health_check():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
+
+# Favicon route
+@bp.route('/favicon.ico')
+def favicon():
+    """Serve favicon.ico at root"""
+    try:
+        favicon_path = os.path.join(current_app.static_folder, 'images', 'favicon', 'favicon.ico')
+        if os.path.exists(favicon_path):
+            response = send_file(
+                favicon_path,
+                mimetype='image/vnd.microsoft.icon'
+            )
+            # Add cache headers for favicon
+            response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 24 hours
+            response.headers['Pragma'] = 'cache'
+            return response
+        else:
+            # Return a 404 if favicon doesn't exist
+            return '', 404
+    except Exception as e:
+        current_app.logger.error(f"Error serving favicon.ico: {e}")
+        return '', 404
+
+@bp.route('/favicon.png')
+def favicon_png():
+    """Serve favicon.png as alternative"""
+    try:
+        favicon_path = os.path.join(current_app.static_folder, 'images', 'favicon', 'favicon-32x32.png')
+        if os.path.exists(favicon_path):
+            response = send_file(
+                favicon_path,
+                mimetype='image/png'
+            )
+            # Add cache headers for favicon
+            response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 24 hours
+            response.headers['Pragma'] = 'cache'
+            return response
+        else:
+            # Return a 404 if favicon doesn't exist
+            return '', 404
+    except Exception as e:
+        current_app.logger.error(f"Error serving favicon.png: {e}")
+        return '', 404
+
+@bp.route('/apple-touch-icon.png')
+def apple_touch_icon():
+    """Serve Apple touch icon"""
+    try:
+        icon_path = os.path.join(current_app.static_folder, 'images', 'favicon', 'apple-touch-icon.png')
+        if os.path.exists(icon_path):
+            response = send_file(
+                icon_path,
+                mimetype='image/png'
+            )
+            response.headers['Cache-Control'] = 'public, max-age=86400'
+            return response
+        else:
+            return '', 404
+    except Exception as e:
+        current_app.logger.error(f"Error serving apple-touch-icon.png: {e}")
+        return '', 404
+
+@bp.route('/site.webmanifest')
+def site_webmanifest():
+    """Serve site webmanifest"""
+    try:
+        manifest_path = os.path.join(current_app.static_folder, 'images', 'favicon', 'site.webmanifest')
+        if os.path.exists(manifest_path):
+            response = send_file(
+                manifest_path,
+                mimetype='application/manifest+json'
+            )
+            response.headers['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+            return response
+        else:
+            return '', 404
+    except Exception as e:
+        current_app.logger.error(f"Error serving site.webmanifest: {e}")
+        return '', 404
 
 def update_progress(session_id, stage, progress, message, current_file=None, total_files=0, processed_files=0):
     """Update progress for a session"""
@@ -238,17 +340,13 @@ def logo_processor():
     if not session_id and 'session_id' in request.args:
         session_id = request.args.get('session_id')
     
-    # Check if user can generate files (has credits or active subscription)
+    if not current_user.has_active_subscription():
+        update_progress(session_id, 'error', 0, 'Active subscription required')
+        return jsonify({'error': 'Active subscription required'}), 403
+        
     if not current_user.can_generate_files():
-        if current_user.is_promo_user() and current_user.upload_credits == 0:
-            update_progress(session_id, 'error', 0, 'No upload credits remaining')
-            return jsonify({'error': 'No upload credits remaining. Please upgrade to continue.'}), 403
-        elif not current_user.has_active_subscription():
-            update_progress(session_id, 'error', 0, 'Active subscription required')
-            return jsonify({'error': 'Active subscription required'}), 403
-        else:
-            update_progress(session_id, 'error', 0, 'No credits remaining')
-            return jsonify({'error': 'No credits remaining'}), 403
+        update_progress(session_id, 'error', 0, 'No credits remaining')
+        return jsonify({'error': 'No credits remaining'}), 403
     
     dirs = None
     file_path = None
@@ -303,260 +401,292 @@ def logo_processor():
             return jsonify({'error': 'Failed to generate preview'}), 500
 
         # Handle full processing request
-        try:
-            # Update progress - starting
-            update_progress(session_id, 'initializing', 5, 'Preparing to process files...')
+        # Update progress - starting
+        update_progress(session_id, 'initializing', 5, 'Preparing to process files...')
+        
+        # Start timing for analytics
+        start_time = time.time()
+        
+        # Create directories for this upload
+        upload_id = str(uuid.uuid4())
+        dirs = ensure_upload_dirs(upload_id)
+        
+        # Check if user has batch processing capability (Studio plan or higher)
+        has_batch_processing = current_user.subscription and current_user.subscription.plan in ['studio', 'enterprise']
+        
+        # Handle single file or batch processing
+        uploaded_files = []
+        
+        # Get all files from request
+        files = request.files.getlist('logo')
+        logger.info(f"Files received: {len(files)} files")
+        logger.info(f"File names: {[f.filename for f in files if f.filename]}")
+        
+        # Check for batch mode - either explicit batch_mode parameter or multiple files
+        batch_mode = 'batch_mode' in request.form or len([f for f in files if f.filename]) > 1
+        logger.info(f"Batch mode detected: {batch_mode}")
+        logger.info(f"Has batch processing capability: {has_batch_processing}")
+        logger.info(f"Form fields: {list(request.form.keys())}")
+        
+        if has_batch_processing and batch_mode:
+            # Batch processing mode - handle multiple files
+            logger.info("Starting batch processing mode")
             
-            # Create directories for this upload
-            upload_id = str(uuid.uuid4())
-            dirs = ensure_upload_dirs(upload_id)
+            if not files or all(f.filename == '' for f in files):
+                update_progress(session_id, 'error', 0, 'No files selected for batch processing')
+                return jsonify({'error': 'No files selected for batch processing'}), 400
             
-            # Check if user has batch processing capability (Studio plan, Enterprise plan, or promo_pro_studio plan)
-            has_batch_processing = (
-                current_user.subscription and 
-                current_user.subscription.plan in ['studio', 'enterprise', 'promo_pro_studio']
-            )
-            
-            # Handle single file or batch processing
-            uploaded_files = []
-            
-            # Get all files from request
-            files = request.files.getlist('logo')
-            logger.info(f"Files received: {len(files)} files")
-            logger.info(f"File names: {[f.filename for f in files if f.filename]}")
-            
-            # Check for batch mode - either explicit batch_mode parameter or multiple files
-            batch_mode = 'batch_mode' in request.form or len([f for f in files if f.filename]) > 1
-            logger.info(f"Batch mode detected: {batch_mode}")
-            logger.info(f"Has batch processing capability: {has_batch_processing}")
-            logger.info(f"Form fields: {list(request.form.keys())}")
-            
-            if has_batch_processing and batch_mode:
-                # Batch processing mode - handle multiple files
-                logger.info("Starting batch processing mode")
-                
-                if not files or all(f.filename == '' for f in files):
-                    update_progress(session_id, 'error', 0, 'No files selected for batch processing')
-                    return jsonify({'error': 'No files selected for batch processing'}), 400
-                
-                # Validate and save all files
-                for i, file in enumerate(files):
-                    if file.filename == '':
-                        continue
-                        
-                    # Validate file type
-                    file_ext = os.path.splitext(file.filename)[1].lower()
-                    if file_ext not in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.pdf']:
-                        update_progress(session_id, 'error', 0, f'Unsupported file type: {file_ext} in {file.filename}')
-                        return jsonify({'error': f'Unsupported file type: {file_ext} in {file.filename}. Please upload supported image or PDF files.'}), 400
-                    
-                    if not allowed_file(file.filename):
-                        update_progress(session_id, 'error', 0, f'File type not allowed: {file.filename}')
-                        return jsonify({'error': f'File type not allowed: {file.filename}'}), 400
-                    
-                    filename = secure_filename(file.filename)
-                    file_path = os.path.join(dirs['upload'], filename)
-                    file.save(file_path)
-                    uploaded_files.append((filename, file_path))
-                    logger.info(f"Saved file {i+1}: {filename}")
-                
-                if not uploaded_files:
-                    update_progress(session_id, 'error', 0, 'No valid files uploaded')
-                    return jsonify({'error': 'No valid files uploaded'}), 400
-                
-                total_files = len(uploaded_files)
-                logger.info(f"Batch processing {total_files} files for user {current_user.username}")
-                
-            else:
-                # Single file processing (existing logic)
-                logger.info("Starting single file processing mode")
-                file = request.files['logo']
+            # Validate and save all files
+            for i, file in enumerate(files):
                 if file.filename == '':
-                    update_progress(session_id, 'error', 0, 'No selected file')
-                    return jsonify({'error': 'No selected file'}), 400
+                    continue
                     
-                # Validate file type before processing
+                # Validate file type
                 file_ext = os.path.splitext(file.filename)[1].lower()
                 if file_ext not in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.pdf']:
-                    update_progress(session_id, 'error', 0, f'Unsupported file type: {file_ext}')
-                    return jsonify({'error': f'Unsupported file type: {file_ext}. Please upload a supported image or PDF file.'}), 400
-                    
+                    update_progress(session_id, 'error', 0, f'Unsupported file type: {file_ext} in {file.filename}')
+                    return jsonify({'error': f'Unsupported file type: {file_ext} in {file.filename}. Please upload supported image or PDF files.'}), 400
+                
                 if not allowed_file(file.filename):
-                    update_progress(session_id, 'error', 0, 'File type not allowed')
-                    return jsonify({'error': 'File type not allowed'}), 400
+                    update_progress(session_id, 'error', 0, f'File type not allowed: {file.filename}')
+                    return jsonify({'error': f'File type not allowed: {file.filename}'}), 400
                 
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(dirs['upload'], filename)
-                
-                # Update progress - saving file
-                update_progress(session_id, 'processing', 10, 'Saving uploaded file...', 
-                              current_file=filename, total_files=1, processed_files=0)
-                
                 file.save(file_path)
-                uploaded_files = [(filename, file_path)]
-                total_files = 1
-                logger.info(f"Single file processing: {filename}")
-
-            # Initialize processor with the uploaded file
-            processor = LogoProcessor(
-                cache_folder=dirs['cache'],
-                upload_folder=dirs['upload'],
-                output_folder=dirs['output'],
-                temp_folder=dirs['temp']
+                
+                # Track upload for analytics
+                file_size = os.path.getsize(file_path)
+                file_type = file_ext.lstrip('.')
+                track_upload(
+                    user_id=current_user.id,
+                    filename=filename,
+                    original_filename=file.filename,
+                    file_size=file_size,
+                    file_type=file_type,
+                    status='pending'
+                )
+                
+                uploaded_files.append((filename, file_path))
+                logger.info(f"Saved file {i+1}: {filename}")
+            
+            if not uploaded_files:
+                update_progress(session_id, 'error', 0, 'No valid files uploaded')
+                return jsonify({'error': 'No valid files uploaded'}), 400
+            
+            total_files = len(uploaded_files)
+            logger.info(f"Batch processing {total_files} files for user {current_user.username}")
+            
+        else:
+            # Single file processing (existing logic)
+            logger.info("Starting single file processing mode")
+            file = request.files['logo']
+            if file.filename == '':
+                update_progress(session_id, 'error', 0, 'No selected file')
+                return jsonify({'error': 'No selected file'}), 400
+                    
+            # Validate file type before processing
+            file_ext = os.path.splitext(file.filename)[1].lower()
+            if file_ext not in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.pdf']:
+                update_progress(session_id, 'error', 0, f'Unsupported file type: {file_ext}')
+                return jsonify({'error': f'Unsupported file type: {file_ext}. Please upload a supported image or PDF file.'}), 400
+                    
+            if not allowed_file(file.filename):
+                update_progress(session_id, 'error', 0, 'File type not allowed')
+                return jsonify({'error': 'File type not allowed'}), 400
+            
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(dirs['upload'], filename)
+            
+            # Update progress - saving file
+            update_progress(session_id, 'processing', 10, 'Saving uploaded file...', 
+                          current_file=filename, total_files=1, processed_files=0)
+            
+            file.save(file_path)
+            
+            # Track upload for analytics
+            file_size = os.path.getsize(file_path)
+            file_type = file_ext.lstrip('.')
+            track_upload(
+                user_id=current_user.id,
+                filename=filename,
+                original_filename=file.filename,
+                file_size=file_size,
+                file_type=file_type,
+                status='pending'
             )
             
-            # Get processing options from form - map to the expected option keys in process_logo
-            # Debug: Log all form fields to see what's being sent
-            logger.info(f"Form fields received: {list(request.form.keys())}")
-            logger.info(f"Form data: {dict(request.form)}")
+            uploaded_files = [(filename, file_path)]
+            total_files = 1
+            logger.info(f"Single file processing: {filename}")
+
+        # Initialize processor with the uploaded file
+        processor = LogoProcessor(
+            cache_folder=dirs['cache'],
+            upload_folder=dirs['upload'],
+            output_folder=dirs['output'],
+            temp_folder=dirs['temp']
+        )
+        
+        # Get processing options from form
+        logger.info(f"Form fields received: {list(request.form.keys())}")
+        logger.info(f"Form data: {dict(request.form)}")
+        
+        # Parse selected variations from form data
+        options = {}
+        
+        # Basic variations
+        basic_variations = [
+            'transparent_png', 'black_version', 'pdf_version', 'webp_version', 
+            'favicon', 'email_header'
+        ]
+        
+        for variation in basic_variations:
+            if variation in request.form and request.form[variation] in ['true', 'on']:
+                options[variation] = True
+                logger.info(f"✅ Selected variation: {variation}")
+            else:
+                options[variation] = False
+                logger.info(f"❌ Not selected: {variation}")
+        
+        # Effects variations - map form field names to internal names
+        effects_mapping = {
+            'effect_vector': 'vector_trace',
+            'effect_color_separations': 'color_separations', 
+            'effect_distressed': 'distressed_effect',
+            'effect_outline': 'contour_cut',
+            'effect_halftone': 'halftone'
+        }
+        
+        # Initialize all effects as False
+        for internal_name in effects_mapping.values():
+            options[internal_name] = False
+        
+        # Check form fields and map to internal names
+        for form_field, internal_name in effects_mapping.items():
+            if form_field in request.form and request.form[form_field] in ['true', 'on']:
+                options[internal_name] = True
+                logger.info(f"✅ Selected effect: {form_field} -> {internal_name}")
+            else:
+                logger.info(f"❌ Not selected: {form_field} -> {internal_name}")
+        
+        # Social media formats - map form field names to internal names
+        social_mapping = {
+            'social_instagram_post': 'instagram_post',
+            'social_instagram_story': 'instagram_story', 
+            'social_facebook_post': 'facebook_post',
+            'social_twitter_post': 'twitter_post',
+            'social_linkedin_post': 'linkedin_post'
+        }
+        
+        social_formats = {}
+        for form_field, internal_name in social_mapping.items():
+            if form_field in request.form and request.form[form_field] in ['true', 'on']:
+                social_formats[internal_name] = True
+                logger.info(f"✅ Selected social format: {form_field} -> {internal_name}")
+            else:
+                social_formats[internal_name] = False
+                logger.info(f"❌ Not selected: {form_field} -> {internal_name}")
+        
+        options['social_formats'] = social_formats
+        
+        # Log the final options
+        logger.info(f"📋 Final processing options: {options}")
+        
+        # Check if any variations were selected
+        selected_variations = sum(1 for v in basic_variations + list(effects_mapping.values()) if options.get(v, False))
+        selected_social = sum(1 for v in social_formats.values() if v)
+        
+        if selected_variations == 0 and selected_social == 0:
+            update_progress(session_id, 'error', 0, 'No variations selected')
+            return jsonify({'error': 'Please select at least one variation to process'}), 400
+        
+        logger.info(f"🎯 Processing {selected_variations} variations and {selected_social} social formats")
+        
+        # Update progress - starting processing
+        update_progress(session_id, 'processing', 20, f'Processing {"files" if total_files > 1 else "logo"} with selected effects...', 
+                      current_file=uploaded_files[0][0] if uploaded_files else "Unknown", total_files=total_files, processed_files=0)
+        
+        # Process files based on plan type
+        all_output_files = []
+        summary_lines = []
+        
+        logger.info(f"Starting to process {total_files} files with options: {options}")
+        
+        for file_index, (filename, file_path) in enumerate(uploaded_files):
+            current_file_progress = file_index + 1
             
-            options = {
-                # Basic formats
-                'transparent_png': 'transparent_png' in request.form,
-                'black_version': 'black_version' in request.form,  # One Color Black Monochrome
-                'pdf_version': 'pdf_version' in request.form,
-                'webp_version': 'webp_version' in request.form,
-                'favicon': 'favicon' in request.form,
-                'email_header': 'email_header' in request.form,
-                
-                # Effects - with multiple possible field names for compatibility
-                'vector_trace': ('effect_vector' in request.form or 
-                               'vector_trace' in request.form or 
-                               'vector' in request.form),
-                'full_color_vector_trace': ('effect_full_color_vector' in request.form or 
-                                          'full_color_vector_trace' in request.form or 
-                                          'full_color_vector' in request.form or
-                                          'fullcolor_vector' in request.form),
-                'color_separations': ('effect_color_separations' in request.form or 
-                                    'color_separations' in request.form),
-                'distressed_effect': ('effect_distressed' in request.form or 
-                                    'distressed_effect' in request.form),
-                'halftone': ('effect_halftone' in request.form or 
-                           'halftone' in request.form),
-                'contour_cut': ('effect_outline' in request.form or 
-                              'contour_cut' in request.form or 
-                              'outline' in request.form),  # Contour Cutline
-                
-                # Social media formats (handled separately)
-                'social_formats': {
-                    # Instagram
-                    'instagram_profile': 'social_instagram_profile' in request.form,
-                    'instagram_post': 'social_instagram_post' in request.form,
-                    'instagram_story': 'social_instagram_story' in request.form,
-                    
-                    # Facebook
-                    'facebook_profile': 'social_facebook_profile' in request.form,
-                    'facebook_post': 'social_facebook_post' in request.form,
-                    'facebook_cover': 'social_facebook_cover' in request.form,
-                    
-                    # Twitter/X
-                    'twitter_profile': 'social_twitter_profile' in request.form,
-                    'twitter_post': 'social_twitter_post' in request.form,
-                    'twitter_header': 'social_twitter_header' in request.form,
-                    
-                    # YouTube
-                    'youtube_profile': 'social_youtube_profile' in request.form,
-                    'youtube_banner': 'social_youtube_banner' in request.form,
-                    'youtube_thumbnail': 'social_youtube_thumbnail' in request.form,
-                    
-                    # LinkedIn
-                    'linkedin_profile': 'social_linkedin_profile' in request.form,
-                    'linkedin_banner': 'social_linkedin_banner' in request.form,
-                    'linkedin_post': 'social_linkedin_post' in request.form,
-                    
-                    # TikTok
-                    'tiktok_profile': 'social_tiktok_profile' in request.form,
-                    'tiktok_video': 'social_tiktok_video' in request.form,
-                    
-                    # Slack
-                    'slack': 'social_slack' in request.form,
-                    
-                    # Discord
-                    'discord': 'social_discord' in request.form
-                }
-            }
+            logger.info(f"Processing file {current_file_progress} of {total_files}: {filename}")
             
-            # Debug: Log the processed options
-            logger.info(f"Processed options: {options}")
-            logger.info(f"Vector trace enabled: {options.get('vector_trace')}")
-            logger.info(f"Full color vector trace enabled: {options.get('full_color_vector_trace')}")
+            # Update progress for current file
+            update_progress(session_id, 'processing', 
+                          20 + int(60 * (file_index / total_files)), 
+                          f'Processing file {current_file_progress} of {total_files}: {filename}...', 
+                          current_file=filename, total_files=total_files, processed_files=file_index)
             
-            # Update progress - starting processing
-            update_progress(session_id, 'processing', 20, f'Processing {"files" if total_files > 1 else "logo"} with selected effects...', 
-                          current_file=uploaded_files[0][0] if uploaded_files else "Unknown", total_files=total_files, processed_files=0)
+            # Process the logo with the selected options
+            logger.info(f"Calling process_logo for {filename} with options: {options}")
+            result = processor.process_logo_parallel(file_path=file_path, options=options)
             
-            # Process files based on plan type
-            all_output_files = []
-            summary_lines = []
+            # Log the outputs dictionary for debugging
+            logger.info(f"Outputs returned from process_logo for {filename}: {result.get('outputs', {})}")
             
-            logger.info(f"Starting to process {total_files} files with options: {options}")
+            # Verify the processing was successful
+            if not result.get('success'):
+                error_msg = result.get('message', 'Unknown error during processing')
+                logger.error(f"Logo processing failed for {filename}: {error_msg}")
+                update_progress(session_id, 'error', 0, f"Processing failed for {filename}: {error_msg}")
+                return jsonify({'error': f"Processing failed for {filename}: {error_msg}"}), 500
             
-            for file_index, (filename, file_path) in enumerate(uploaded_files):
-                current_file_progress = file_index + 1
-                
-                logger.info(f"Processing file {current_file_progress} of {total_files}: {filename}")
-                
-                # Update progress for current file
-                update_progress(session_id, 'processing', 
-                              20 + int(60 * (file_index / total_files)), 
-                              f'Processing file {current_file_progress} of {total_files}: {filename}...', 
-                              current_file=filename, total_files=total_files, processed_files=file_index)
-                
-                # Process the logo with the selected options
-                logger.info(f"Calling process_logo for {filename} with options: {options}")
-                result = processor.process_logo(file_path=file_path, options=options)
-                
-                # Log the outputs dictionary for debugging
-                logger.info(f"Outputs returned from process_logo for {filename}: {result.get('outputs', {})}")
-                
-                # Verify the processing was successful
-                if not result.get('success'):
-                    error_msg = result.get('message', 'Unknown error during processing')
-                    logger.error(f"Logo processing failed for {filename}: {error_msg}")
-                    update_progress(session_id, 'error', 0, f"Processing failed for {filename}: {error_msg}")
-                    return jsonify({'error': f"Processing failed for {filename}: {error_msg}"}), 500
-                
-                logger.info(f"Successfully processed {filename}")
-                
-                # Get the output files from the result
-                outputs = result.get('outputs', {})
-                
-                # Get the original filename without extension
-                original_name = os.path.splitext(os.path.basename(file_path))[0]
-                
-                logger.info(f"Adding output files for {filename} to zip")
-                
-                # Helper function to safely add files to the output list with proper naming
-                def add_file(file_path, dest_path, use_original_name=True):
-                    # Handle dictionary outputs (extract the actual file path)
-                    if isinstance(file_path, dict):
-                        # Try to find the actual file path in the dictionary
-                        if 'pdf' in file_path:
-                            file_path = file_path['pdf']
-                        elif 'png' in file_path:
-                            file_path = file_path['png']
-                        elif 'svg' in file_path:
-                            file_path = file_path['svg']
-                        elif 'ico' in file_path:
-                            file_path = file_path['ico']
-                        elif 'webp' in file_path:
-                            file_path = file_path['webp']
-                        elif 'eps' in file_path:
-                            file_path = file_path['eps']
+            logger.info(f"Successfully processed {filename}")
+            
+            # Get the output files from the result
+            outputs = result.get('outputs', {})
+            
+            # Get the original filename without extension
+            original_name = os.path.splitext(os.path.basename(file_path))[0]
+            
+            logger.info(f"Adding output files for {filename} to zip")
+            
+            # Helper function to safely add files to the output list with proper naming
+            def add_file(file_path, dest_path, use_original_name=True):
+                """Helper function to safely add files to the output list with proper naming"""
+                # Handle dictionary outputs (extract the actual file path)
+                if isinstance(file_path, dict):
+                    # Handle contour cutline outputs
+                    if 'outputs' in file_path:
+                        outputs = file_path['outputs']
+                        for output_type, path in outputs.items():
+                            if isinstance(path, str) and os.path.exists(path):
+                                # Create appropriate destination path based on output type
+                                file_ext = os.path.splitext(path)[1]
+                                if total_files > 1:
+                                    arcname = f"{original_name}/Effects/{original_name}_contourcut_{output_type}{file_ext}"
+                                else:
+                                    arcname = f"Effects/{original_name}_contourcut_{output_type}{file_ext}"
+                                all_output_files.append((path, arcname))
+                                logger.info(f"Added contour cutline output: {path} -> {arcname}")
+                        return True
+                    # Try to find the actual file path in the dictionary
+                    for key in ['pdf', 'png', 'svg', 'ico', 'webp', 'eps']:
+                        if key in file_path:
+                            file_path = file_path[key]
+                            break
+                    else:
+                        # If we can't find a known key, try the first string value
+                        for key, value in file_path.items():
+                            if isinstance(value, str) and os.path.exists(value):
+                                file_path = value
+                                break
                         else:
-                            # If we can't find a known key, try the first string value
-                            for key, value in file_path.items():
-                                if isinstance(value, str) and os.path.exists(value):
-                                    file_path = value
-                                    break
-                            else:
-                                logger.warning(f"Could not extract file path from dictionary: {file_path}")
-                                return False
-                    
-                    if not file_path or not isinstance(file_path, str) or not os.path.exists(file_path):
-                        logger.warning(f"Expected output file missing: {file_path}")
-                        return False
-                    
+                            logger.warning(f"Could not extract file path from dictionary: {file_path}")
+                            return False
+
+                if not file_path or not isinstance(file_path, str) or not os.path.exists(file_path):
+                    logger.warning(f"Expected output file missing: {file_path}")
+                    return False
+
+                try:
                     # For batch processing, organize files by logo name
                     if total_files > 1:
                         # Create folder structure: LogoName/FileType/filename
@@ -567,416 +697,323 @@ def logo_processor():
                         all_output_files.append((file_path, dest_path))
                         logger.info(f"Added to single output: {file_path} -> {dest_path}")
                     return True
-                
-                # Add the original file only if requested and it exists
-                if options.get('include_original', False) and os.path.exists(file_path):
-                    if total_files > 1:
-                        arcname = f"{original_name}/Original/{original_name}_original{os.path.splitext(file_path)[1]}"
-                    else:
-                        arcname = f"Original/{original_name}_original{os.path.splitext(file_path)[1]}"
-                    add_file(file_path, arcname)
-                    summary_lines.append(f"{original_name}: Original: {arcname}")
+                except Exception as e:
+                    logger.error(f"Error adding file to output list: {str(e)}")
+                    return False
 
-                # Formats
-                if options.get('transparent_png', False) and 'transparent_png' in outputs:
-                    path = outputs['transparent_png']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Formats/{original_name}_transparent.png"
-                    else:
-                        arcname = f"Formats/{original_name}_transparent.png"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: Transparent PNG: {arcname}")
+            # Process the outputs based on selected variations
+            logger.info(f"Processing outputs for {filename} with selected options: {options}")
+            
+            # Handle basic variations
+            basic_variation_mapping = {
+                'transparent_png': '_create_transparent_png',
+                'black_version': '_create_black_version', 
+                'pdf_version': '_create_pdf_version',
+                'webp_version': '_create_webp_version',
+                'favicon': '_create_favicon',
+                'email_header': '_create_email_header'
+            }
+            
+            for variation, func_name in basic_variation_mapping.items():
+                if options.get(variation, False) and func_name in outputs:
+                    result = outputs[func_name]
+                    logger.info(f"Processing {variation}: {result}")
                     
-                if options.get('black_version', False) and 'black_version' in outputs:
-                    path = outputs['black_version']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Formats/{original_name}_black.png"
-                    else:
-                        arcname = f"Formats/{original_name}_black.png"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: Black Version: {arcname}")
-                    
-                if options.get('pdf_version', False) and 'pdf_version' in outputs:
-                    path = outputs['pdf_version']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Formats/{original_name}_pdf.pdf"
-                    else:
-                        arcname = f"Formats/{original_name}_pdf.pdf"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: PDF (Raster): {arcname}")
-                    
-                if options.get('webp_version', False) and 'webp_version' in outputs:
-                    path = outputs['webp_version']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Formats/{original_name}_webp.webp"
-                    else:
-                        arcname = f"Formats/{original_name}_webp.webp"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: WebP: {arcname}")
-                    
-                if options.get('favicon', False) and 'favicon' in outputs:
-                    path = outputs['favicon']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Formats/{original_name}_favicon.ico"
-                    else:
-                        arcname = f"Formats/{original_name}_favicon.ico"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: Favicon: {arcname}")
-                    
-                if options.get('email_header', False) and 'email_header' in outputs:
-                    path = outputs['email_header']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Formats/{original_name}_emailheader.png"
-                    else:
-                        arcname = f"Formats/{original_name}_emailheader.png"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: Email Header: {arcname}")
-
-                # Effects
-                if options.get('distressed_effect', False) and 'distressed_effect' in outputs:
-                    path = outputs['distressed_effect']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Effects/{original_name}_distressed.png"
-                    else:
-                        arcname = f"Effects/{original_name}_distressed.png"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: Distressed Effect: {arcname}")
-                    
-                if options.get('halftone', False) and 'halftone' in outputs:
-                    path = outputs['halftone']
-                    if total_files > 1:
-                        arcname = f"{original_name}/Effects/{original_name}_halftone.png"
-                    else:
-                        arcname = f"Effects/{original_name}_halftone.png"
-                    add_file(path, arcname)
-                    summary_lines.append(f"{original_name}: Halftone Effect: {arcname}")
-                    
-                if options.get('contour_cut', False) and 'contour_cut' in outputs:
-                    contour_files = outputs['contour_cut']
-                    if isinstance(contour_files, dict):
-                        # Add full color mask
-                        if contour_files.get('full_color'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_contourcut_fullcolor.png"
-                            else:
-                                arcname = f"Effects/{original_name}_contourcut_fullcolor.png"
-                            add_file(contour_files['full_color'], arcname)
-                            summary_lines.append(f"{original_name}: Contour Cutline (Full Color): {arcname}")
-                        # Add pink outline mask
-                        if contour_files.get('pink_outline'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_contourcut_outline.png"
-                            else:
-                                arcname = f"Effects/{original_name}_contourcut_outline.png"
-                            add_file(contour_files['pink_outline'], arcname)
-                            summary_lines.append(f"{original_name}: Contour Cutline (Pink Outline): {arcname}")
-                        # Add combined SVG with both layers
-                        if contour_files.get('svg'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_contourcut_combined.svg"
-                            else:
-                                arcname = f"Effects/{original_name}_contourcut_combined.svg"
-                            add_file(contour_files['svg'], arcname)
-                            summary_lines.append(f"{original_name}: Contour Cutline (Combined SVG): {arcname}")
-                        # Add combined PDF with both layers
-                        if contour_files.get('pdf'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_contourcut_combined.pdf"
-                            else:
-                                arcname = f"Effects/{original_name}_contourcut_combined.pdf"
-                            add_file(contour_files['pdf'], arcname)
-                            summary_lines.append(f"{original_name}: Contour Cutline (Combined PDF): {arcname}")
-                        # Add contour count info
-                        if contour_files.get('contour_count'):
-                            summary_lines.append(f"{original_name}: Contour Cutline: {contour_files['contour_count']} selected contours")
-                            
-                if options.get('vector_trace', False) and 'vector_trace' in outputs:
-                    vector_files = outputs['vector_trace']
-                    if isinstance(vector_files, dict):
-                        # Add SVG
-                        if vector_files.get('svg'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_vectortrace.svg"
-                            else:
-                                arcname = f"Effects/{original_name}_vectortrace.svg"
-                            add_file(vector_files['svg'], arcname)
-                            summary_lines.append(f"{original_name}: Vector Trace (SVG): {arcname}")
-                        # Add PDF
-                        if vector_files.get('pdf'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_vectortrace.pdf"
-                            else:
-                                arcname = f"Effects/{original_name}_vectortrace.pdf"
-                            add_file(vector_files['pdf'], arcname)
-                            summary_lines.append(f"{original_name}: Vector Trace (PDF): {arcname}")
-                        # Add EPS
-                        if vector_files.get('eps'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_vectortrace.eps"
-                            else:
-                                arcname = f"Effects/{original_name}_vectortrace.eps"
-                            add_file(vector_files['eps'], arcname)
-                            summary_lines.append(f"{original_name}: Vector Trace (EPS): {arcname}")
-
-                # Full Color Vector Trace
-                if options.get('full_color_vector_trace', False) and 'full_color_vector_trace' in outputs:
-                    full_color_vector_files = outputs['full_color_vector_trace']
-                    if isinstance(full_color_vector_files, dict):
-                        # Add SVG
-                        if full_color_vector_files.get('svg'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_fullcolorvector.svg"
-                            else:
-                                arcname = f"Effects/{original_name}_fullcolorvector.svg"
-                            add_file(full_color_vector_files['svg'], arcname)
-                            summary_lines.append(f"{original_name}: Full Color Vector Trace (SVG): {arcname}")
-                        # Add PDF
-                        if full_color_vector_files.get('pdf'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_fullcolorvector.pdf"
-                            else:
-                                arcname = f"Effects/{original_name}_fullcolorvector.pdf"
-                            add_file(full_color_vector_files['pdf'], arcname)
-                            summary_lines.append(f"{original_name}: Full Color Vector Trace (PDF): {arcname}")
-                        # Add EPS
-                        if full_color_vector_files.get('eps'):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Effects/{original_name}_fullcolorvector.eps"
-                            else:
-                                arcname = f"Effects/{original_name}_fullcolorvector.eps"
-                            add_file(full_color_vector_files['eps'], arcname)
-                            summary_lines.append(f"{original_name}: Full Color Vector Trace (EPS): {arcname}")
-                    # Add color count info to readme
-                    if outputs.get('full_color_vector_trace_info'):
-                        colors_used = outputs['full_color_vector_trace_info'].get('colors_used', 0)
-                        summary_lines.append(f"{original_name}: Full Color Vector Trace (Colors Used: {colors_used})")
-
-                # Color Separations
-                if options.get('color_separations', False) and 'color_separations' in outputs:
-                    color_seps = outputs['color_separations']
-                    if isinstance(color_seps, dict):
-                        # Add all PNGs with PMS/CMYK labels
-                        pngs = color_seps.get('pngs') or color_seps.get('png') or []
-                        if isinstance(pngs, tuple):
-                            pngs = [pngs]
-                        for i, png_info in enumerate(pngs):
-                            if isinstance(png_info, tuple):
-                                png_path, label = png_info
-                            else:
-                                png_path, label = png_info, f"colorsep{i+1}"
-                            if isinstance(png_path, str) and os.path.exists(png_path):
-                                ext = os.path.splitext(png_path)[1].lstrip('.') or 'png'
-                                safe_label = label.replace(' ', '').replace('/', '').replace('(', '').replace(')', '').lower()
+                    if isinstance(result, dict):
+                        # Handle dictionary results (extract file paths)
+                        for key, path in result.items():
+                            if isinstance(path, str) and os.path.exists(path):
+                                ext = os.path.splitext(path)[1].lstrip('.') or 'png'
                                 if total_files > 1:
-                                    arcname = f"{original_name}/Color Separations/{original_name}_{safe_label}.{ext}"
+                                    arcname = f"{original_name}/Basic/{original_name}_{variation}.{ext}"
                                 else:
-                                    arcname = f"Color Separations/{original_name}_{safe_label}.{ext}"
-                                add_file(png_path, arcname, use_original_name=False)
-                                summary_lines.append(f"{original_name}: Color Separation ({label}): {arcname}")
-                        # Add PSD if present
-                        psd_path = color_seps.get('psd')
-                        if psd_path and os.path.exists(psd_path):
-                            if total_files > 1:
-                                arcname = f"{original_name}/Color Separations/{original_name}_colorseps.psd"
-                            else:
-                                arcname = f"Color Separations/{original_name}_colorseps.psd"
-                            add_file(psd_path, arcname, use_original_name=False)
-                            summary_lines.append(f"{original_name}: Color Separations (PSD): {arcname}")
-
-                # Social Media
-                social_formats = options.get('social_formats', {})
-                if any(social_formats.values()) and 'social_formats' in outputs:
-                    social_media = outputs['social_formats']
-                    if isinstance(social_media, dict):
-                        # Only include the formats that were actually selected by the user
-                        for platform, format_path in social_media.items():
-                            # Check if this platform was selected by the user
-                            if platform in social_formats and social_formats[platform]:
-                                if isinstance(format_path, str) and os.path.exists(format_path):
-                                    ext = os.path.splitext(format_path)[1].lstrip('.') or 'png'
-                                    if total_files > 1:
-                                        arcname = f"{original_name}/Social Media/{original_name}_{platform}.{ext}"
-                                    else:
-                                        arcname = f"Social Media/{original_name}_{platform}.{ext}"
-                                    add_file(format_path, arcname, use_original_name=False)
-                                    summary_lines.append(f"{original_name}: Social Media ({platform}): {arcname}")
-                                else:
-                                    logger.warning(f"⚠️ Social format {platform} was selected but file not found: {format_path}")
-                            else:
-                                logger.info(f"📝 Skipping {platform} - not selected by user")
+                                    arcname = f"Basic/{original_name}_{variation}.{ext}"
+                                if add_file(path, arcname):
+                                    logger.info(f"✅ Added {variation}: {path} -> {arcname}")
+                                    summary_lines.append(f"{original_name}: {variation.replace('_', ' ').title()}: {arcname}")
+                    elif isinstance(result, str) and os.path.exists(result):
+                        # Handle string results (direct file paths)
+                        ext = os.path.splitext(result)[1].lstrip('.') or 'png'
+                        if total_files > 1:
+                            arcname = f"{original_name}/Basic/{original_name}_{variation}.{ext}"
+                        else:
+                            arcname = f"Basic/{original_name}_{variation}.{ext}"
+                        if add_file(result, arcname):
+                            logger.info(f"✅ Added {variation}: {result} -> {arcname}")
+                            summary_lines.append(f"{original_name}: {variation.replace('_', ' ').title()}: {arcname}")
                     else:
-                        logger.warning(f"⚠️ Unexpected social_media format: {type(social_media)}")
-            
-            total_output_files = len(all_output_files)
-
-            # Log final summary
-            logger.info(f"=== PROCESSING SUMMARY ===")
-            logger.info(f"Total files uploaded: {total_files}")
-            logger.info(f"Total output files generated: {total_output_files}")
-            logger.info(f"Files processed: {[f[0] for f in uploaded_files]}")
-            logger.info(f"Output files: {[f[1] for f in all_output_files]}")
-            logger.info(f"Summary lines: {summary_lines}")
-            logger.info(f"========================")
-
-            # Add a readme.txt summary
-            readme_path = os.path.join(dirs['temp'], 'readme.txt')
-            with open(readme_path, 'w') as f:
-                f.write("Zyppts Logo Processor Output\n\n")
-                if total_files > 1:
-                    f.write(f"Batch processed {total_files} logos\n\n")
+                        logger.warning(f"⚠️ Invalid result for {variation}: {result}")
                 else:
-                    f.write(f"Processed file: {uploaded_files[0][0]}\n\n")
-                f.write("Included files:\n")
-                for line in summary_lines:
-                    f.write(f"- {line}\n")
-                f.write("\nThank you for using Zyppts!\n")
-            add_file(readme_path, 'readme.txt', use_original_name=False)
+                    logger.info(f"📝 Skipping {variation} - not selected or not in outputs")
             
-            # If no output files were generated, log an error
-            if total_output_files == 0:
-                error_msg = "No output files were generated during processing"
-                logger.error(error_msg)
-                update_progress(session_id, 'error', 0, error_msg)
-                return jsonify({'error': error_msg}), 500
+            # Handle effects variations
+            effects_variation_mapping = {
+                'vector_trace': '_create_vector_trace',
+                'full_color_vector_trace': '_create_full_color_vector_trace',
+                'color_separations': '_create_color_separations',
+                'distressed_effect': '_create_distressed_version',
+                'halftone': '_create_halftone',
+                'contour_cut': '_create_contour_cutline'
+            }
             
-            # Update progress - creating zip file with more detailed progress
-            update_progress(session_id, 'zipping', 80, 'Preparing to create download package...', 
-                          current_file='Starting...', total_files=total_output_files, processed_files=0)
-            
-            # Create a zip file of the results
-            if total_files > 1:
-                zip_filename = f'batch_processed_logos_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip'
-                download_name = zip_filename
+            for variation, func_name in effects_variation_mapping.items():
+                if options.get(variation, False) and func_name in outputs:
+                    result = outputs[func_name]
+                    logger.info(f"Processing {variation}: {result}")
+                    
+                    if variation == 'contour_cut':
+                        # Special handling for contour cutline (has nested outputs)
+                        if isinstance(result, dict) and 'outputs' in result:
+                            outputs_dict = result['outputs']
+                            
+                            # Handle full color mask
+                            if 'full_color_mask' in outputs_dict:
+                                path = outputs_dict['full_color_mask']
+                                if total_files > 1:
+                                    arcname = f"{original_name}/Effects/{original_name}_contourcut_fullcolor.png"
+                                else:
+                                    arcname = f"Effects/{original_name}_contourcut_fullcolor.png"
+                                if add_file(path, arcname):
+                                    logger.info(f"✅ Added contour cutline full color: {path} -> {arcname}")
+                                    summary_lines.append(f"{original_name}: Contour Cutline (Full Color): {arcname}")
+                            
+                            # Handle pink outline mask
+                            if 'pink_outline_mask' in outputs_dict:
+                                path = outputs_dict['pink_outline_mask']
+                                if total_files > 1:
+                                    arcname = f"{original_name}/Effects/{original_name}_contourcut_outline.png"
+                                else:
+                                    arcname = f"Effects/{original_name}_contourcut_outline.png"
+                                if add_file(path, arcname):
+                                    logger.info(f"✅ Added contour cutline outline: {path} -> {arcname}")
+                                    summary_lines.append(f"{original_name}: Contour Cutline (Pink Outline): {arcname}")
+                            
+                            # Handle combined SVG
+                            if 'combined_svg' in outputs_dict:
+                                path = outputs_dict['combined_svg']
+                                if total_files > 1:
+                                    arcname = f"{original_name}/Effects/{original_name}_contourcut_combined.svg"
+                                else:
+                                    arcname = f"Effects/{original_name}_contourcut_combined.svg"
+                                if add_file(path, arcname):
+                                    logger.info(f"✅ Added contour cutline SVG: {path} -> {arcname}")
+                                    summary_lines.append(f"{original_name}: Contour Cutline (Combined SVG): {arcname}")
+                            
+                            # Handle combined PDF (NEW)
+                            if 'combined_pdf' in outputs_dict:
+                                path = outputs_dict['combined_pdf']
+                                if total_files > 1:
+                                    arcname = f"{original_name}/Effects/{original_name}_contourcut_combined.pdf"
+                                else:
+                                    arcname = f"Effects/{original_name}_contourcut_combined.pdf"
+                                if add_file(path, arcname):
+                                    logger.info(f"✅ Added contour cutline PDF: {path} -> {arcname}")
+                                    summary_lines.append(f"{original_name}: Contour Cutline (Combined PDF): {arcname}")
+                            
+                            # Add contour count info if available
+                            if 'message' in result:
+                                summary_lines.append(f"{original_name}: {result['message']}")
+                    elif variation == 'color_separations':
+                        # Special handling for color separations (has separations list)
+                        if isinstance(result, dict) and 'separations' in result:
+                            separations = result['separations']
+                            if isinstance(separations, list):
+                                for sep in separations:
+                                    if isinstance(sep, dict):
+                                        channel = sep.get('channel', 'unknown')
+                                        # Add PNG file
+                                        if 'png' in sep and os.path.exists(sep['png']):
+                                            if total_files > 1:
+                                                arcname = f"{original_name}/Effects/{original_name}_colorsep_{channel}.png"
+                                            else:
+                                                arcname = f"Effects/{original_name}_colorsep_{channel}.png"
+                                            if add_file(sep['png'], arcname):
+                                                logger.info(f"✅ Added color separation {channel} PNG: {sep['png']} -> {arcname}")
+                                                summary_lines.append(f"{original_name}: Color Separation ({channel}): {arcname}")
+                                        
+                                        # Add SVG file
+                                        if 'svg' in sep and os.path.exists(sep['svg']):
+                                            if total_files > 1:
+                                                arcname = f"{original_name}/Effects/{original_name}_colorsep_{channel}.svg"
+                                            else:
+                                                arcname = f"Effects/{original_name}_colorsep_{channel}.svg"
+                                            if add_file(sep['svg'], arcname):
+                                                logger.info(f"✅ Added color separation {channel} SVG: {sep['svg']} -> {arcname}")
+                                                summary_lines.append(f"{original_name}: Color Separation ({channel} SVG): {arcname}")
+                                        
+                                        # Add AI file
+                                        if 'ai' in sep and os.path.exists(sep['ai']):
+                                            if total_files > 1:
+                                                arcname = f"{original_name}/Effects/{original_name}_colorsep_{channel}.ai"
+                                            else:
+                                                arcname = f"Effects/{original_name}_colorsep_{channel}.ai"
+                                            if add_file(sep['ai'], arcname):
+                                                logger.info(f"✅ Added color separation {channel} AI: {sep['ai']} -> {arcname}")
+                                                summary_lines.append(f"{original_name}: Color Separation ({channel} AI): {arcname}")
+                                
+                                # Add color count info if available
+                                if 'num_colors' in result:
+                                    summary_lines.append(f"{original_name}: Color Separations - {result['num_colors']} colors detected")
+                            else:
+                                logger.warning(f"⚠️ Invalid color separations structure: {result}")
+                        else:
+                            logger.warning(f"⚠️ Invalid result for color_separations: {result}")
+                    else:
+                        # Handle other effects variations
+                        if isinstance(result, dict):
+                            # Handle dictionary results
+                            for key, path in result.items():
+                                if isinstance(path, str) and os.path.exists(path):
+                                    ext = os.path.splitext(path)[1].lstrip('.') or 'png'
+                                    if total_files > 1:
+                                        arcname = f"{original_name}/Effects/{original_name}_{variation}_{key}.{ext}"
+                                    else:
+                                        arcname = f"Effects/{original_name}_{variation}_{key}.{ext}"
+                                    if add_file(path, arcname):
+                                        logger.info(f"✅ Added {variation} {key}: {path} -> {arcname}")
+                                        summary_lines.append(f"{original_name}: {variation.replace('_', ' ').title()}: {arcname}")
+                                else:
+                                    logger.warning(f"⚠️ Invalid result for {variation}: {result}")
+                        elif isinstance(result, str) and os.path.exists(result):
+                            # Handle string results
+                            ext = os.path.splitext(result)[1].lstrip('.') or 'png'
+                            if total_files > 1:
+                                arcname = f"{original_name}/Effects/{original_name}_{variation}.{ext}"
+                            else:
+                                arcname = f"Effects/{original_name}_{variation}.{ext}"
+                            if add_file(result, arcname):
+                                logger.info(f"✅ Added {variation}: {result} -> {arcname}")
+                                summary_lines.append(f"{original_name}: {variation.replace('_', ' ').title()}: {arcname}")
+                            else:
+                                logger.warning(f"⚠️ Invalid result for {variation}: {result}")
+                        else:
+                            logger.warning(f"⚠️ Invalid result for {variation}: {result}")
+
+            # Handle social media formats
+            if any(social_formats.values()) and '_create_social_formats' in outputs:
+                social_media = outputs['_create_social_formats']
+                logger.info(f"Processing social media formats: {social_media}")
+                if isinstance(social_media, dict):
+                    for platform, format_path in social_media.items():
+                        if platform in social_formats and social_formats[platform]:
+                            if isinstance(format_path, str) and os.path.exists(format_path):
+                                ext = os.path.splitext(format_path)[1].lstrip('.') or 'png'
+                                if total_files > 1:
+                                    arcname = f"{original_name}/Social Media/{original_name}_{platform}.{ext}"
+                                else:
+                                    arcname = f"Social Media/{original_name}_{platform}.{ext}"
+                                if add_file(format_path, arcname):
+                                    logger.info(f"✅ Added social format {platform}: {format_path} -> {arcname}")
+                                    summary_lines.append(f"{original_name}: Social Media ({platform}): {arcname}")
+                            else:
+                                logger.warning(f"⚠️ Invalid social format path for {platform}: {format_path}")
+                        else:
+                            logger.info(f"📝 Skipping {platform} - not selected by user")
+                else:
+                    logger.warning(f"⚠️ Unexpected social_media format: {type(social_media)}")
             else:
-                # For single uploads, use the original file name
-                original_filename = uploaded_files[0][0]
-                base_name = os.path.splitext(original_filename)[0]  # Remove extension
-                zip_filename = f'{base_name}_processed.zip'
-                download_name = zip_filename
-            zip_path = os.path.join(dirs['temp'], zip_filename)
+                logger.info(f"📝 Skipping social formats - not selected or not in outputs")
+
+        # Log the collected files before creating zip
+        logger.info(f"All collected output files: {all_output_files}")
+        logger.info(f"Summary lines: {summary_lines}")
+
+        # Create zip file with all outputs
+        if all_output_files:
+            zip_path = os.path.join(dirs['temp'], 'processed_logos.zip')
+            
+            # Generate zip filename based on uploaded files
+            if total_files == 1:
+                # Single file: use the uploaded filename + "variations"
+                uploaded_filename = os.path.splitext(uploaded_files[0][0])[0]  # Remove extension
+                zip_filename = f"{uploaded_filename}variations.zip"
+            else:
+                # Multiple files: use a combination of filenames or generic name
+                if total_files <= 3:
+                    # For 2-3 files, combine their names
+                    filenames = [os.path.splitext(f[0])[0] for f in uploaded_files]
+                    zip_filename = f"{'_'.join(filenames)}variations.zip"
+                else:
+                    # For more than 3 files, use a generic name
+                    zip_filename = f"batch_variations_{total_files}_files.zip"
             
             try:
                 with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for i, (file_path, arcname) in enumerate(all_output_files, 1):
-                        # Ensure the directory structure exists in the zip
-                        zipf.write(file_path, arcname)
-                        
-                        # Update progress for each file added to zip with more frequent updates
-                        update_progress(session_id, 'zipping', 
-                                      min(80 + int(15 * (i / total_output_files)), 95), 
-                                      f'Adding files to archive...',
-                                      current_file=os.path.basename(file_path), 
-                                      total_files=total_output_files, 
-                                      processed_files=i)
-                
-                # Update progress - zip created
-                update_progress(session_id, 'zipping', 95, 'Finalizing download package...', 
-                              current_file='Finalizing...', total_files=total_output_files, processed_files=total_output_files)
-                
-                # Deduct credits for the operation
-                try:
-                    # For batch processing, deduct credits based on number of files
-                    # For single file processing, deduct 1 credit as before
-                    credits_to_deduct = total_files if total_files > 1 else 1
+                    # Add readme first
+                    readme_path = os.path.join(dirs['temp'], 'readme.txt')
+                    with open(readme_path, 'w') as f:
+                        f.write("Zyppts Logo Processor Output\n\n")
+                        if total_files > 1:
+                            f.write(f"Batch processed {total_files} logos\n\n")
+                        else:
+                            f.write(f"Processed file: {uploaded_files[0][0]}\n\n")
+                        f.write("Included files:\n")
+                        for line in summary_lines:
+                            f.write(f"- {line}\n")
+                        f.write("\nThank you for using Zyppts!\n")
                     
-                    # Handle credit deduction for promo users vs subscription users
-                    if current_user.is_promo_user():
-                        # Promo user - use upload credits
-                        if not current_user.use_upload_credit():
-                            logger.error(f"Failed to use upload credit: No upload credits remaining")
-                            update_progress(session_id, 'error', 0, 'No upload credits remaining')
-                            return jsonify({'error': 'No upload credits remaining'}), 402
-                        
-                        # Check if this was the last upload credit
-                        if current_user.upload_credits == 0:
-                            # Revert user to free plan
-                            if current_user.subscription and current_user.subscription.plan == 'promo_pro_studio':
-                                current_user.subscription.plan = 'free'
-                                current_user.subscription.monthly_credits = 3
-                                current_user.subscription.used_credits = 0
-                                logger.info(f"User {current_user.username} promo credits exhausted, reverted to free plan")
-                        
-                        db.session.commit()
-                        logger.info(f"Successfully deducted 1 upload credit for processing {total_files} file(s). Remaining: {current_user.upload_credits}")
-                    else:
-                        # Regular subscription user
-                        if not current_user.subscription or not current_user.subscription.use_credits(credits_to_deduct):
-                            logger.error(f"Failed to use credits: Insufficient credits or no subscription. Required: {credits_to_deduct}")
-                            update_progress(session_id, 'error', 0, f'Insufficient credits for this operation. Required: {credits_to_deduct}')
-                            return jsonify({'error': f'Insufficient credits for this operation. Required: {credits_to_deduct}'}), 402
-                        db.session.commit()
-                        logger.info(f"Successfully deducted {credits_to_deduct} credit(s) for processing {total_files} file(s)")
-                        
-                except Exception as e:
-                    db.session.rollback()
-                    logger.error(f"Error updating credits: {str(e)}")
-                    update_progress(session_id, 'error', 0, 'Error updating user credits')
-                    return jsonify({'error': 'Error processing your request'}), 500
-                
-                # Update progress - complete
-                update_progress(session_id, 'complete', 100, 'Processing complete! Your download will start shortly...', 
-                              current_file=uploaded_files[0][0] if uploaded_files else "Unknown", total_files=total_output_files, processed_files=total_output_files)
-                
-                # Clean up function to remove temp files after download
-                @after_this_request
-                def cleanup(response):
-                    try:
-                        if os.path.exists(zip_path):
-                            os.remove(zip_path)
-                        if dirs and os.path.exists(dirs['temp']):
-                            shutil.rmtree(dirs['temp'], ignore_errors=True)
-                        if dirs and os.path.exists(dirs['output']):
-                            shutil.rmtree(dirs['output'], ignore_errors=True)
-                        if dirs and os.path.exists(dirs['cache']):
-                            shutil.rmtree(dirs['cache'], ignore_errors=True)
-                    except Exception as e:
-                        logger.error(f"Error cleaning up files: {str(e)}")
-                    return response
-                
-                # Return the zip file for download
-                return send_file(
-                    zip_path,
-                    as_attachment=True,
-                    download_name=download_name,
-                    mimetype='application/zip'
-                )
-                
-            except Exception as zip_error:
-                logger.error(f"Error creating zip file: {str(zip_error)}", exc_info=True)
-                update_progress(session_id, 'error', 0, f'Error creating download package: {str(zip_error)}')
-                return jsonify({'error': 'Error creating download package'}), 500
-                
-        except Exception as e:
-            logger.error(f"Error processing logo: {str(e)}", exc_info=True)
-            update_progress(session_id, 'error', 0, f'Error processing logo: {str(e)}')
-            return jsonify({'error': f'Error processing logo: {str(e)}'}), 500
-            
-            # Cache the result
-            try:
-                os.makedirs(cache_folder, exist_ok=True)
-                os.chmod(cache_folder, 0o750)
-                shutil.copyfile(zip_path, os.path.join(dirs['cache'], f'processed_logos_{upload_id}.zip'))
-                os.chmod(os.path.join(dirs['cache'], f'processed_logos_{upload_id}.zip'), 0o640)
-                logger.info(f"Result cached for session {session_id}")
-            except Exception as cache_save_err:
-                logger.error(f"Error saving result to cache: {str(cache_save_err)}")
-            
-            # Update user credits
-            try:
-                current_user.subscription.use_credits(1)
-                db.session.commit()
+                    # Add readme to zip
+                    zipf.write(readme_path, 'readme.txt')
+                    logger.info(f"Added readme to zip: {readme_path}")
+                    
+                    # Add all output files
+                    for file_path, arcname in all_output_files:
+                        if os.path.exists(file_path):
+                            try:
+                                zipf.write(file_path, arcname)
+                                logger.info(f"Successfully added to zip: {file_path} -> {arcname}")
+                            except Exception as e:
+                                logger.error(f"Error adding file to zip - {file_path}: {str(e)}")
+                        else:
+                            logger.error(f"File not found when creating zip: {file_path}")
+
+                # Verify zip file was created and has content
+                if os.path.exists(zip_path) and os.path.getsize(zip_path) > 0:
+                    logger.info(f"Zip file created successfully: {zip_path} ({os.path.getsize(zip_path)} bytes)")
+                    
+                    # Track processing completion for analytics
+                    processing_time = time.time() - start_time if 'start_time' in locals() else 0
+                    variations_generated = len(all_output_files)
+                    credits_used = total_files  # 1 credit per file
+                    
+                    track_processing_completion(
+                        user_id=current_user.id,
+                        processing_time=processing_time,
+                        files_processed=total_files,
+                        variations_generated=variations_generated,
+                        credits_used=credits_used
+                    )
+                    
+                    # Add cleanup after download
+                    @after_this_request
+                    def cleanup(response):
+                        try:
+                            if os.path.exists(zip_path):
+                                os.remove(zip_path)
+                            if dirs:
+                                cleanup_dirs(dirs)
+                            logger.info("Cleanup completed after download")
+                        except Exception as e:
+                            logger.error(f"Error during cleanup: {str(e)}")
+                        return response
+
+                    return send_file(
+                        zip_path,
+                        mimetype='application/zip',
+                        as_attachment=True,
+                        download_name=zip_filename
+                    )
+                else:
+                    logger.error(f"Zip file creation failed or file is empty: {zip_path}")
+                    return jsonify({'error': 'Failed to create zip file'}), 500
+                    
             except Exception as e:
-                logger.error(f"Error updating user credits: {str(e)}")
-                db.session.rollback()
-            
-            # Return the zip file for download
-            return send_file(
-                zip_path,
-                as_attachment=True,
-                download_name=download_name,
-                mimetype='application/zip'
-            )
-            
+                logger.error(f"Error creating zip file: {str(e)}", exc_info=True)
+                return jsonify({'error': 'Failed to create zip file', 'details': str(e)}), 500
+        else:
+            logger.error("No output files were collected for zip creation")
+            return jsonify({'error': 'No output files were generated', 'details': 'No files were collected for processing'}), 500
+
     except ValueError as e:
         if dirs:
             cleanup_dirs(dirs)
@@ -1118,6 +1155,12 @@ def login():
                 user.last_login = datetime.utcnow()
                 db.session.commit()
                 
+                # Track login action
+                track_user_action(user.id, 'login', {
+                    'login_method': 'email',
+                    'ip_address': request.remote_addr
+                })
+                
                 login_user(user)
                 return redirect(url_for('main.home'))
             
@@ -1139,15 +1182,9 @@ def register():
             username = request.form['username']
             email = request.form['email']
             password = request.form['password']
-            confirm_password = request.form.get('confirm_password', '')
-            promo_code = request.form.get('promo_code', '').strip()
             
-            if not all([username, email, password, confirm_password]):
+            if not all([username, email, password]):
                 flash('Please fill in all fields', 'error')
-                return render_template('register.html', now=datetime.now())
-            
-            if password != confirm_password:
-                flash('Passwords do not match', 'error')
                 return render_template('register.html', now=datetime.now())
             
             if User.query.filter_by(email=email).first():
@@ -1167,46 +1204,8 @@ def register():
             user.registration_ip = request.remote_addr
             user.registration_user_agent = request.headers.get('User-Agent', 'Unknown')
             
-            # Handle promo code - set attributes before adding to session
-            if promo_code and promo_code.upper() == 'EARLYZYPPTS':
-                # Valid promo code - create promo user
-                user.promo_code = promo_code.upper()
-                user.upload_credits = 3
-            else:
-                # No promo code or invalid - create regular free user
-                user.upload_credits = 3
-            
             user.set_password(password)
             db.session.add(user)
-            db.session.flush()  # This ensures user.id is available
-            
-            # Create subscription based on promo code
-            if promo_code and promo_code.upper() == 'EARLYZYPPTS':
-                # Create subscription for promo user
-                subscription = Subscription(
-                    user_id=user.id,
-                    plan='promo_pro_studio',
-                    status='active',
-                    monthly_credits=3,
-                    used_credits=0,
-                    start_date=datetime.utcnow(),
-                    auto_renew=False
-                )
-                
-                flash('🎉 Promo code applied! You now have 3 upload credits with Pro + Studio features!', 'success')
-            else:
-                # Create free subscription
-                subscription = Subscription(
-                    user_id=user.id,
-                    plan='free',
-                    status='active',
-                    monthly_credits=3,
-                    used_credits=0,
-                    start_date=datetime.utcnow(),
-                    auto_renew=False
-                )
-            
-            db.session.add(subscription)
             db.session.commit()
             
             # Send email notifications
@@ -1218,12 +1217,7 @@ def register():
                 # Don't fail registration if email fails
             
             login_user(user)
-            
-            if promo_code and promo_code.upper() == 'EARLYZYPPTS':
-                flash('Registration successful! Welcome to ZYPPTS! You have 3 upload credits with Pro + Studio features.', 'success')
-            else:
-                flash('Registration successful! Welcome to ZYPPTS!', 'success')
-            
+            flash('Registration successful! Welcome to ZYPPTS!', 'success')
             return redirect(url_for('main.home'))
             
         except Exception as e:
@@ -1347,30 +1341,39 @@ def test_vector_trace():
             output_folder=dirs['output'], temp_folder=dirs['temp']
         )
         
+        # Process with vector trace option
         options = {'vector_trace': True}
         shutil.copy(LOGO_PATH, dirs['upload'])
         test_file_path = os.path.join(dirs['upload'], os.path.basename(LOGO_PATH))
 
-        result = processor.process_logo(file_path=test_file_path, options=options)
+        result = processor.process_logo_parallel(file_path=test_file_path, options=options)
         
         # --- Validation ---
         if result.get('success') and result.get('outputs'):
             outputs = result['outputs']
-            svg_path = outputs.get('vector_trace_svg')
-            pdf_path = outputs.get('vector_trace_pdf')
-            ai_path = outputs.get('vector_trace_ai')
+            vector_trace_output = outputs.get('_create_vector_trace')
+            
+            if vector_trace_output and isinstance(vector_trace_output, dict):
+                svg_path = vector_trace_output.get('svg')
+                pdf_path = vector_trace_output.get('pdf')
+                eps_path = vector_trace_output.get('eps')
 
-            if svg_path and pdf_path and ai_path and os.path.exists(svg_path) and os.path.exists(pdf_path) and os.path.exists(ai_path):
-                return jsonify({
-                    'success': True,
-                    'message': 'Vector trace test completed successfully.',
-                    'output_paths': {'svg': svg_path, 'pdf': pdf_path, 'ai': ai_path}
-                })
+                if svg_path and pdf_path and eps_path and os.path.exists(svg_path) and os.path.exists(pdf_path) and os.path.exists(eps_path):
+                    return jsonify({
+                        'success': True,
+                        'message': 'Vector trace test completed successfully.',
+                        'output_paths': {'svg': svg_path, 'pdf': pdf_path, 'eps': eps_path}
+                    })
+                else:
+                    missing = [f for f, p in [('SVG', svg_path), ('PDF', pdf_path), ('EPS', eps_path)] if not p or not os.path.exists(p)]
+                    return jsonify({
+                        'success': False, 'message': 'Vector trace processing failed.',
+                        'error_details': f'Output file(s) not found: {", ".join(missing)}'
+                    }), 500
             else:
-                missing = [f for f, p in [('SVG', svg_path), ('PDF', pdf_path), ('AI', ai_path)] if not p or not os.path.exists(p)]
                 return jsonify({
                     'success': False, 'message': 'Vector trace processing failed.',
-                    'error_details': f'Output file(s) not found: {", ".join(missing)}'
+                    'error_details': f'Vector trace output not found or invalid: {vector_trace_output}'
                 }), 500
         else:
             return jsonify({
@@ -1524,7 +1527,9 @@ def preview_outline():
             # Generate contour cutline and return a PNG preview
             result = processor._create_contour_cutline(temp_path)
             if result and isinstance(result, dict):
-                png_path = result.get('png')
+                # Access the pink_outline_mask from the nested outputs structure
+                outputs = result.get('outputs', {})
+                png_path = outputs.get('pink_outline_mask')
                 if png_path and os.path.exists(png_path):
                     import base64
                     with open(png_path, 'rb') as f:
@@ -2096,3 +2101,69 @@ def stripe_webhook():
 def forbidden(e):
     from datetime import datetime
     return render_template('paywall_403.html', message=getattr(e, 'description', None), now=datetime.now()), 403
+
+@bp.route('/performance/celery-stats')
+@login_required
+def get_celery_stats():
+    """Get Celery worker performance statistics"""
+    try:
+        from utils.celery_worker import celery_app, monitor_performance
+        
+        # Get performance metrics
+        stats = monitor_performance.delay()
+        result = stats.get(timeout=10)
+        
+        if result:
+            return jsonify({
+                'success': True,
+                'stats': result,
+                'message': 'Celery performance stats retrieved successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to retrieve Celery stats'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error getting Celery stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error retrieving Celery stats: {str(e)}'
+        }), 500
+
+@bp.route('/safari-pinned-tab.svg')
+def safari_pinned_tab():
+    """Serve Safari pinned tab SVG"""
+    try:
+        svg_path = os.path.join(current_app.static_folder, 'images', 'favicon', 'safari-pinned-tab.svg')
+        if os.path.exists(svg_path):
+            response = send_file(
+                svg_path,
+                mimetype='image/svg+xml'
+            )
+            response.headers['Cache-Control'] = 'public, max-age=86400'
+            return response
+        else:
+            return '', 404
+    except Exception as e:
+        current_app.logger.error(f"Error serving safari-pinned-tab.svg: {e}")
+        return '', 404
+
+@bp.route('/favicon')
+def favicon_fallback():
+    """Fallback favicon route for better browser compatibility"""
+    try:
+        favicon_path = os.path.join(current_app.static_folder, 'images', 'favicon', 'favicon.ico')
+        if os.path.exists(favicon_path):
+            response = send_file(
+                favicon_path,
+                mimetype='image/x-icon'
+            )
+            response.headers['Cache-Control'] = 'public, max-age=86400'
+            return response
+        else:
+            return '', 404
+    except Exception as e:
+        current_app.logger.error(f"Error serving fallback favicon: {e}")
+        return '', 404

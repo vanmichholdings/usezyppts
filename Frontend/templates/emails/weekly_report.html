@@ -1,277 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Report - <span class="brand-text">Zyppts</span></title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #2d3748;
-            max-width: 650px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #1B1464 0%, #3B5EF7 100%);
-        }
-        .container {
-            background-color: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin: 20px 0;
-        }
-        .logo-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo-text {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1B1464;
-            background: linear-gradient(135deg, #1B1464, #3B5EF7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(27, 20, 100, 0.1);
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #1B1464;
-            padding-bottom: 25px;
-            margin-bottom: 35px;
-        }
-        .header h1 {
-            color: #1B1464;
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1B1464, #3B5EF7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .header p {
-            color: #718096;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .report-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #FFB81C, #FAA52D);
-            color: #1B1464;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        .period-info {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 25px 0;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-        }
-        .period-info h3 {
-            color: #1B1464;
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        .period-info p {
-            color: #4a5568;
-            margin: 0;
-            font-size: 14px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1B1464;
-            margin-bottom: 5px;
-        }
-        .stat-label {
-            color: #4a5568;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .growth-section {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-            border: 1px solid #e2e8f0;
-        }
-        .growth-section h3 {
-            color: #1B1464;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .growth-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .growth-item:last-child {
-            border-bottom: none;
-        }
-        .growth-label {
-            color: #2d3748;
-            font-weight: 500;
-        }
-        .growth-value {
-            color: #1B1464;
-            font-weight: 600;
-        }
-        .insights-section {
-            background: linear-gradient(135deg, #f0fff4, #c6f6d5);
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-            border: 2px solid #FFB81C;
-        }
-        .insights-section h3 {
-            color: #1B1464;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .insight-item {
-            color: #2d3748;
-            margin: 10px 0;
-            padding-left: 20px;
-            position: relative;
-        }
-        .insight-item:before {
-            content: "💡";
-            position: absolute;
-            left: 0;
-            color: #FFB81C;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 35px;
-            padding-top: 25px;
-            border-top: 2px solid #e2e8f0;
-            color: #718096;
-            font-size: 14px;
-        }
-        .footer p {
-            margin: 8px 0;
-        }
-        .timestamp {
-            text-align: center;
-            color: #a0aec0;
-            font-size: 12px;
-            margin-top: 25px;
-            padding: 10px;
-            background: #f8fafc;
-            border-radius: 8px;
-        }
-        .brand-accent {
-            color: #FFB81C;
-            font-weight: 600;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 25px;
-                margin: 10px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 24px;
-            }
-        }
-    
-        .brand-text {
-            color: #FFB81C;
-            font-weight: 600;
-        }</style>
-</head>
-<body>
-    <div class="container">
-        <div class="logo-section">
-            <div class="logo-text"><span class="brand-text">Zyppts</span></div>
-        </div>
-        
-        <div class="header">
-            <div class="report-badge">📈 WEEKLY REPORT</div>
-            <h1>Weekly Analytics Report</h1>
-            <p>Your <span class="brand-accent"><span class="brand-text">Zyppts</span></span> platform performance insights</p>
-        </div>
+{% extends "emails/zyppts_email_template.html" %}
 
-        <div class="period-info">
-            <h3>📅 Report Period</h3>
-            <p>{{ start_date }} to {{ end_date }}</p>
-        </div>
+{% block content %}
+<h1>Weekly Report 📈</h1>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">{{ new_users }}</div>
-                <div class="stat-label">New Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ active_subscriptions }}</div>
-                <div class="stat-label">Active Subscriptions</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ total_uploads }}</div>
-                <div class="stat-label">Logo Uploads</div>
-            </div>
-        </div>
+<div class="highlight-card">
+    <h2>Your Zyppts Activity This Week</h2>
+    <p>Here's a comprehensive summary of your logo processing activity for the week of {{ week_start | default('this week') }}.</p>
+</div>
 
-        {% if user_growth %}
-        <div class="growth-section">
-            <h3>📊 User Growth Trend</h3>
-            {% for day in user_growth %}
-            <div class="growth-item">
-                <div class="growth-label">{{ day.date }}</div>
-                <div class="growth-value">{{ day.count }} users</div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="insights-section">
-            <h3>🚀 Key Insights</h3>
-            <div class="insight-item">Platform continues to show strong user engagement</div>
-            <div class="insight-item">Logo processing features remain the most popular</div>
-            <div class="insight-item">Subscription conversion rates are improving</div>
-            <div class="insight-item">System performance remains stable and reliable</div>
-        </div>
-
-        <div class="footer">
-            <p>This is your automated weekly report from <span class="brand-accent"><span class="brand-text">Zyppts</span></span> admin system.</p>
-            <p>You can manage email notifications in your admin settings.</p>
-        </div>
-
-        <div class="timestamp">
-            Generated at: {{ timestamp or "Now" }}
-        </div>
+<div class="stats-grid">
+    <div class="stat-item">
+        <span class="stat-number">{{ total_uploads | default(0) }}</span>
+        <span class="stat-label">Files Uploaded</span>
     </div>
-</body>
-</html> 
+    <div class="stat-item">
+        <span class="stat-number">{{ total_variations | default(0) }}</span>
+        <span class="stat-label">Variations Generated</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">{{ total_processing_time | default(0) }}s</span>
+        <span class="stat-label">Processing Time</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">{{ credits_used | default(0) }}</span>
+        <span class="stat-label">Credits Used</span>
+    </div>
+</div>
+
+{% if daily_breakdown %}
+<div class="card">
+    <h3>Daily Activity Breakdown</h3>
+    <ul class="feature-list">
+        {% for day in daily_breakdown %}
+        <li>{{ day.date }}: {{ day.uploads }} uploads, {{ day.variations }} variations</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if popular_variations %}
+<div class="card">
+    <h3>Most Popular Variations This Week</h3>
+    <ul class="feature-list">
+        {% for variation in popular_variations %}
+        <li>{{ variation.type }} - {{ variation.count }} generated</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Account Summary</h3>
+    <p><strong>Current Plan:</strong> <span style="color: #FFB81C;">{{ user_plan | default('Free') }}</span></p>
+    <p><strong>Credits Remaining:</strong> {{ credits_remaining | default(0) }}</p>
+    <p><strong>Weekly Usage:</strong> {{ weekly_usage_percentage | default(0) }}% of your limit</p>
+    <p><strong>Processing Efficiency:</strong> {{ efficiency_score | default('Good') }}</p>
+</div>
+
+{% if weekly_usage_percentage and weekly_usage_percentage > 80 %}
+<div class="warning-card">
+    <h3>⚠️ High Usage Alert</h3>
+    <p>You've used {{ weekly_usage_percentage }}% of your weekly processing limit. Consider upgrading your plan for unlimited processing.</p>
+    <a href="https://zyppts.com/pricing" class="btn btn-warning">Upgrade Plan</a>
+</div>
+{% endif %}
+
+{% if efficiency_tips %}
+<div class="card">
+    <h3>💡 Efficiency Tips</h3>
+    <ul class="feature-list">
+        {% for tip in efficiency_tips %}
+        <li>{{ tip }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Quick Actions</h3>
+    <a href="https://zyppts.com" class="btn btn-primary">Process More Logos</a>
+    <a href="https://zyppts.com/dashboard" class="btn">View Full Dashboard</a>
+    <a href="https://zyppts.com/analytics" class="btn">Detailed Analytics</a>
+</div>
+
+<div class="highlight-card">
+    <h3>🎯 Weekly Goal</h3>
+    <p>You're making great progress! Keep up the momentum and continue creating amazing logo variations.</p>
+</div>
+
+<div class="card">
+    <h3>Need Help?</h3>
+    <p>Our support team is here to help you maximize your productivity with Zyppts.</p>
+    
+    <a href="mailto:support@zyppts.com" class="btn">Contact Support</a>
+    <a href="https://zyppts.com/docs" class="btn">View Documentation</a>
+</div>
+{% endblock %} 

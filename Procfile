@@ -1,1 +1,0 @@
-web: cd Backend && gunicorn --config gunicorn.conf.py app_config:create_app() 

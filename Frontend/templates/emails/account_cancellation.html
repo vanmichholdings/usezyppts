@@ -1,347 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Cancelled - Zyppts</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #2d3748;
-            max-width: 650px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #1B1464 0%, #3B5EF7 100%);
-        }
-        .container {
-            background-color: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin: 20px 0;
-        }
-        .logo-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo-text {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #FFB81C;
-            background: linear-gradient(135deg, #FFB81C, #FAA52D);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(255, 184, 28, 0.1);
-        }
-        .brand-text {
-            color: #FFB81C;
-            font-weight: 600;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #6B7280;
-            padding-bottom: 25px;
-            margin-bottom: 35px;
-        }
-        .header h1 {
-            color: #1B1464;
-            margin: 0;
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1B1464, #3B5EF7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .header p {
-            color: #718096;
-            font-size: 18px;
-            margin-top: 10px;
-        }
-        .cancellation-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #6B7280, #4B5563);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        .cancellation-details {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-            border-left: 4px solid #6B7280;
-        }
-        .cancellation-details h3 {
-            color: #1B1464;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .detail-row:last-child {
-            border-bottom: none;
-            font-weight: 600;
-            font-size: 18px;
-            color: #1B1464;
-        }
-        .detail-label {
-            color: #718096;
-            font-weight: 500;
-        }
-        .detail-value {
-            color: #2d3748;
-            font-weight: 600;
-        }
-        .access-info {
-            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-            border: 2px solid #F59E0B;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-        }
-        .access-info h3 {
-            color: #92400E;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        .access-info p {
-            color: #92400E;
-            margin-bottom: 15px;
-        }
-        .access-list {
-            list-style: none;
-            padding: 0;
-            margin: 15px 0;
-        }
-        .access-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-        }
-        .access-list li:last-child {
-            border-bottom: none;
-        }
-        .access-list li:before {
-            content: "⏰ ";
-            margin-right: 10px;
-        }
-        .feedback-section {
-            background: linear-gradient(135deg, #1B1464, #3B5EF7);
-            color: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-            text-align: center;
-        }
-        .feedback-section h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #FFB81C;
-        }
-        .feedback-section p {
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-        .feedback-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .feedback-btn {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .feedback-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-        .cta-section {
-            text-align: center;
-            margin: 35px 0;
-        }
-        .btn {
-            display: inline-block;
-            background: linear-gradient(135deg, #FFB81C, #FAA52D);
-            color: #1B1464;
-            text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 184, 28, 0.3);
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 184, 28, 0.4);
-        }
-        .btn-secondary {
-            background: linear-gradient(135deg, #6B7280, #4B5563);
-            margin-left: 15px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 35px;
-            padding-top: 25px;
-            border-top: 2px solid #e2e8f0;
-            color: #718096;
-            font-size: 14px;
-        }
-        .footer p {
-            margin: 8px 0;
-        }
-        .timestamp {
-            text-align: center;
-            color: #a0aec0;
-            font-size: 12px;
-            margin-top: 20px;
-        }
-        .support-links {
-            text-align: center;
-            margin: 25px 0;
-        }
-        .support-links a {
-            display: inline-block;
-            color: #1B1464;
-            text-decoration: none;
-            margin: 0 15px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            background: #f7fafc;
-            transition: all 0.3s ease;
-        }
-        .support-links a:hover {
-            background: #e2e8f0;
-            transform: translateY(-1px);
-        }
-        .reactivate-notice {
-            background: #f0f9ff;
-            border: 2px solid #3B82F6;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: center;
-        }
-        .reactivate-notice h4 {
-            color: #1e40af;
-            margin: 0 0 10px 0;
-            font-size: 18px;
-        }
-        .reactivate-notice p {
-            color: #1e40af;
-            margin: 0;
-            font-weight: 500;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="logo-section">
-            <div class="logo-text">Zyppts</div>
-        </div>
-        
-        <div class="header">
-            <div class="cancellation-badge">📝 Subscription Cancelled</div>
-            <h1>We're Sorry to See You Go</h1>
-            <p>Your subscription has been cancelled as requested</p>
-        </div>
+{% extends "emails/zyppts_email_template.html" %}
 
-        <div class="cancellation-details">
-            <h3>📋 Cancellation Details</h3>
-            <div class="detail-row">
-                <span class="detail-label">Plan:</span>
-                <span class="detail-value">{{ subscription.plan|title }} Plan</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Billing Cycle:</span>
-                <span class="detail-value">{{ subscription.billing_cycle|title }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Cancellation Date:</span>
-                <span class="detail-value">{{ cancellation_date }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Access Until:</span>
-                <span class="detail-value">{{ access_until_date }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Reason:</span>
-                <span class="detail-value">{{ cancellation_reason or 'Not specified' }}</span>
-            </div>
-        </div>
+{% block content %}
+<h1>Account Cancellation Confirmed 📋</h1>
 
-        <div class="access-info">
-            <h3>⏰ What Happens Next</h3>
-            <p>Here's what you need to know about your account access:</p>
-            <ul class="access-list">
-                <li>You can continue using all features until {{ access_until_date }}</li>
-                <li>Your data and projects will be preserved for 30 days</li>
-                <li>You can reactivate your subscription anytime</li>
-                <li>No further charges will be made to your account</li>
-            </ul>
-        </div>
+<div class="warning-card">
+    <h2>Your Subscription Has Been Cancelled</h2>
+    <p>We're sorry to see you go! Your subscription has been cancelled as requested. Here's what happens next.</p>
+</div>
 
-        <div class="reactivate-notice">
-            <h4>🔄 Want to Reactivate?</h4>
-            <p>You can reactivate your subscription anytime and keep all your data!</p>
-        </div>
+<div class="card">
+    <h3>Cancellation Details</h3>
+    <p><strong>Cancelled Plan:</strong> <span style="color: #FFB81C;">{{ cancelled_plan | default('Premium') }}</span></p>
+    <p><strong>Cancellation Date:</strong> {{ cancellation_date | default('Today') }}</p>
+    <p><strong>Access Until:</strong> {{ access_until | default('End of billing period') }}</p>
+    <p><strong>Reason:</strong> {{ cancellation_reason | default('Not specified') }}</p>
+</div>
 
-        <div class="feedback-section">
-            <h3>💭 Help Us Improve</h3>
-            <p>We'd love to know why you're leaving so we can improve our service.</p>
-            <div class="feedback-buttons">
-                <a href="https://usezyppts.com/feedback?type=too_expensive" class="feedback-btn">Too Expensive</a>
-                <a href="https://usezyppts.com/feedback?type=missing_features" class="feedback-btn">Missing Features</a>
-                <a href="https://usezyppts.com/feedback?type=not_using" class="feedback-btn">Not Using Enough</a>
-                <a href="https://usezyppts.com/feedback?type=switching" class="feedback-btn">Switching Services</a>
-                <a href="https://usezyppts.com/feedback?type=other" class="feedback-btn">Other Reason</a>
-            </div>
-        </div>
+<div class="card">
+    <h3>What Happens Now</h3>
+    <ul class="feature-list">
+        <li>Your account remains active until {{ access_until | default('the end of your billing period') }}</li>
+        <li>You can continue using all current features until then</li>
+        <li>No further charges will be made to your account</li>
+        <li>Your data and processing history will be preserved</li>
+        <li>You can reactivate your subscription anytime</li>
+    </ul>
+</div>
 
-        <div class="cta-section">
-            <h3>🔄 Reactivate Your Subscription</h3>
-            <p>Change your mind? You can reactivate anytime and keep all your data!</p>
-            <a href="https://usezyppts.com/subscription/plans" class="btn">Reactivate Subscription</a>
-            <a href="https://usezyppts.com/support" class="btn btn-secondary">Contact Support</a>
-        </div>
-
-        <div class="support-links">
-            <a href="https://usezyppts.com/account">📊 View Account</a>
-            <a href="https://usezyppts.com/support">📧 Support</a>
-            <a href="https://usezyppts.com/feedback">💭 Feedback</a>
-        </div>
-
-        <div class="footer">
-            <p>Thank you for being part of the <span class="brand-text">Zyppts</span> community!</p>
-            <p>We hope to see you again soon. If you have any questions, please contact our support team.</p>
-            <p><strong>The <span class="brand-text">Zyppts</span> Team</strong></p>
-        </div>
-
-        <div class="timestamp">
-            <p>Cancelled on {{ timestamp }}</p>
-        </div>
+<div class="stats-grid">
+    <div class="stat-item">
+        <span class="stat-number">{{ remaining_days | default('0') }}</span>
+        <span class="stat-label">Days Remaining</span>
     </div>
-</body>
-</html> 
+    <div class="stat-item">
+        <span class="stat-number">{{ remaining_credits | default('0') }}</span>
+        <span class="stat-label">Credits Left</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">📁</span>
+        <span class="stat-label">Data Preserved</span>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Before You Go</h3>
+    <p>Make sure to download any important files or processing results before your access expires. You can still access your account dashboard to retrieve your data.</p>
+    
+    <a href="https://zyppts.com/dashboard" class="btn btn-warning">Download My Data</a>
+    <a href="https://zyppts.com/history" class="btn">View Processing History</a>
+</div>
+
+<div class="highlight-card">
+    <h3>💡 We'd Love to Have You Back!</h3>
+    <p>If you change your mind, you can reactivate your subscription anytime. We're constantly improving our features based on user feedback.</p>
+    
+    <a href="https://zyppts.com/pricing" class="btn btn-primary">Reactivate Subscription</a>
+</div>
+
+<div class="card">
+    <h3>Feedback</h3>
+    <p>We'd love to hear from you about your experience with Zyppts. Your feedback helps us improve our service for everyone.</p>
+    
+    <a href="mailto:feedback@zyppts.com" class="btn">Share Feedback</a>
+    <a href="https://zyppts.com/help" class="btn">Help & Support</a>
+</div>
+
+<div class="card">
+    <h3>Need Help?</h3>
+    <p>If you have any questions about your cancellation or need assistance with your account, our support team is here to help.</p>
+    
+    <a href="mailto:support@zyppts.com" class="btn">Contact Support</a>
+</div>
+{% endblock %} 

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ email_title | default('Zyppts') }}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style type="text/css">
+        /* Reset styles for email clients */
+        body, table, td, p, a, li, blockquote { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        
+        /* Base styles */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #f4f6f8 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+            font-size: 16px !important;
+            line-height: 1.6 !important;
+            color: #2d3748 !important;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px !important;
+            margin: 0 auto !important;
+            background-color: #ffffff !important;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1B1464 0%, #3B5EF7 100%) !important;
+            padding: 30px 20px !important;
+            text-align: center !important;
+        }
+        
+        .logo-section {
+            margin-bottom: 20px !important;
+        }
+        
+        .logo-text {
+            font-size: 32px !important;
+            font-weight: 700 !important;
+            color: #FFB81C !important;
+            text-shadow: 0 2px 4px rgba(255, 184, 28, 0.3) !important;
+            margin: 0 !important;
+            display: inline-block !important;
+        }
+        
+        .brand-tagline {
+            color: #ffffff !important;
+            font-size: 16px !important;
+            margin: 10px 0 0 0 !important;
+            opacity: 0.9 !important;
+        }
+        
+        /* Content area */
+        .content {
+            padding: 40px 30px !important;
+        }
+        
+        .content h1 {
+            color: #1B1464 !important;
+            font-size: 28px !important;
+            font-weight: 700 !important;
+            margin: 0 0 20px 0 !important;
+            text-align: center !important;
+        }
+        
+        .content h2 {
+            color: #1B1464 !important;
+            font-size: 24px !important;
+            font-weight: 600 !important;
+            margin: 30px 0 15px 0 !important;
+        }
+        
+        .content h3 {
+            color: #1B1464 !important;
+            font-size: 20px !important;
+            font-weight: 600 !important;
+            margin: 25px 0 10px 0 !important;
+        }
+        
+        .content p {
+            color: #4a5568 !important;
+            font-size: 16px !important;
+            line-height: 1.6 !important;
+            margin: 0 0 15px 0 !important;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block !important;
+            background: linear-gradient(135deg, #FFB81C 0%, #FAA52D 100%) !important;
+            color: #1B1464 !important;
+            text-decoration: none !important;
+            padding: 12px 30px !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 16px !important;
+            text-align: center !important;
+            margin: 20px 0 !important;
+            box-shadow: 0 4px 12px rgba(255, 184, 28, 0.3) !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1B1464 0%, #3B5EF7 100%) !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48BB78 0%, #38A169 100%) !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ED8936 0%, #DD6B20 100%) !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #F56565 0%, #E53E3E 100%) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Cards and sections */
+        .card {
+            background: #f8fafc !important;
+            border-radius: 12px !important;
+            padding: 25px !important;
+            margin: 20px 0 !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        
+        .highlight-card {
+            background: linear-gradient(135deg, #fff7e6, #ffeab3) !important;
+            border-left: 4px solid #FFB81C !important;
+        }
+        
+        .success-card {
+            background: linear-gradient(135deg, #f0fff4, #c6f6d5) !important;
+            border-left: 4px solid #48BB78 !important;
+        }
+        
+        .warning-card {
+            background: linear-gradient(135deg, #fffaf0, #feebc8) !important;
+            border-left: 4px solid #ED8936 !important;
+        }
+        
+        .error-card {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7) !important;
+            border-left: 4px solid #F56565 !important;
+        }
+        
+        /* Stats grid */
+        .stats-grid {
+            display: table !important;
+            width: 100% !important;
+            margin: 20px 0 !important;
+        }
+        
+        .stat-item {
+            display: table-cell !important;
+            text-align: center !important;
+            padding: 15px !important;
+            vertical-align: top !important;
+        }
+        
+        .stat-number {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: #1B1464 !important;
+            display: block !important;
+        }
+        
+        .stat-label {
+            font-size: 14px !important;
+            color: #718096 !important;
+            margin-top: 5px !important;
+        }
+        
+        /* Lists */
+        .feature-list {
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 20px 0 !important;
+        }
+        
+        .feature-list li {
+            padding: 8px 0 !important;
+            padding-left: 25px !important;
+            position: relative !important;
+        }
+        
+        .feature-list li:before {
+            content: "✓" !important;
+            color: #48BB78 !important;
+            font-weight: bold !important;
+            position: absolute !important;
+            left: 0 !important;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1B1464 !important;
+            color: #ffffff !important;
+            padding: 30px 20px !important;
+            text-align: center !important;
+        }
+        
+        .footer p {
+            color: #a0aec0 !important;
+            font-size: 14px !important;
+            margin: 5px 0 !important;
+        }
+        
+        .footer a {
+            color: #FFB81C !important;
+            text-decoration: none !important;
+        }
+        
+        .social-links {
+            margin: 20px 0 !important;
+        }
+        
+        .social-links a {
+            display: inline-block !important;
+            margin: 0 10px !important;
+            color: #FFB81C !important;
+            text-decoration: none !important;
+        }
+        
+        /* Responsive design */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            
+            .content {
+                padding: 30px 20px !important;
+            }
+            
+            .header {
+                padding: 20px 15px !important;
+            }
+            
+            .logo-text {
+                font-size: 28px !important;
+            }
+            
+            .content h1 {
+                font-size: 24px !important;
+            }
+            
+            .content h2 {
+                font-size: 20px !important;
+            }
+            
+            .stat-item {
+                display: block !important;
+                margin-bottom: 15px !important;
+            }
+            
+            .btn {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .email-container {
+                background-color: #1a202c !important;
+            }
+            
+            .content {
+                background-color: #1a202c !important;
+            }
+            
+            .content h1, .content h2, .content h3 {
+                color: #ffffff !important;
+            }
+            
+            .content p {
+                color: #e2e8f0 !important;
+            }
+            
+            .card {
+                background: #2d3748 !important;
+                border-color: #4a5568 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <h1 class="logo-text">Zyppts</h1>
+                <p class="brand-tagline">Professional Logo Processing & Variations</p>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            {% block content %}
+            <!-- Email content will be inserted here -->
+            {% endblock %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="https://zyppts.com">Website</a> |
+                <a href="mailto:support@zyppts.com">Support</a> |
+                <a href="https://zyppts.com/privacy">Privacy</a> |
+                <a href="https://zyppts.com/terms">Terms</a>
+            </div>
+            <p>&copy; 2024 Zyppts. All rights reserved.</p>
+            <p>This email was sent to {{ user_email | default('you') }}. If you have any questions, please contact our support team.</p>
+            <p class="timestamp">Sent on {{ sent_date | default('now') }}</p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,247 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Zyppts!</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #2d3748;
-            max-width: 650px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #1B1464 0%, #3B5EF7 100%);
-        }
-        .container {
-            background-color: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin: 20px 0;
-        }
-        .logo-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo-text {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #FFB81C;
-            background: linear-gradient(135deg, #FFB81C, #FAA52D);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(255, 184, 28, 0.1);
-        }
-        .brand-text {
-            color: #FFB81C;
-            font-weight: 600;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #FFB81C;
-            padding-bottom: 25px;
-            margin-bottom: 35px;
-        }
-        .header h1 {
-            color: #1B1464;
-            margin: 0;
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1B1464, #3B5EF7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .header p {
-            color: #718096;
-            font-size: 18px;
-            margin-top: 10px;
-        }
-        .welcome-message {
-            text-align: center;
-            margin: 35px 0;
-            padding: 25px;
-            background: linear-gradient(135deg, #fff7e6, #ffeab3);
-            border-radius: 12px;
-            border-left: 4px solid #FFB81C;
-        }
-        .welcome-message h2 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .welcome-message p {
-            color: #4a5568;
-            font-size: 16px;
-        }
-        .features {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-radius: 12px;
-            padding: 30px;
-            margin: 30px 0;
-            border: 1px solid #e2e8f0;
-        }
-        .features h3 {
-            color: #1B1464;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .feature-list {
-            list-style: none;
-            padding: 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .feature-list li {
-            padding: 12px 15px;
-            background: white;
-            border-radius: 8px;
-            border-left: 3px solid #FFB81C;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            font-weight: 500;
-            color: #4a5568;
-        }
-        .feature-list li:before {
-            content: "✨ ";
-            color: #FFB81C;
-            font-weight: bold;
-        }
-        .cta-section {
-            text-align: center;
-            margin: 35px 0;
-            padding: 30px;
-            background: linear-gradient(135deg, #FFB81C, #FAA52D);
-            border-radius: 16px;
-            color: #1B1464;
-            box-shadow: 0 10px 25px rgba(255, 184, 28, 0.3);
-        }
-        .cta-section h3 {
-            margin-top: 0;
-            color: #1B1464;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .cta-section p {
-            font-size: 16px;
-            margin-bottom: 20px;
-            color: #1B1464;
-        }
-        .btn {
-            display: inline-block;
-            padding: 16px 32px;
-            background: #1B1464;
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            margin-top: 15px;
-            box-shadow: 0 4px 12px rgba(27, 20, 100, 0.3);
-            transition: all 0.3s ease;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(27, 20, 100, 0.4);
-            background: #3B5EF7;
-        }
-        .social-links {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 12px;
-        }
-        .social-links a {
-            display: inline-block;
-            margin: 0 15px;
-            color: #1B1464;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        .social-links a:hover {
-            background: #FFB81C;
-            color: #1B1464;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 35px;
-            padding-top: 25px;
-            border-top: 2px solid #e2e8f0;
-            color: #718096;
-            font-size: 14px;
-        }
-        .footer p {
-            margin: 8px 0;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 25px;
-                margin: 10px;
-            }
-            .feature-list {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 28px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="logo-section">
-            <div class="logo-text">Zyppts</div>
-        </div>
-        
-        <div class="header">
-            <h1>�� Welcome to <span class="brand-text">Zyppts</span>!</h1>
-            <p>Your smart computing-powered logo processing journey starts now</p>
-        </div>
+{% extends "emails/zyppts_email_template.html" %}
 
-        <div class="welcome-message">
-            <h2>Hello {{ username }}!</h2>
-            <p>Thank you for joining <span class="brand-text">Zyppts</span>! We're excited to help you transform your logos with cutting-edge smart computing technology.</p>
-        </div>
+{% block content %}
+<h1>Welcome to Zyppts! 🎉</h1>
 
-        <div class="features">
-            <h3>🚀 What you can do with <span class="brand-text">Zyppts</span>:</h3>
-            <ul class="feature-list">
-                <li>Remove backgrounds from logos instantly</li>
-                <li>Generate multiple logo variations</li>
-                <li>Convert logos to vector formats</li>
-                <li>Create professional mockups</li>
-                <li>Export in multiple formats (PNG, SVG, PDF)</li>
-                <li>Access advanced smart processing tools</li>
-            </ul>
-        </div>
+<div class="highlight-card">
+    <h2>Your Account is Ready!</h2>
+    <p>Welcome to the future of professional logo processing! We're excited to have you on board and can't wait to see what amazing logo variations you'll create.</p>
+</div>
 
-        <div class="cta-section">
-            <h3>Ready to get started?</h3>
-            <p>Upload your first logo and experience the power of smart computing!</p>
-            <a href="https://usezyppts.com" class="btn">🚀 Start Processing Logos</a>
-        </div>
+<div class="card">
+    <h3>What You Can Do With Zyppts:</h3>
+    <ul class="feature-list">
+        <li>Generate multiple logo variations instantly</li>
+        <li>Create transparent, black, and white versions</li>
+        <li>Process batch files efficiently</li>
+        <li>Download high-quality results</li>
+        <li>Track your processing history</li>
+        <li>Access premium features with upgrades</li>
+    </ul>
+</div>
 
-        <div class="social-links">
-            <a href="https://usezyppts.com/support">📧 Support</a>
-            <a href="https://usezyppts.com/docs">📖 Documentation</a>
-            <a href="https://usezyppts.com/community">💬 Community</a>
-        </div>
+<div class="card">
+    <h3>Getting Started:</h3>
+    <p>1. <strong>Upload your logo</strong> - Supported formats: PNG, JPG, JPEG, GIF, BMP, TIFF, WEBP</p>
+    <p>2. <strong>Choose your options</strong> - Select background removal, color variations, and more</p>
+    <p>3. <strong>Process and download</strong> - Get your professional logo variations instantly</p>
+</div>
 
-        <div class="footer">
-            <p>If you have any questions, feel free to reach out to our support team.</p>
-            <p>Happy logo processing!</p>
-            <p><strong>The <span class="brand-text">Zyppts</span> Team</strong></p>
-        </div>
+<div class="stats-grid">
+    <div class="stat-item">
+        <span class="stat-number">∞</span>
+        <span class="stat-label">Variations</span>
     </div>
-</body>
-</html> 
+    <div class="stat-item">
+        <span class="stat-number">⚡</span>
+        <span class="stat-label">Fast Processing</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">🎯</span>
+        <span class="stat-label">Professional Quality</span>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Your Current Plan: <span style="color: #FFB81C;">{{ user_plan | default('Free') }}</span></h3>
+    <p>You're currently on the <strong>{{ user_plan | default('Free') }}</strong> plan. Upgrade anytime to unlock more features and higher processing limits!</p>
+    
+    <a href="https://zyppts.com/pricing" class="btn btn-primary">View Plans & Upgrade</a>
+</div>
+
+<div class="card">
+    <h3>Need Help?</h3>
+    <p>Our support team is here to help you get the most out of Zyppts. Don't hesitate to reach out!</p>
+    
+    <a href="mailto:support@zyppts.com" class="btn">Contact Support</a>
+    <a href="https://zyppts.com" class="btn btn-primary">Start Processing</a>
+</div>
+
+<div class="highlight-card">
+    <h3>🎁 Special Welcome Bonus!</h3>
+    <p>As a new user, you get <strong>5 free processing credits</strong> to get started! Use them wisely and upgrade when you need more.</p>
+</div>
+{% endblock %} 

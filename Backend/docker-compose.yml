@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Redis for Celery and caching
+  redis:
+    image: redis:7-alpine
+    container_name: zyppts_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Main application
+  app:
+    build: ..
+    container_name: zyppts_app
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///app.db
+    volumes:
+      - ../data:/app/data
+      - app_logs:/app/Backend/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Celery worker for background processing
+  worker:
+    build: ..
+    container_name: zyppts_worker
+    command: celery -A utils.celery_worker worker --loglevel=INFO --concurrency=2 --queues=logo_processing
+    environment:
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///app.db
+    volumes:
+      - ../data:/app/data
+      - app_logs:/app/Backend/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Celery worker for vector processing
+  vector_worker:
+    build: ..
+    container_name: zyppts_vector_worker
+    command: celery -A utils.celery_worker worker --loglevel=INFO --concurrency=1 --queues=vector_processing
+    environment:
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///app.db
+    volumes:
+      - ../data:/app/data
+      - app_logs:/app/Backend/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Celery worker for social media processing
+  social_worker:
+    build: ..
+    container_name: zyppts_social_worker
+    command: celery -A utils.celery_worker worker --loglevel=INFO --concurrency=2 --queues=social_processing
+    environment:
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///app.db
+    volumes:
+      - ../data:/app/data
+      - app_logs:/app/Backend/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  default:
+    name: zyppts_network 

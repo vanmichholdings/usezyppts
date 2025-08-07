@@ -5,8 +5,10 @@ Database models for the logo processing application.
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from app_config import db, login_manager
+from flask_sqlalchemy import SQLAlchemy
 
+# Create SQLAlchemy instance
+db = SQLAlchemy()
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -20,10 +22,6 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)  # Add admin flag
     is_beta = db.Column(db.Boolean, default=False)
-    
-    # Promo code support
-    promo_code = db.Column(db.String(50))  # Store the promo code used during registration
-    upload_credits = db.Column(db.Integer, default=3)  # Upload credits for promo users
     
     # Registration metadata for admin tracking
     registration_ip = db.Column(db.String(45))  # IPv6 compatible
@@ -45,31 +43,9 @@ class User(UserMixin, db.Model):
         return self.subscription and self.subscription.is_active()
     
     def can_generate_files(self):
-        # Check if user has upload credits (for promo users) or subscription credits
-        if self.upload_credits > 0:
-            return True
         if not self.subscription:
             return False
         return self.subscription.has_credits() and not self.subscription.is_expired()
-    
-    def use_upload_credit(self):
-        """Use one upload credit and return True if successful"""
-        if self.upload_credits > 0:
-            self.upload_credits -= 1
-            return True
-        return False
-    
-    def get_remaining_credits(self):
-        """Get remaining credits (upload credits for promo users, subscription credits for others)"""
-        if self.upload_credits > 0:
-            return self.upload_credits
-        if self.subscription:
-            return self.subscription.monthly_credits - self.subscription.used_credits
-        return 0
-    
-    def is_promo_user(self):
-        """Check if user is a promo user (has promo code and upload credits)"""
-        return self.promo_code is not None and self.upload_credits > 0
     
     def is_studio_plan(self):
         """Check if the user has an active Studio or Enterprise subscription for batch processing."""
@@ -87,7 +63,7 @@ class Subscription(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    plan = db.Column(db.String(20), nullable=False)  # 'free', 'pro', 'studio', 'enterprise', 'promo_pro_studio'
+    plan = db.Column(db.String(20), nullable=False)  # 'free', 'pro', 'studio', 'enterprise'
     status = db.Column(db.String(20), default='active')  # 'active', 'cancelled', 'expired'
     monthly_credits = db.Column(db.Integer, nullable=False)
     used_credits = db.Column(db.Integer, default=0)
@@ -174,3 +150,79 @@ class LogoVariation(db.Model):
     
     def __repr__(self):
         return f'<LogoVariation {self.variation_type} for Upload {self.upload_id}>'
+
+
+# Analytics Models for Admin Dashboard
+class UserAnalytics(db.Model):
+    __tablename__ = 'user_analytics'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action_type = db.Column(db.String(50), nullable=False)  # 'login', 'upload', 'process', 'download'
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    details = db.Column(db.Text)  # JSON string for additional data
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    
+    user = db.relationship('User', backref='analytics')
+    
+    def __repr__(self):
+        return f'<UserAnalytics {self.action_type} by User {self.user_id}>'
+
+
+class UserSession(db.Model):
+    __tablename__ = 'user_sessions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    session_id = db.Column(db.String(255), unique=True, nullable=False)
+    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    
+    user = db.relationship('User', backref='sessions')
+    
+    def __repr__(self):
+        return f'<UserSession {self.session_id} for User {self.user_id}>'
+
+
+class UserMetrics(db.Model):
+    __tablename__ = 'user_metrics'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    uploads_count = db.Column(db.Integer, default=0)
+    processing_time_total = db.Column(db.Float, default=0.0)  # in seconds
+    files_processed = db.Column(db.Integer, default=0)
+    variations_generated = db.Column(db.Integer, default=0)
+    credits_used = db.Column(db.Integer, default=0)
+    
+    user = db.relationship('User', backref='metrics')
+    
+    class Meta:
+        unique_together = ('user_id', 'date')
+    
+    def __repr__(self):
+        return f'<UserMetrics {self.date} for User {self.user_id}>'
+
+
+class SubscriptionAnalytics(db.Model):
+    __tablename__ = 'subscription_analytics'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    subscription_id = db.Column(db.Integer, db.ForeignKey('subscriptions.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    credits_used = db.Column(db.Integer, default=0)
+    uploads_processed = db.Column(db.Integer, default=0)
+    revenue_generated = db.Column(db.Float, default=0.0)
+    
+    subscription = db.relationship('Subscription', backref='analytics')
+    
+    class Meta:
+        unique_together = ('subscription_id', 'date')
+    
+    def __repr__(self):
+        return f'<SubscriptionAnalytics {self.date} for Subscription {self.subscription_id}>'

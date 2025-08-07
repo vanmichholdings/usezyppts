@@ -1,0 +1,119 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.venv
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Project specific - exclude data and temporary files
+Backend/logs/*
+Backend/uploads/*
+Backend/outputs/*
+Backend/cache/*
+Backend/temp/*
+Backend/instance/*
+Backend/storage/*
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentation (keep README.md)
+docs/
+*.md
+!README.md
+
+# Test files and development data
+Backend/tests/
+Backend/test_*
+Backend/demo_logos/
+Backend/backups/
+Backend/scripts/
+
+# Environment and configuration files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.example
+
+# Development and backup files
+requirements.txt.backup
+*.backup
+*.bak
+*.tmp
+
+# Docker files (don't copy into container)
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Node.js (if any frontend build artifacts)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary and cache files
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# Large files that shouldn't be in container
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Keep essential files
+!requirements.txt
+!Backend/
+!Frontend/

@@ -33,22 +33,8 @@ def send_email(subject, recipients, template, **kwargs):
             sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'Zyppts HQ <noreply@zyppts.com>')
         )
         
-        # Render HTML template - use the correct template path
-        try:
-            msg.html = render_template(f'emails/{template}.html', **kwargs)
-        except Exception as template_error:
-            logger.error(f"Template rendering failed for {template}: {template_error}")
-            # Fallback to simple HTML
-            msg.html = f"""
-            <html>
-                <body>
-                    <h2>{subject}</h2>
-                    <p>This is an automated message from Zyppts.</p>
-                    <p>Template: {template}</p>
-                    <p>Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
-                </body>
-            </html>
-            """
+        # Render HTML template
+        msg.html = render_template(f'emails/{template}.html', **kwargs)
         
         # Send asynchronously
         Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
@@ -116,49 +102,49 @@ def send_payment_confirmation(user, subscription, amount, transaction_id, paymen
             subject="✅ Payment Confirmed - Zyppts",
             recipients=[user.email],
             template='payment_confirmation',
-            username=user.username,
+            user=user,
             subscription=subscription,
             amount=amount,
             transaction_id=transaction_id,
             payment_date=payment_date,
-            site_url=current_app.config.get('SITE_URL', 'https://zyppts.com')
+            timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Payment confirmation sent to: {user.email}")
+        logger.info(f"Payment confirmation email sent to: {user.email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send payment confirmation: {e}")
+        logger.error(f"Failed to send payment confirmation email: {e}")
         return False
 
 def send_payment_failed(user, subscription, amount, transaction_id, payment_date, error_message):
-    """Send payment failed notification to user"""
+    """Send payment failed email to user"""
     try:
         send_email(
             subject="❌ Payment Failed - Zyppts",
             recipients=[user.email],
             template='payment_failed',
-            username=user.username,
+            user=user,
             subscription=subscription,
             amount=amount,
             transaction_id=transaction_id,
             payment_date=payment_date,
             error_message=error_message,
-            site_url=current_app.config.get('SITE_URL', 'https://zyppts.com')
+            timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Payment failed notification sent to: {user.email}")
+        logger.info(f"Payment failed email sent to: {user.email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send payment failed notification: {e}")
+        logger.error(f"Failed to send payment failed email: {e}")
         return False
 
 def send_subscription_upgrade(user, old_plan, new_plan, old_price, new_price, billing_cycle, 
                             effective_date, next_billing_date, new_features=None):
-    """Send subscription upgrade notification"""
+    """Send subscription upgrade email to user"""
     try:
         send_email(
-            subject="🚀 Subscription Upgraded - Zyppts",
+            subject=f"🚀 Subscription Upgraded to {new_plan.title()} - Zyppts",
             recipients=[user.email],
             template='subscription_upgrade',
-            username=user.username,
+            user=user,
             old_plan=old_plan,
             new_plan=new_plan,
             old_price=old_price,
@@ -167,92 +153,87 @@ def send_subscription_upgrade(user, old_plan, new_plan, old_price, new_price, bi
             effective_date=effective_date,
             next_billing_date=next_billing_date,
             new_features=new_features or [],
-            site_url=current_app.config.get('SITE_URL', 'https://zyppts.com')
+            timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Subscription upgrade notification sent to: {user.email}")
+        logger.info(f"Subscription upgrade email sent to: {user.email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send subscription upgrade notification: {e}")
+        logger.error(f"Failed to send subscription upgrade email: {e}")
         return False
 
 def send_account_cancellation(user, subscription, cancellation_date, access_until_date, cancellation_reason=None):
-    """Send account cancellation notification"""
+    """Send account cancellation email to user"""
     try:
         send_email(
-            subject="👋 Account Cancelled - Zyppts",
+            subject="📝 Subscription Cancelled - Zyppts",
             recipients=[user.email],
             template='account_cancellation',
-            username=user.username,
+            user=user,
             subscription=subscription,
             cancellation_date=cancellation_date,
             access_until_date=access_until_date,
             cancellation_reason=cancellation_reason,
-            site_url=current_app.config.get('SITE_URL', 'https://zyppts.com')
+            timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Account cancellation notification sent to: {user.email}")
+        logger.info(f"Account cancellation email sent to: {user.email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send account cancellation notification: {e}")
+        logger.error(f"Failed to send account cancellation email: {e}")
         return False
 
 def send_subscription_notification(user, subscription, action):
-    """Send general subscription notification"""
+    """Send notification for subscription changes"""
+    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+        return False
+    
     try:
-        subject_map = {
-            'created': '🎉 Subscription Created - Zyppts',
-            'updated': '📝 Subscription Updated - Zyppts',
-            'cancelled': '❌ Subscription Cancelled - Zyppts',
-            'renewed': '🔄 Subscription Renewed - Zyppts'
-        }
-        
         send_email(
-            subject=subject_map.get(action, '📧 Subscription Update - Zyppts'),
-            recipients=[user.email],
+            subject=f"💳 Subscription {action.title()}: {user.username}",
+            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
             template='subscription_notification',
-            username=user.username,
+            user=user,
             subscription=subscription,
             action=action,
-            site_url=current_app.config.get('SITE_URL', 'https://zyppts.com')
+            timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Subscription {action} notification sent to: {user.email}")
         return True
     except Exception as e:
         logger.error(f"Failed to send subscription notification: {e}")
         return False
 
 def send_upload_notification(user, upload):
-    """Send upload notification to user"""
+    """Send notification for new uploads"""
+    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+        return False
+    
     try:
         send_email(
-            subject="📤 Logo Upload Complete - Zyppts",
-            recipients=[user.email],
+            subject=f"📁 New Upload: {user.username}",
+            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
             template='upload_notification',
-            username=user.username,
+            user=user,
             upload=upload,
-            site_url=current_app.config.get('SITE_URL', 'https://zyppts.com')
+            timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Upload notification sent to: {user.email}")
         return True
     except Exception as e:
         logger.error(f"Failed to send upload notification: {e}")
         return False
 
 def send_security_alert(alert_type, details):
-    """Send security alert to admin"""
+    """Send security alert notifications"""
     if not current_app.config.get('ADMIN_ALERT_EMAIL'):
-        logger.warning("ADMIN_ALERT_EMAIL not configured, skipping security alert")
         return False
     
     try:
         send_email(
-            subject=f"🚨 Security Alert: {alert_type} - Zyppts",
+            subject=f"🚨 Security Alert: {alert_type}",
             recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
             template='security_alert',
             alert_type=alert_type,
             details=details,
             timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        logger.info(f"Security alert sent: {alert_type}")
         return True
     except Exception as e:
         logger.error(f"Failed to send security alert: {e}")
@@ -261,52 +242,32 @@ def send_security_alert(alert_type, details):
 def send_daily_summary():
     """Send daily summary to admin"""
     if not current_app.config.get('ADMIN_ALERT_EMAIL'):
-        logger.warning("ADMIN_ALERT_EMAIL not configured, skipping daily summary")
         return False
     
     try:
-        # Import models within the function to avoid circular imports
-        from app_config import db
         from models import User, Subscription, LogoUpload
         from datetime import datetime, timedelta
         
         # Get yesterday's date
         yesterday = datetime.utcnow() - timedelta(days=1)
         
-        # Get statistics with proper error handling
-        try:
-            new_users = User.query.filter(
-                User.created_at >= yesterday
-            ).count()
-        except Exception as e:
-            logger.error(f"Error getting new users count: {e}")
-            new_users = 0
+        # Get statistics
+        new_users = User.query.filter(
+            User.created_at >= yesterday
+        ).count()
         
-        try:
-            new_subscriptions = Subscription.query.filter(
-                Subscription.start_date >= yesterday
-            ).count()
-        except Exception as e:
-            logger.error(f"Error getting new subscriptions count: {e}")
-            new_subscriptions = 0
+        new_subscriptions = Subscription.query.filter(
+            Subscription.start_date >= yesterday
+        ).count()
         
-        try:
-            new_uploads = LogoUpload.query.filter(
-                LogoUpload.upload_date >= yesterday
-            ).count()
-        except Exception as e:
-            logger.error(f"Error getting new uploads count: {e}")
-            new_uploads = 0
+        new_uploads = LogoUpload.query.filter(
+            LogoUpload.upload_date >= yesterday
+        ).count()
         
-        # Get top users with error handling
-        try:
-            top_users = User.query.order_by(User.created_at.desc()).limit(5).all()
-        except Exception as e:
-            logger.error(f"Error getting top users: {e}")
-            top_users = []
+        # Get top users
+        top_users = User.query.order_by(User.created_at.desc()).limit(5).all()
         
-        # Send the email
-        result = send_email(
+        send_email(
             subject=f"📊 Daily Summary - {yesterday.strftime('%Y-%m-%d')}",
             recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
             template='daily_summary',
@@ -317,14 +278,7 @@ def send_daily_summary():
             top_users=top_users,
             timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        
-        if result:
-            logger.info(f"Daily summary sent successfully for {yesterday.strftime('%Y-%m-%d')}")
-        else:
-            logger.error("Daily summary email failed to send")
-        
-        return result
-        
+        return True
     except Exception as e:
         logger.error(f"Failed to send daily summary: {e}")
         return False
@@ -332,58 +286,39 @@ def send_daily_summary():
 def send_weekly_report():
     """Send weekly report to admin"""
     if not current_app.config.get('ADMIN_ALERT_EMAIL'):
-        logger.warning("ADMIN_ALERT_EMAIL not configured, skipping weekly report")
         return False
     
     try:
-        # Import models within the function to avoid circular imports
-        from app_config import db
         from models import User, Subscription, LogoUpload
         from datetime import datetime, timedelta
         
         # Get last week's date
         last_week = datetime.utcnow() - timedelta(weeks=1)
         
-        # Get statistics with proper error handling
-        try:
-            new_users = User.query.filter(
-                User.created_at >= last_week
-            ).count()
-        except Exception as e:
-            logger.error(f"Error getting new users count: {e}")
-            new_users = 0
+        # Get statistics
+        new_users = User.query.filter(
+            User.created_at >= last_week
+        ).count()
         
-        try:
-            active_subscriptions = Subscription.query.filter(
-                Subscription.status == 'active'
-            ).count()
-        except Exception as e:
-            logger.error(f"Error getting active subscriptions count: {e}")
-            active_subscriptions = 0
+        active_subscriptions = Subscription.query.filter(
+            Subscription.status == 'active'
+        ).count()
         
-        try:
-            total_uploads = LogoUpload.query.filter(
-                LogoUpload.upload_date >= last_week
-            ).count()
-        except Exception as e:
-            logger.error(f"Error getting total uploads count: {e}")
-            total_uploads = 0
+        total_uploads = LogoUpload.query.filter(
+            LogoUpload.upload_date >= last_week
+        ).count()
         
-        # Get user growth trend with error handling
+        # Get user growth trend
         user_growth = []
-        try:
-            for i in range(7):
-                date = last_week + timedelta(days=i)
-                count = User.query.filter(
-                    User.created_at >= date,
-                    User.created_at < date + timedelta(days=1)
-                ).count()
-                user_growth.append({'date': date.strftime('%Y-%m-%d'), 'count': count})
-        except Exception as e:
-            logger.error(f"Error getting user growth data: {e}")
+        for i in range(7):
+            date = last_week + timedelta(days=i)
+            count = User.query.filter(
+                User.created_at >= date,
+                User.created_at < date + timedelta(days=1)
+            ).count()
+            user_growth.append({'date': date.strftime('%Y-%m-%d'), 'count': count})
         
-        # Send the email
-        result = send_email(
+        send_email(
             subject=f"📈 Weekly Report - {last_week.strftime('%Y-%m-%d')} to {datetime.utcnow().strftime('%Y-%m-%d')}",
             recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
             template='weekly_report',
@@ -395,14 +330,7 @@ def send_weekly_report():
             user_growth=user_growth,
             timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-        
-        if result:
-            logger.info(f"Weekly report sent successfully for {last_week.strftime('%Y-%m-%d')} to {datetime.utcnow().strftime('%Y-%m-%d')}")
-        else:
-            logger.error("Weekly report email failed to send")
-        
-        return result
-        
+        return True
     except Exception as e:
         logger.error(f"Failed to send weekly report: {e}")
         return False 

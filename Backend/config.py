@@ -54,22 +54,16 @@ class Config:
     BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
     FRONTEND_DIR = os.path.join(BASE_DIR, 'Frontend')
     
-    # Use environment variable for storage path in production
-    if os.environ.get('RENDER'):
-        STORAGE_PATH = '/opt/render/project/src/storage'
-        UPLOAD_FOLDER = os.path.join(STORAGE_PATH, 'uploads')
-        OUTPUT_FOLDER = os.path.join(STORAGE_PATH, 'outputs')
-        CACHE_FOLDER = os.path.join(STORAGE_PATH, 'cache')
-        TEMP_FOLDER = os.path.join(STORAGE_PATH, 'temp')
-    else:
-        UPLOAD_FOLDER = os.path.join(BACKEND_DIR, 'uploads')
-        OUTPUT_FOLDER = os.path.join(BACKEND_DIR, 'outputs')
-        CACHE_FOLDER = os.path.join(BACKEND_DIR, 'cache')
-        TEMP_FOLDER = os.path.join(BACKEND_DIR, 'temp')
+    # Use data directory for persistent storage (outside version control)
+    DATA_PATH = os.path.join(BASE_DIR, 'data')
+    UPLOAD_FOLDER = os.path.join(DATA_PATH, 'uploads')
+    OUTPUT_FOLDER = os.path.join(DATA_PATH, 'outputs')
+    CACHE_FOLDER = os.path.join(DATA_PATH, 'cache')
+    TEMP_FOLDER = os.path.join(DATA_PATH, 'temp')
         
     TEMPLATES_FOLDER = os.path.join(FRONTEND_DIR, 'templates')
     STATIC_FOLDER = os.path.join(FRONTEND_DIR, 'static')
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'svg', 'pdf', 'webp'}
     
     # Brand Colors
     BRAND_COLORS = {
@@ -323,6 +317,216 @@ class Config:
     CELERY_REDIS_RETRY_ON_TIMEOUT = True
     CELERY_REDIS_SOCKET_KEEPALIVE = True
     
+    # Platform-specific optimizations
+    PLATFORM = os.environ.get('PLATFORM', 'fly')
+    
+    # Fly.io optimizations (2GB RAM limit)
+    if PLATFORM == 'fly':
+        # Memory optimizations for Fly.io
+        MEMORY_LIMIT = '2GB'  # Reduced from 6GB
+        MAX_CONCURRENT_PROCESSES = 4  # Reduced from 8
+        BATCH_SIZE = 10  # Reduced from 20
+        
+        # Performance optimizations for Fly.io
+        PERFORMANCE_CONFIG = {
+            # Parallel Processing
+            'enable_multiprocessing': True,
+            'enable_priority_queue': True,
+            'enable_adaptive_workers': True,
+            'max_workers': 8,  # Reduced from 16
+            'process_workers': 4,  # Reduced from 8
+            'batch_size': 10,  # Reduced from 20
+            'task_timeout': 120,  # Keep same timeout
+            
+            # Memory Management
+            'memory_threshold': 0.7,  # Reduced from 0.75
+            'predictive_cleanup': True,
+            'aggressive_cleanup': True,
+            'cleanup_interval': 180,  # 3 minutes
+            
+            # Caching Strategy
+            'enable_advanced_caching': True,
+            'cache_size': 1000,  # Reduced from 2000
+            'cache_timeout': 3600,  # 1 hour
+            'lru_cache_size': 500,  # Reduced from 1000
+            
+            # Vector Processing
+            'vector_trace_optimization': {
+                'max_dimension': 2000,  # Keep same
+                'max_colors': 3,
+                'kmeans_iterations': 100,
+                'contour_epsilon': 0.01,
+                'min_area_threshold': 50,
+                'parallel_workers': 2,  # Reduced from 4
+                'enable_caching': True,
+                'timeout_seconds': 30
+            },
+            
+            # Social Media Processing
+            'social_media_optimization': {
+                'parallel_platforms': True,
+                'max_concurrent_platforms': 4,  # Reduced from 8
+                'preview_generation': True,
+                'batch_processing': True
+            }
+        }
+        
+        # Image Processing optimizations for Fly.io
+        IMAGE_PROCESSING_CONFIG = {
+            'use_gpu': True,
+            'max_image_dimension': 4096,  # Reduced from 8192
+            'jpeg_quality': 95,  # Keep same quality
+            'png_compression': 6,
+            'webp_quality': 95,  # Keep same quality
+            'svg_simplify_tolerance': 0.1,
+            'enable_multithreading': True,
+            'thread_count': 2,  # Reduced from 4
+            'resize_method': 'lanczos',
+            'cache_size': 500,  # Reduced from 1000
+            'cache_timeout': 3600
+        }
+        
+        # Cache optimizations for Fly.io
+        CACHE_SIZE = 1000  # Reduced from 2000
+        CACHE_TIMEOUT = 3600  # 1 hour
+        LRU_CACHE_SIZE = 500  # Reduced from 1000
+        
+        # Task scheduling optimizations
+        TASK_SCHEDULER_CONFIG = {
+            'enable_priority_queue': True,
+            'enable_task_preemption': True,
+            'max_queue_size': 500,  # Reduced from 1000
+            'task_timeout': 300,  # 5 minutes
+            'retry_attempts': 3,
+            'retry_delay': 1
+        }
+        
+        # Resource monitoring for Fly.io
+        RESOURCE_MONITORING = {
+            'enable_monitoring': True,
+            'monitoring_interval': 30,  # 30 seconds
+            'alert_thresholds': {
+                'cpu_usage': 80,
+                'memory_usage': 80,  # Reduced from 85
+                'disk_usage': 85  # Reduced from 90
+            },
+            'auto_optimization': True
+        }
+        
+        # Database pool optimizations for Fly.io
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_size': 8,  # Reduced from 10
+            'pool_recycle': 3600,
+            'pool_timeout': 30,
+            'pool_pre_ping': True
+        }
+        
+        # Celery optimizations for Fly.io
+        CELERY_REDIS_MAX_CONNECTIONS = 500  # Reduced from 1000
+        
+    else:
+        # Default configuration for other platforms
+        MEMORY_LIMIT = '6GB'
+        MAX_CONCURRENT_PROCESSES = 8
+        BATCH_SIZE = 20
+        
+        # Default performance config
+        PERFORMANCE_CONFIG = {
+            # Parallel Processing
+            'enable_multiprocessing': True,
+            'enable_priority_queue': True,
+            'enable_adaptive_workers': True,
+            'max_workers': 16,
+            'process_workers': 8,
+            'batch_size': 20,
+            'task_timeout': 120,
+            
+            # Memory Management
+            'memory_threshold': 0.75,
+            'predictive_cleanup': True,
+            'aggressive_cleanup': True,
+            'cleanup_interval': 180,
+            
+            # Caching Strategy
+            'enable_advanced_caching': True,
+            'cache_size': 2000,
+            'cache_timeout': 3600,
+            'lru_cache_size': 1000,
+            
+            # Vector Processing
+            'vector_trace_optimization': {
+                'max_dimension': 2000,
+                'max_colors': 3,
+                'kmeans_iterations': 100,
+                'contour_epsilon': 0.01,
+                'min_area_threshold': 50,
+                'parallel_workers': 4,
+                'enable_caching': True,
+                'timeout_seconds': 30
+            },
+            
+            # Social Media Processing
+            'social_media_optimization': {
+                'parallel_platforms': True,
+                'max_concurrent_platforms': 8,
+                'preview_generation': True,
+                'batch_processing': True
+            }
+        }
+        
+        # Default image processing config
+        IMAGE_PROCESSING_CONFIG = {
+            'use_gpu': True,
+            'max_image_dimension': 8192,
+            'jpeg_quality': 95,
+            'png_compression': 6,
+            'webp_quality': 95,
+            'svg_simplify_tolerance': 0.1,
+            'enable_multithreading': True,
+            'thread_count': 4,
+            'resize_method': 'lanczos',
+            'cache_size': 1000,
+            'cache_timeout': 3600
+        }
+        
+        # Default cache config
+        CACHE_SIZE = 2000
+        CACHE_TIMEOUT = 3600
+        LRU_CACHE_SIZE = 1000
+        
+        # Default task scheduling
+        TASK_SCHEDULER_CONFIG = {
+            'enable_priority_queue': True,
+            'enable_task_preemption': True,
+            'max_queue_size': 1000,
+            'task_timeout': 300,
+            'retry_attempts': 3,
+            'retry_delay': 1
+        }
+        
+        # Default resource monitoring
+        RESOURCE_MONITORING = {
+            'enable_monitoring': True,
+            'monitoring_interval': 30,
+            'alert_thresholds': {
+                'cpu_usage': 80,
+                'memory_usage': 85,
+                'disk_usage': 90
+            },
+            'auto_optimization': True
+        }
+        
+        # Default database config
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_size': 10,
+            'pool_recycle': 3600,
+            'pool_timeout': 30,
+            'pool_pre_ping': True
+        }
+        
+        # Default Celery config
+        CELERY_REDIS_MAX_CONNECTIONS = 1000
+
     @classmethod
     def init_app(cls, app):
         """Initialize application directories"""

@@ -92,4 +92,14 @@ def create_app():
     from .routes import bp as main_bp
     app.register_blueprint(main_bp)
     
+    # Register admin blueprint
+    try:
+        from .admin_routes import admin_bp
+        app.register_blueprint(admin_bp)
+        app.logger.info("Admin routes registered successfully")
+    except ImportError as e:
+        app.logger.warning(f"Admin routes not available: {e}")
+    except Exception as e:
+        app.logger.error(f"Error registering admin routes: {e}")
+    
     return app

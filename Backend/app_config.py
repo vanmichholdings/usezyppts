@@ -44,16 +44,22 @@ def create_app():
                 static_folder=static_folder)
     
     # Load configuration
-    from config import Config
+    try:
+        from .config import Config
+    except ImportError:
+        from config import Config
     app.config.from_object(Config)
     
     # Override paths in config for new structure
     app.config['TEMPLATES_FOLDER'] = templates_folder
     app.config['STATIC_FOLDER'] = static_folder
-    app.config['UPLOAD_FOLDER'] = os.path.join(backend_dir, 'uploads')
-    app.config['OUTPUT_FOLDER'] = os.path.join(backend_dir, 'outputs')
-    app.config['CACHE_FOLDER'] = os.path.join(backend_dir, 'cache')
-    app.config['TEMP_FOLDER'] = os.path.join(backend_dir, 'temp')
+    
+    # Use the new data directory structure (from config.py)
+    # These paths are already set correctly in config.py, so we don't override them
+    # app.config['UPLOAD_FOLDER'] = os.path.join(backend_dir, 'uploads')
+    # app.config['OUTPUT_FOLDER'] = os.path.join(backend_dir, 'outputs')
+    # app.config['CACHE_FOLDER'] = os.path.join(backend_dir, 'cache')
+    # app.config['TEMP_FOLDER'] = os.path.join(backend_dir, 'temp')
     
     # Configure logging for production
     if not app.debug and not app.testing:
@@ -84,7 +90,7 @@ def create_app():
         # Get Redis configuration from environment
         redis_url = os.environ.get('REDIS_URL')
         if redis_url:
-            # Parse Redis URL for production (Render format)
+            # Parse Redis URL for production
             app.logger.info(f"Configuring Redis with URL: {redis_url}")
             
             # Configure Flask-Session for Redis
@@ -137,7 +143,11 @@ def create_app():
         if not os.path.exists(sessions_dir):
             os.makedirs(sessions_dir, mode=0o750)
     
-    # Initialize SQLAlchemy with app
+    # Initialize database
+    try:
+        from .models import db
+    except ImportError:
+        from models import db
     db.init_app(app)
     
     # Initialize Flask-Login
@@ -152,7 +162,10 @@ def create_app():
     def load_user(user_id):
         if user_id is None:
             return None
-        from models import User
+        try:
+            from .models import User
+        except ImportError:
+            from models import User
         return User.query.get(int(user_id))
     
     # Initialize other extensions
@@ -196,23 +209,40 @@ def create_app():
             app.logger.error(f"Error creating database tables: {e}")
     
     # Register blueprints
-    from routes import bp as main_bp
+    try:
+        from .routes import bp as main_bp
+    except ImportError:
+        from routes import bp as main_bp
     app.register_blueprint(main_bp)
     
     # Register admin blueprint if available
     try:
-        from admin_routes import admin_bp
+        from .admin_routes import admin_bp
+    except ImportError:
+        try:
+            from admin_routes import admin_bp
+        except ImportError:
+            admin_bp = None
+    
+    if admin_bp:
         app.register_blueprint(admin_bp)
         app.logger.info("Admin routes registered")
-    except ImportError:
+    else:
         app.logger.info("Admin routes not available")
     
     # Initialize scheduled tasks for email notifications
     try:
-        from utils.scheduled_tasks import start_scheduled_tasks
+        from .utils.scheduled_tasks import start_scheduled_tasks
+    except ImportError:
+        try:
+            from utils.scheduled_tasks import start_scheduled_tasks
+        except ImportError:
+            start_scheduled_tasks = None
+    
+    if start_scheduled_tasks:
         start_scheduled_tasks()
         app.logger.info("📧 Email scheduling system initialized")
-    except Exception as e:
-        app.logger.error(f"Failed to initialize email scheduling: {e}")
+    else:
+        app.logger.info("📧 Email scheduling system not available")
     
     return app 
