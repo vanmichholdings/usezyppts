@@ -745,7 +745,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.logo_processor' %}active{% endif %}" href="{{ url_for('main.logo_processor') }}">
+                        <a class="nav-link {% if request.endpoint == 'main.logo_processor' %}active{% endif %}" href="{{ url_for('main.logo_processor') }}" id="uploadNavLink">
                             <i class="fas fa-upload"></i>Upload
                         </a>
                     </li>
@@ -1082,6 +1082,157 @@
         console.log('Browser dark mode:', window.matchMedia('(prefers-color-scheme: dark)').matches);
         console.log('Saved theme:', localStorage.getItem('theme'));
     });
+    
+    // Upload navigation authentication check
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadNavLink = document.getElementById('uploadNavLink');
+        if (uploadNavLink) {
+            uploadNavLink.addEventListener('click', async function(e) {
+                // Check if user is authenticated before navigating
+                try {
+                    const response = await fetch('/logo_processor', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        e.preventDefault(); // Stop the navigation
+                        const data = await response.json();
+                        if (data.auth_required) {
+                            showNavUploadAuthModal(data);
+                        }
+                    }
+                    // If authenticated (200), let the normal navigation happen
+                } catch (error) {
+                    console.error('Upload nav auth check error:', error);
+                    // Let normal navigation happen on error
+                }
+            });
+        }
+    });
+    
+    // Modal functions for navigation upload clicks
+    function showNavUploadAuthModal(authData) {
+        const modalHTML = `
+            <div id="navUploadAuthModal" class="auth-modal-overlay" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                backdrop-filter: blur(5px);
+            ">
+                <div class="auth-modal" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 2.5rem;
+                    max-width: 480px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+                    position: relative;
+                ">
+                    <button onclick="closeNavUploadAuthModal()" style="
+                        position: absolute;
+                        top: 1rem;
+                        right: 1rem;
+                        background: none;
+                        border: none;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        color: #666;
+                        width: 30px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">×</button>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <i class="fas fa-upload" style="
+                            font-size: 3rem;
+                            color: var(--primary-color);
+                            margin-bottom: 1rem;
+                        "></i>
+                        <h3 style="
+                            font-family: 'JetBrains Mono', 'Inter', monospace;
+                            font-size: 1.5rem;
+                            color: #111827;
+                            margin-bottom: 0.5rem;
+                            font-weight: 700;
+                        ">Account Required</h3>
+                        <p style="
+                            color: #6b7280;
+                            font-size: 1rem;
+                            margin-bottom: 2rem;
+                            line-height: 1.5;
+                        ">${authData.message || 'Please log in or create an account to upload and process your logos.'}</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; flex-direction: column;">
+                        <a href="${authData.login_url}" style="
+                            background: linear-gradient(135deg, var(--cobalt-blue) 0%, var(--sky-blue) 100%);
+                            color: white;
+                            padding: 1rem 2rem;
+                            border-radius: 12px;
+                            text-decoration: none;
+                            font-weight: 600;
+                            font-family: 'JetBrains Mono', 'Inter', monospace;
+                            transition: all 0.3s ease;
+                            display: block;
+                            box-shadow: 0 4px 10px rgba(59, 94, 247, 0.2);
+                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(59, 94, 247, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(59, 94, 247, 0.2)'">
+                            <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                            Log In to Upload
+                        </a>
+                        
+                        <a href="${authData.register_url}" style="
+                            background: white;
+                            color: var(--primary-color);
+                            padding: 1rem 2rem;
+                            border-radius: 12px;
+                            text-decoration: none;
+                            font-weight: 600;
+                            font-family: 'JetBrains Mono', 'Inter', monospace;
+                            transition: all 0.3s ease;
+                            display: block;
+                            border: 2px solid var(--primary-color);
+                        " onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='var(--primary-color)'">
+                            <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                            Create Account & Upload
+                        </a>
+                    </div>
+                    
+                    <p style="
+                        margin-top: 1.5rem;
+                        font-size: 0.875rem;
+                        color: #9ca3af;
+                        line-height: 1.4;
+                    ">Start processing your logos in seconds with your free account.</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeNavUploadAuthModal() {
+        const modal = document.getElementById('navUploadAuthModal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+    }
     </script>
 </body>
 </html>

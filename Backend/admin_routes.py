@@ -13,7 +13,22 @@ from io import StringIO
 import os
 import logging
 
-from models import db, User, Subscription, LogoUpload, LogoVariation
+try:
+    from .models import db, User, Subscription, LogoUpload, LogoVariation
+except ImportError:
+    try:
+        from models import db, User, Subscription, LogoUpload, LogoVariation
+    except ImportError:
+        # Create dummy classes if imports fail
+        class User:
+            pass
+        class Subscription:
+            pass
+        class LogoUpload:
+            pass
+        class LogoVariation:
+            pass
+        db = None
 
 # Create admin blueprint
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -369,6 +384,16 @@ def system():
         'disk_space': 'OK',  # Add disk space check
         'memory_usage': 'Normal'  # Add memory check
     }
+    
+    # Check Redis health
+    try:
+        import redis
+        redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+        r = redis.from_url(redis_url)
+        r.ping()
+        system_health['redis'] = 'Healthy'
+    except Exception as e:
+        system_health['redis'] = f'Error: {str(e)}'
     
     return render_template('admin/system.html', 
                          db_stats=db_stats, 

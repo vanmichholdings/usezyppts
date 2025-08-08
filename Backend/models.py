@@ -5,10 +5,12 @@ Database models for the logo processing application.
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
 
-# Create SQLAlchemy instance
-db = SQLAlchemy()
+# Import SQLAlchemy instance from app_config to avoid conflicts
+try:
+    from .app_config import db
+except ImportError:
+    from app_config import db
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -26,6 +28,10 @@ class User(UserMixin, db.Model):
     # Registration metadata for admin tracking
     registration_ip = db.Column(db.String(45))  # IPv6 compatible
     registration_user_agent = db.Column(db.Text)
+    
+    # Promo code tracking
+    promo_code_used = db.Column(db.String(50))  # Store the promo code used
+    promo_code_applied = db.Column(db.Boolean, default=False)  # Whether promo code was successfully applied
     
     subscription = db.relationship('Subscription', backref='user', uselist=False)
     uploads = db.relationship('LogoUpload', backref='user', lazy=True)
@@ -54,6 +60,37 @@ class User(UserMixin, db.Model):
     def is_administrator(self):
         """Check if user is an administrator"""
         return self.is_admin
+    
+    def has_early_access(self):
+        """Check if user has early access from promo code"""
+        return self.promo_code_applied and self.promo_code_used == 'EARLYZYPPTS'
+    
+    def can_access_pro_features(self):
+        """Check if user can access pro/studio features (either through subscription or early access)"""
+        if self.has_active_subscription() and self.subscription.plan in ['pro', 'studio', 'enterprise']:
+            return True
+        if self.has_early_access() and self.subscription and self.subscription.has_credits():
+            return True
+        return False
+    
+    def get_available_features(self):
+        """Get list of available features based on subscription and promo codes"""
+        features = []
+        
+        if self.has_active_subscription():
+            plan = self.subscription.plan
+            if plan in ['pro', 'studio', 'enterprise']:
+                features.extend(['advanced_effects', 'batch_processing', 'api_access', 'priority_support'])
+            if plan in ['studio', 'enterprise']:
+                features.extend(['custom_branding', 'unlimited_projects'])
+        elif self.has_early_access() and self.subscription and self.subscription.has_credits():
+            # Early access users get pro features with their free credits
+            features.extend(['advanced_effects', 'batch_processing', 'api_access', 'priority_support'])
+        
+        # Free features for all users
+        features.extend(['basic_formats', 'social_media', 'color_variations'])
+        
+        return list(set(features))  # Remove duplicates
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -226,3 +263,47 @@ class SubscriptionAnalytics(db.Model):
     
     def __repr__(self):
         return f'<SubscriptionAnalytics {self.date} for Subscription {self.subscription_id}>'
+
+
+class PromoCode(db.Model):
+    __tablename__ = 'promo_codes'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    discount_percentage = db.Column(db.Integer, default=0)  # Percentage discount
+    discount_amount = db.Column(db.Float, default=0.0)  # Fixed amount discount
+    max_uses = db.Column(db.Integer, default=None)  # None for unlimited
+    current_uses = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, default=None)
+    
+    # Special features for promo codes
+    early_access = db.Column(db.Boolean, default=False)  # Gives access to pro/studio features
+    bonus_credits = db.Column(db.Integer, default=0)  # Additional credits
+    plan_upgrade = db.Column(db.String(20), default=None)  # Plan to upgrade to
+    
+    def is_valid(self):
+        """Check if promo code is still valid"""
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < datetime.utcnow():
+            return False
+        if self.max_uses and self.current_uses >= self.max_uses:
+            return False
+        return True
+    
+    def can_use(self):
+        """Check if promo code can be used"""
+        return self.is_valid()
+    
+    def use(self):
+        """Mark promo code as used"""
+        if self.can_use():
+            self.current_uses += 1
+            return True
+        return False
+    
+    def __repr__(self):
+        return f'<PromoCode {self.code}>'

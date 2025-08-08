@@ -298,4 +298,20 @@ def send_manual_weekly_report(admin_email=None, week_start=None):
             
     except Exception as e:
         logger.error(f"❌ Manual admin weekly report failed with exception: {e}")
+        return False
+
+def run_manual_daily_summary():
+    """Run manual daily summary - wrapper for admin routes"""
+    try:
+        return send_manual_daily_summary()
+    except Exception as e:
+        logger.error(f"Failed to run manual daily summary: {e}")
+        return False
+
+def run_manual_weekly_report():
+    """Run manual weekly report - wrapper for admin routes"""
+    try:
+        return send_manual_weekly_report()
+    except Exception as e:
+        logger.error(f"Failed to run manual weekly report: {e}")
         return False 

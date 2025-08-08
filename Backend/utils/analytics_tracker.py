@@ -5,14 +5,36 @@ Analytics tracking utilities for admin dashboard
 import json
 from datetime import datetime, date
 from flask import request, current_app
-from app_config import db
-from models import UserAnalytics, UserSession, UserMetrics, LogoUpload, LogoVariation
+try:
+    from ..app_config import db
+    from ..models import UserAnalytics, UserSession, UserMetrics, LogoUpload, LogoVariation
+except ImportError:
+    try:
+        from app_config import db
+        from models import UserAnalytics, UserSession, UserMetrics, LogoUpload, LogoVariation
+    except ImportError:
+        # Create dummy classes if imports fail
+        class UserAnalytics:
+            pass
+        class UserSession:
+            pass
+        class UserMetrics:
+            pass
+        class LogoUpload:
+            pass
+        class LogoVariation:
+            pass
+        db = None
 import logging
 
 logger = logging.getLogger(__name__)
 
 def track_user_action(user_id, action_type, details=None):
     """Track a user action for analytics"""
+    if db is None:
+        logger.warning("Database not available, skipping analytics tracking")
+        return True
+    
     try:
         # Get request info if available, otherwise use defaults
         try:
@@ -37,11 +59,16 @@ def track_user_action(user_id, action_type, details=None):
         return True
     except Exception as e:
         logger.error(f"Failed to track user action: {e}")
-        db.session.rollback()
+        if db:
+            db.session.rollback()
         return False
 
 def track_user_session(user_id, session_id, start=True):
     """Track user session start/end"""
+    if db is None:
+        logger.warning("Database not available, skipping session tracking")
+        return True
+    
     try:
         # Get request info if available, otherwise use defaults
         try:
@@ -84,11 +111,16 @@ def track_user_session(user_id, session_id, start=True):
         return True
     except Exception as e:
         logger.error(f"Failed to track user session: {e}")
-        db.session.rollback()
+        if db:
+            db.session.rollback()
         return False
 
 def track_upload(user_id, filename, original_filename, file_size, file_type, status='pending'):
     """Track a file upload"""
+    if db is None:
+        logger.warning("Database not available, skipping upload tracking")
+        return None
+    
     try:
         upload = LogoUpload(
             user_id=user_id,
@@ -117,11 +149,16 @@ def track_upload(user_id, filename, original_filename, file_size, file_type, sta
         return upload
     except Exception as e:
         logger.error(f"Failed to track upload: {e}")
-        db.session.rollback()
+        if db:
+            db.session.rollback()
         return None
 
 def track_variation(upload_id, variation_type, file_path, file_size):
     """Track a generated variation"""
+    if db is None:
+        logger.warning("Database not available, skipping variation tracking")
+        return None
+    
     try:
         variation = LogoVariation(
             upload_id=upload_id,
@@ -143,11 +180,16 @@ def track_variation(upload_id, variation_type, file_path, file_size):
         return variation
     except Exception as e:
         logger.error(f"Failed to track variation: {e}")
-        db.session.rollback()
+        if db:
+            db.session.rollback()
         return None
 
 def update_daily_metrics(user_id, metric_type, increment=1):
     """Update daily metrics for a user"""
+    if db is None:
+        logger.warning("Database not available, skipping metrics update")
+        return True
+    
     try:
         today = date.today()
         metrics = UserMetrics.query.filter_by(
@@ -183,11 +225,16 @@ def update_daily_metrics(user_id, metric_type, increment=1):
         return True
     except Exception as e:
         logger.error(f"Failed to update daily metrics: {e}")
-        db.session.rollback()
+        if db:
+            db.session.rollback()
         return False
 
 def track_processing_completion(user_id, processing_time, files_processed, variations_generated, credits_used):
     """Track processing completion metrics"""
+    if db is None:
+        logger.warning("Database not available, skipping processing completion tracking")
+        return True
+    
     try:
         # Track the action
         track_user_action(user_id, 'process', {
@@ -211,6 +258,10 @@ def track_processing_completion(user_id, processing_time, files_processed, varia
 
 def get_user_activity_summary(user_id, days=30):
     """Get activity summary for a user"""
+    if db is None:
+        logger.warning("Database not available, cannot get user activity summary")
+        return None
+    
     try:
         from datetime import timedelta
         start_date = datetime.utcnow() - timedelta(days=days)

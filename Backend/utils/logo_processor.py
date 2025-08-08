@@ -111,14 +111,35 @@ class LogoProcessor:
     Each method outputs files in the same directory as the input, using the format 'filename'_(variation).filetype.
     """
     def __init__(self, cache_dir=None, cache_folder=None, upload_folder=None, output_folder=None, temp_folder=None, use_parallel=True, max_workers=16):
-        """Initialize LogoProcessor with ultra-fast optimizations while maintaining quality"""
+        """Initialize LogoProcessor with optimizations for Fly.io 2GB RAM environment"""
         self.logger = logging.getLogger(__name__)
         
-        # Ultra-fast processing settings (maintaining quality)
-        self.ultra_fast_mode = True  # Enable ultra-fast mode for 10-second target
-        self.use_cache = True  # Enable aggressive caching
-        self.parallel_processing = True  # Enable parallel processing
-        self.optimize_algorithms = True  # Use optimized algorithms
+        # Detect if running on Fly.io and adjust settings accordingly
+        self.is_fly_io = os.environ.get('PLATFORM') == 'fly'
+        
+        if self.is_fly_io:
+            # Fly.io optimizations - MEMORY CONSERVATIVE
+            self.ultra_fast_mode = False  # Disable ultra-fast mode to save memory
+            self.use_cache = True  # Keep caching but with smaller limits
+            self.parallel_processing = True  # Enable but with strict limits
+            self.optimize_algorithms = True  # Keep algorithm optimizations
+            
+            # Reduce worker count for Fly.io's 2GB RAM limit
+            max_workers = min(max_workers, 4)  # Maximum 4 workers on Fly.io
+            self.max_workers = max_workers
+            
+            self.logger.info(f"🔧 Fly.io mode: Reduced workers to {max_workers} for 2GB RAM limit")
+        else:
+            # Local development - full performance mode
+            self.ultra_fast_mode = True  # Enable ultra-fast mode for local dev
+            self.use_cache = True  # Enable aggressive caching
+            self.parallel_processing = True  # Enable parallel processing
+            self.optimize_algorithms = True  # Use optimized algorithms
+            
+            # Full worker allocation for local development
+            self.max_workers = max_workers * 2 if self.ultra_fast_mode else max_workers
+            
+            self.logger.info(f"🚀 Local mode: Using {self.max_workers} workers for maximum performance")
         
         # Configure paths
         self.cache_dir = cache_dir or os.path.join(os.getcwd(), 'cache')
@@ -131,20 +152,19 @@ class LogoProcessor:
         for folder in [self.cache_dir, self.cache_folder, self.upload_folder, self.output_folder, self.temp_folder]:
             os.makedirs(folder, exist_ok=True)
         
-        # Ultra-fast processing settings
+        # Configure parallel processing
         self.use_parallel = use_parallel
-        self.max_workers = max_workers * 2 if self.ultra_fast_mode else max_workers  # Double workers in ultra-fast mode
         
         # Performance tracking
         self.processing_times = {}
         self.cache_hits = 0
         self.cache_misses = 0
         
-        # Initialize cache
+        # Initialize cache with appropriate limits
         if self.use_cache:
             self._init_cache()
         
-                # Initialize social media sizes
+        # Initialize social media sizes
         self.social_sizes = DEFAULT_SOCIAL_SIZES
         
         self.logger.info(f"⚡ LogoProcessor initialized in ultra-fast mode with {self.max_workers} workers (quality maintained)")

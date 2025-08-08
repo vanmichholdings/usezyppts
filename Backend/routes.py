@@ -2,10 +2,16 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 
+# Import from app_config to ensure we use the same SQLAlchemy instance
 try:
-    from .models import db, User, Subscription
+    from .app_config import db
 except ImportError:
-    from models import db, User, Subscription
+    from app_config import db
+
+try:
+    from .models import User, Subscription
+except ImportError:
+    from models import User, Subscription
 
 try:
     from .app_config import mail
@@ -27,6 +33,10 @@ from io import BytesIO
 import time
 import math
 from werkzeug.utils import secure_filename
+try:
+    from werkzeug.urls import url_parse
+except ImportError:
+    from urllib.parse import urlparse as url_parse
 
 try:
     from .utils.logo_processor import LogoProcessor
@@ -36,7 +46,16 @@ except ImportError:
 try:
     from .utils.analytics_tracker import track_user_action, track_upload, track_processing_completion
 except ImportError:
-    from utils.analytics_tracker import track_user_action, track_upload, track_processing_completion
+    try:
+        from utils.analytics_tracker import track_user_action, track_upload, track_processing_completion
+    except ImportError:
+        # Create dummy functions if analytics tracker is not available
+        def track_user_action(*args, **kwargs):
+            pass
+        def track_upload(*args, **kwargs):
+            pass
+        def track_processing_completion(*args, **kwargs):
+            pass
 
 import logging
 from flask_mail import Message
@@ -50,6 +69,11 @@ import requests
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 import stripe
+import redis
+try:
+    from .app_config import limiter  # Import limiter from app_config instead of ratelimit
+except ImportError:
+    from app_config import limiter
 
 # Initialize Stripe with your secret key from config
 stripe.api_key = Config.STRIPE_SECRET_KEY
@@ -67,41 +91,33 @@ progress_lock = threading.Lock()
 
 # Health check endpoint
 @bp.route('/health')
+@limiter.exempt
 def health_check():
-    """Health check endpoint for deployment monitoring"""
+    """Health check endpoint for monitoring"""
     try:
-        # Check database connection
+        # Test database connection
         from sqlalchemy import text
         db.session.execute(text('SELECT 1'))
-        db.session.commit()
-        
-        # Check Redis connection if configured
-        redis_status = "not_configured"
-        try:
-            import redis
-            redis_url = current_app.config.get('REDIS_URL')
-            if redis_url:
-                redis_client = redis.from_url(redis_url)
-                redis_client.ping()
-                redis_status = "connected"
-        except Exception:
-            redis_status = "failed"
-        
-        return jsonify({
-            'status': 'healthy',
-            'database': 'connected',
-            'redis': redis_status,
-            'timestamp': datetime.now().isoformat(),
-            'version': '1.0.0'
-        }), 200
-        
+        db_status = 'connected'
     except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e),
-            'timestamp': datetime.now().isoformat()
-        }), 500
+        db_status = f'error: {str(e)}'
+    
+    # Test Redis connection
+    try:
+        redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+        r = redis.from_url(redis_url)
+        r.ping()
+        redis_status = 'connected'
+    except Exception as e:
+        redis_status = f'error: {str(e)}'
+    
+    return jsonify({
+        'status': 'healthy',
+        'database': db_status,
+        'redis': redis_status,
+        'platform': os.environ.get('PLATFORM', 'unknown'),
+        'timestamp': datetime.utcnow().isoformat()
+    }), 200
 
 # Favicon route
 @bp.route('/favicon.ico')
@@ -272,15 +288,44 @@ def ensure_upload_dirs(upload_id):
     return dirs
 
 def cleanup_dirs(dirs):
-    """Clean up temporary directories"""
-    if dirs and dirs.get('upload'):
-        base_dir = os.path.dirname(dirs['upload']) # Get the parent upload_id folder
-        if base_dir and os.path.exists(base_dir):
-            try:
-                shutil.rmtree(base_dir)
-                logger.info(f"Cleaned up temporary directory: {base_dir}")
-            except Exception as e:
-                logger.error(f"Error cleaning up directory {base_dir}: {e}")
+    """Clean up temporary directories and files"""
+    if not dirs:
+        return
+    
+    try:
+        # Remove all files and subdirectories in each directory
+        for dir_type, dir_path in dirs.items():
+            if os.path.exists(dir_path):
+                try:
+                    # Remove all contents of the directory
+                    for root, dirs_to_remove, files in os.walk(dir_path, topdown=False):
+                        # Remove files first
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            try:
+                                os.remove(file_path)
+                                logger.debug(f"Removed file: {file_path}")
+                            except OSError as e:
+                                logger.warning(f"Could not remove file {file_path}: {e}")
+                        
+                        # Remove directories
+                        for dir_to_remove in dirs_to_remove:
+                            dir_to_remove_path = os.path.join(root, dir_to_remove)
+                            try:
+                                os.rmdir(dir_to_remove_path)
+                                logger.debug(f"Removed directory: {dir_to_remove_path}")
+                            except OSError as e:
+                                logger.warning(f"Could not remove directory {dir_to_remove_path}: {e}")
+                    
+                    # Remove the main directory itself
+                    os.rmdir(dir_path)
+                    logger.debug(f"Removed main directory: {dir_path}")
+                    
+                except OSError as e:
+                    logger.warning(f"Could not clean up directory {dir_path}: {e}")
+                    
+    except Exception as e:
+        logger.error(f"Error during directory cleanup: {e}")
 
 @bp.route('/')
 def home():
@@ -330,23 +375,56 @@ def progress(session_id):
     )
 
 @bp.route('/logo_processor', methods=['GET', 'POST'])
-@login_required
 def logo_processor():
+    # Handle GET requests (page load)
     if request.method == 'GET':
+        # Check if this is an AJAX request for authentication status
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if not current_user.is_authenticated:
+                return jsonify({
+                    'auth_required': True,
+                    'login_url': url_for('main.login', next=url_for('main.logo_processor')),
+                    'register_url': url_for('main.register', next=url_for('main.logo_processor')),
+                    'message': 'Please log in or create an account to upload and process logos'
+                }), 401
+            else:
+                return jsonify({'authenticated': True}), 200
+        
+        # For regular GET requests, always show the page (authentication will be handled by JavaScript)
         return render_template('logo_processor.html', now=datetime.now())
+    
+    # Handle POST requests (processing) - require authentication
+    if not current_user.is_authenticated:
+        return jsonify({
+            'auth_required': True,
+            'login_url': url_for('main.login', next=url_for('main.logo_processor')),
+            'register_url': url_for('main.register', next=url_for('main.logo_processor')),
+            'message': 'Please log in or create an account to process logos'
+        }), 401
     
     # Get session ID for progress tracking
     session_id = request.form.get('session_id')
     if not session_id and 'session_id' in request.args:
         session_id = request.args.get('session_id')
     
+    # Check subscription and credits - allow early access users
     if not current_user.has_active_subscription():
         update_progress(session_id, 'error', 0, 'Active subscription required')
         return jsonify({'error': 'Active subscription required'}), 403
         
     if not current_user.can_generate_files():
-        update_progress(session_id, 'error', 0, 'No credits remaining')
-        return jsonify({'error': 'No credits remaining'}), 403
+        # Check if user has early access but ran out of credits
+        if current_user.has_early_access():
+            update_progress(session_id, 'error', 0, 'You have used all your free credits. Please upgrade to continue using pro features.')
+            return jsonify({
+                'error': 'No credits remaining',
+                'early_access_expired': True,
+                'upgrade_message': 'You have used all your free credits. Please upgrade to continue using pro features.',
+                'upgrade_url': url_for('main.subscription_plans')
+            }), 403
+        else:
+            update_progress(session_id, 'error', 0, 'No credits remaining')
+            return jsonify({'error': 'No credits remaining'}), 403
     
     dirs = None
     file_path = None
@@ -1137,44 +1215,59 @@ def subscription_plans():
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handle user login"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    
+
     if request.method == 'POST':
         try:
-            email = request.form['email']
-            password = request.form['password']
-            
+            # Handle both form data and JSON
+            if request.is_json:
+                data = request.get_json()
+                email = data.get('email')
+                password = data.get('password')
+            else:
+                email = request.form.get('email')
+                password = request.form.get('password')
+
             if not email or not password:
-                flash('Please provide both email and password', 'error')
-                return render_template('login.html', now=datetime.now())
-            
+                if request.is_json:
+                    return jsonify({'error': 'Email and password are required'}), 400
+                flash('Email and password are required', 'error')
+                return render_template('login.html', year=datetime.utcnow().year)
+
             user = User.query.filter_by(email=email).first()
             if user and user.check_password(password):
-                # Update last login time
+                login_user(user)
                 user.last_login = datetime.utcnow()
                 db.session.commit()
                 
-                # Track login action
-                track_user_action(user.id, 'login', {
-                    'login_method': 'email',
-                    'ip_address': request.remote_addr
-                })
+                next_page = request.args.get('next')
+                if not next_page or url_parse(next_page).netloc != '':
+                    next_page = url_for('main.home')
                 
-                login_user(user)
-                return redirect(url_for('main.home'))
-            
-            flash('Invalid email or password', 'error')
-            
+                if request.is_json:
+                    return jsonify({'success': True, 'redirect': next_page})
+                return redirect(next_page)
+            else:
+                if request.is_json:
+                    return jsonify({'error': 'Invalid email or password'}), 401
+                flash('Invalid email or password', 'error')
         except Exception as e:
-            logger.error(f"Login error: {str(e)}")
-            flash('An error occurred during login. Please try again.', 'error')
-    
-    return render_template('login.html', now=datetime.now())
+            current_app.logger.error(f"Login error: {str(e)}")
+            if request.is_json:
+                return jsonify({'error': 'An error occurred during login'}), 500
+            flash('An error occurred during login', 'error')
+
+    return render_template('login.html', year=datetime.utcnow().year)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
+        # Check for next parameter if user is already logged in
+        next_page = request.args.get('next')
+        if next_page:
+            return redirect(next_page)
         return redirect(url_for('main.home'))
     
     if request.method == 'POST':
@@ -1182,6 +1275,7 @@ def register():
             username = request.form['username']
             email = request.form['email']
             password = request.form['password']
+            promo_code = request.form.get('promo_code', '').strip()
             
             if not all([username, email, password]):
                 flash('Please fill in all fields', 'error')
@@ -1208,6 +1302,39 @@ def register():
             db.session.add(user)
             db.session.commit()
             
+            # Handle promo code if provided
+            if promo_code:
+                try:
+                    from utils.promo_codes import apply_promo_code, validate_promo_code
+                    
+                    # Validate the promo code
+                    promo_details = validate_promo_code(promo_code)
+                    if promo_details:
+                        success, message = apply_promo_code(user, promo_code)
+                        if success:
+                            flash(f'Promo code {promo_code} applied successfully! You now have early access to pro features.', 'success')
+                            logger.info(f"Promo code {promo_code} applied to user {user.id}")
+                        else:
+                            flash(f'Promo code error: {message}', 'warning')
+                    else:
+                        flash('Invalid promo code. Registration completed without promo code.', 'warning')
+                except Exception as e:
+                    logger.error(f"Error applying promo code: {e}")
+                    flash('Error applying promo code. Registration completed without promo code.', 'warning')
+            
+            # Create default subscription (free plan)
+            subscription = Subscription(
+                user=user,
+                plan='free',
+                status='active',
+                monthly_credits=3,  # Free plan gets 3 credits
+                used_credits=0,
+                start_date=datetime.utcnow(),
+                billing_cycle='monthly'
+            )
+            db.session.add(subscription)
+            db.session.commit()
+            
             # Send email notifications
             try:
                 from utils.email_notifications import send_new_account_notification
@@ -1217,7 +1344,17 @@ def register():
                 # Don't fail registration if email fails
             
             login_user(user)
-            flash('Registration successful! Welcome to ZYPPTS!', 'success')
+            
+            # Show appropriate success message based on promo code
+            if promo_code and user.promo_code_applied:
+                flash('Registration successful! Welcome to ZYPPTS! You have early access to pro features with your free credits.', 'success')
+            else:
+                flash('Registration successful! Welcome to ZYPPTS!', 'success')
+            
+            # Redirect to next page if specified, otherwise to home
+            next_page = request.args.get('next') or request.form.get('next')
+            if next_page:
+                return redirect(next_page)
             return redirect(url_for('main.home'))
             
         except Exception as e:
@@ -1400,7 +1537,19 @@ def test_vector_trace():
 @login_required
 def account():
     """Display account settings and subscription details"""
-    return render_template('account.html', now=datetime.now())
+    # Get promo code status
+    promo_status = None
+    if current_user.promo_code_applied:
+        try:
+            from utils.promo_codes import get_user_promo_code_status
+            promo_status = get_user_promo_code_status(current_user)
+        except Exception as e:
+            logger.error(f"Error getting promo code status: {e}")
+    
+    return render_template('account.html', 
+                         now=datetime.now(), 
+                         promo_status=promo_status,
+                         has_early_access=current_user.has_early_access())
 
 @bp.route('/subscription/cancel', methods=['POST'])
 @login_required
@@ -1890,9 +2039,19 @@ def get_stripe_config():
 
 
 @bp.route('/api/create-checkout-session', methods=['POST'])
-@login_required
 def create_checkout_session():
     """Create Stripe checkout session for a selected plan."""
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        # Return login URL for unauthenticated users with redirect back to pricing
+        pricing_url = url_for('main.subscription_plans')
+        return jsonify({
+            'auth_required': True,
+            'login_url': url_for('main.login', next=pricing_url),
+            'register_url': url_for('main.register', next=pricing_url),
+            'message': 'Please log in or create an account to subscribe'
+        }), 401
+    
     data = request.get_json() or {}
     plan = data.get('plan', 'pro')
     billing = data.get('billing', 'monthly')  # 'monthly' or 'annual'
@@ -2167,3 +2326,10 @@ def favicon_fallback():
     except Exception as e:
         current_app.logger.error(f"Error serving fallback favicon: {e}")
         return '', 404
+
+@bp.context_processor
+def utility_processor():
+    """Add utility functions to template context"""
+    return {
+        'now': datetime.utcnow()
+    }

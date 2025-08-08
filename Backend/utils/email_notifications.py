@@ -16,7 +16,16 @@ def send_async_email(app, msg):
     """Send email asynchronously"""
     with app.app_context():
         try:
-            from app_config import mail
+            # Try to import mail from app_config
+            try:
+                from ..app_config import mail
+            except ImportError:
+                try:
+                    from app_config import mail
+                except ImportError:
+                    logger.error("Could not import mail from app_config")
+                    return
+            
             mail.send(msg)
             logger.info(f"Email sent successfully: {msg.subject}")
         except Exception as e:
@@ -25,7 +34,15 @@ def send_async_email(app, msg):
 def send_email(subject, recipients, template, **kwargs):
     """Send email using template"""
     try:
-        from app_config import mail
+        # Try to import mail from app_config
+        try:
+            from ..app_config import mail
+        except ImportError:
+            try:
+                from app_config import mail
+            except ImportError:
+                logger.error("Could not import mail from app_config")
+                return False
         
         msg = Message(
             subject=subject,
@@ -245,7 +262,16 @@ def send_daily_summary():
         return False
     
     try:
-        from models import User, Subscription, LogoUpload
+        # Try to import models with proper error handling
+        try:
+            from ..models import User, Subscription, LogoUpload
+        except ImportError:
+            try:
+                from models import User, Subscription, LogoUpload
+            except ImportError:
+                logger.error("Could not import models for daily summary")
+                return False
+        
         from datetime import datetime, timedelta
         
         # Get yesterday's date
@@ -289,7 +315,16 @@ def send_weekly_report():
         return False
     
     try:
-        from models import User, Subscription, LogoUpload
+        # Try to import models with proper error handling
+        try:
+            from ..models import User, Subscription, LogoUpload
+        except ImportError:
+            try:
+                from models import User, Subscription, LogoUpload
+            except ImportError:
+                logger.error("Could not import models for weekly report")
+                return False
+        
         from datetime import datetime, timedelta
         
         # Get last week's date

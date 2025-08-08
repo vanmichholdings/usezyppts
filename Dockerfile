@@ -6,7 +6,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PLATFORM=fly
+    PLATFORM=fly \
+    PYTHONPATH=/app
 
 # Install system dependencies in one layer (optimized for Fly.io)
 RUN apt-get update && apt-get install -y \
@@ -55,15 +56,23 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Create non-root user and storage directories
 RUN useradd --create-home --shell /bin/bash app && \
-    mkdir -p /app/data/{uploads,outputs,cache,temp} && \
+    mkdir -p /app/data/{uploads,outputs,cache,temp,db} && \
     mkdir -p /app/Backend/logs && \
+    mkdir -p /app/Backend/logs/sessions && \
+    mkdir -p /app/Frontend/templates && \
+    mkdir -p /app/Frontend/static && \
     chown -R app:app /app
 
 # Copy application code
 COPY . .
 
-# Change ownership
-RUN chown -R app:app /app
+# Make startup script executable
+RUN chmod +x start_app.py
+
+# Change ownership and ensure database directory permissions
+RUN chown -R app:app /app && \
+    chmod -R 777 /app/data && \
+    chmod -R 755 /app/data/db
 
 # Switch to non-root user
 USER app
@@ -75,5 +84,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-# Start command optimized for Fly.io (4 workers for 2GB RAM)
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "--worker-class", "sync", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "--worker-connections", "1000", "Backend:create_app()"]
+# Start command - use startup script for proper initialization
+CMD ["python", "start_app.py"]

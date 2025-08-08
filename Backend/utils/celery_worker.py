@@ -16,8 +16,8 @@ celery_app = Celery('logo_tasks')
 
 # Configure Celery settings for ultra-fast processing (20-second target)
 celery_app.conf.update(
-    broker_url='redis://localhost:6379/0',
-    result_backend='redis://localhost:6379/0',
+    broker_url=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
+    result_backend=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
     task_serializer='json',
     accept_content=['json'],
     result_serializer='json',

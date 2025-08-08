@@ -673,22 +673,252 @@ async function startCheckout(plan) {
     const billingToggle = document.getElementById('billingToggle');
     const isAnnual = billingToggle.checked;
     
-    const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            plan: plan,
-            billing: isAnnual ? 'annual' : 'monthly'
-        })
-    });
-    const data = await response.json();
-    if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-    } else if (data.redirect) {
-        window.location.href = data.redirect;
-    } else {
-        alert(data.error || 'Payment setup failed');
+    try {
+        const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                plan: plan,
+                billing: isAnnual ? 'annual' : 'monthly'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 401 && data.auth_required) {
+            // User not authenticated - show login/register options
+            showAuthModal(data, plan, isAnnual);
+        } else if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else if (data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            alert(data.error || 'Payment setup failed');
+        }
+    } catch (error) {
+        console.error('Checkout error:', error);
+        alert('An error occurred. Please try again.');
     }
 }
+
+function showAuthModal(authData, plan, isAnnual) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="authModal" class="auth-modal-overlay" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        ">
+            <div class="auth-modal" style="
+                background: white;
+                border-radius: 16px;
+                padding: 2.5rem;
+                max-width: 480px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+                position: relative;
+            ">
+                <button onclick="closeAuthModal()" style="
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: #666;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">×</button>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-lock" style="
+                        font-size: 3rem;
+                        color: var(--primary-color);
+                        margin-bottom: 1rem;
+                    "></i>
+                    <h3 style="
+                        font-family: 'JetBrains Mono', 'Inter', monospace;
+                        font-size: 1.5rem;
+                        color: #111827;
+                        margin-bottom: 0.5rem;
+                        font-weight: 700;
+                    ">Account Required</h3>
+                    <p style="
+                        color: #6b7280;
+                        font-size: 1rem;
+                        margin-bottom: 2rem;
+                        line-height: 1.5;
+                    ">${authData.message || 'Please log in or create an account to subscribe to the ' + plan.charAt(0).toUpperCase() + plan.slice(1) + ' plan.'}</p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; flex-direction: column;">
+                    <a href="${authData.login_url}" style="
+                        background: linear-gradient(135deg, var(--cobalt-blue) 0%, var(--sky-blue) 100%);
+                        color: white;
+                        padding: 1rem 2rem;
+                        border-radius: 12px;
+                        text-decoration: none;
+                        font-weight: 600;
+                        font-family: 'JetBrains Mono', 'Inter', monospace;
+                        transition: all 0.3s ease;
+                        display: block;
+                        box-shadow: 0 4px 10px rgba(59, 94, 247, 0.2);
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(59, 94, 247, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(59, 94, 247, 0.2)'">
+                        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
+                        Log In to Continue
+                    </a>
+                    
+                    <a href="${authData.register_url}" style="
+                        background: white;
+                        color: var(--primary-color);
+                        padding: 1rem 2rem;
+                        border-radius: 12px;
+                        text-decoration: none;
+                        font-weight: 600;
+                        font-family: 'JetBrains Mono', 'Inter', monospace;
+                        transition: all 0.3s ease;
+                        display: block;
+                        border: 2px solid var(--primary-color);
+                    " onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='var(--primary-color)'">
+                        <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                        Create New Account
+                    </a>
+                </div>
+                
+                <p style="
+                    margin-top: 1.5rem;
+                    font-size: 0.875rem;
+                    color: #9ca3af;
+                    line-height: 1.4;
+                ">We'll remember your plan selection and redirect you back here after login.</p>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Store plan selection for after login
+    sessionStorage.setItem('selectedPlan', JSON.stringify({
+        plan: plan,
+        billing: isAnnual ? 'annual' : 'monthly'
+    }));
+    
+    // Prevent page scrolling
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = '';
+    }
+}
+
+// Check for stored plan selection on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const storedPlan = sessionStorage.getItem('selectedPlan');
+    if (storedPlan) {
+        try {
+            const planData = JSON.parse(storedPlan);
+            sessionStorage.removeItem('selectedPlan');
+            
+            // Auto-trigger checkout for returning user
+            setTimeout(() => {
+                startCheckout(planData.plan);
+            }, 1000);
+        } catch (e) {
+            console.error('Error parsing stored plan:', e);
+        }
+    }
+    
+    // Existing billing toggle code...
+    const billingToggle = document.getElementById('billingToggle');
+    const monthlyLabels = document.querySelectorAll('.toggle-label:not(.annual-label)');
+    const annualLabels = document.querySelectorAll('.annual-label');
+    
+    // Price data for each plan
+    const pricingData = {
+        'pro': {
+            monthly: { price: 9.99, period: '/month', info: 'Billed monthly — cancel anytime' },
+            annual: { price: 7.99, period: '/month', info: 'Billed $95.90 yearly — save 20%' }
+        },
+        'studio': {
+            monthly: { price: 29, period: '/month', info: 'Billed monthly — cancel anytime' },
+            annual: { price: 23, period: '/month', info: 'Billed $276 yearly — save 20%' }
+        },
+        'enterprise': {
+            monthly: { price: 99, period: '+/month', info: 'Billed monthly — cancel anytime' },
+            annual: { price: 79.20, period: '+/month', info: 'Billed $950.40+ yearly — save 20%' }
+        }
+    };
+    
+    function updatePricing(isAnnual) {
+        // Update toggle labels
+        monthlyLabels.forEach(label => {
+            label.style.opacity = isAnnual ? '0.5' : '1';
+            label.style.fontWeight = isAnnual ? '400' : '600';
+        });
+        
+        annualLabels.forEach(label => {
+            label.style.opacity = isAnnual ? '1' : '0.5';
+            label.style.fontWeight = isAnnual ? '600' : '400';
+        });
+        
+        // Update pricing cards
+        Object.keys(pricingData).forEach(plan => {
+            const card = document.querySelector(`[onclick*="${plan}"]`).closest('.pricing-card');
+            const priceElement = card.querySelector('.price');
+            const billingInfo = card.querySelector('.billing-info');
+            const annualPriceElement = card.querySelector('.annual-price');
+            
+            const pricing = isAnnual ? pricingData[plan].annual : pricingData[plan].monthly;
+            
+            if (isAnnual) {
+                // Show annual pricing
+                priceElement.style.display = 'none';
+                if (annualPriceElement) {
+                    annualPriceElement.style.display = 'flex';
+                    annualPriceElement.querySelector('.amount').textContent = pricing.price;
+                    annualPriceElement.querySelector('.period').textContent = pricing.period;
+                    annualPriceElement.querySelector('.billing-info').textContent = pricing.info;
+                }
+            } else {
+                // Show monthly pricing
+                priceElement.style.display = 'flex';
+                if (annualPriceElement) {
+                    annualPriceElement.style.display = 'none';
+                }
+                priceElement.querySelector('.amount').textContent = pricing.price;
+                priceElement.querySelector('.period').textContent = pricing.period;
+                billingInfo.textContent = pricing.info;
+            }
+        });
+    }
+    
+    // Add event listener to toggle
+    billingToggle.addEventListener('change', function() {
+        updatePricing(this.checked);
+    });
+    
+    // Initialize with monthly pricing
+    updatePricing(false);
+});
 </script>
 {% endblock %} 

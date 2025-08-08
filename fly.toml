@@ -1,74 +1,79 @@
-# Fly.io configuration for Zyppts v10 - Optimized for 2GB RAM
-app = "zyppts-logo-processor"
-primary_region = "iad"  # Washington DC - good for US users
+# fly.toml app configuration file generated for zyppts-logo-processor-aged-violet-9912 on 2025-08-07T02:32:03-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'zyppts-logo-processor-aged-violet-9912'
+primary_region = 'iad'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  FLASK_ENV = "production"
-  FLASK_DEBUG = "False"
-  PYTHON_VERSION = "3.11.0"
-  SESSION_COOKIE_SECURE = "True"
-  CACHE_TYPE = "redis"
-  SESSION_TYPE = "redis"
-  LOG_LEVEL = "INFO"
-  MAX_CONTENT_LENGTH = "16777216"  # 16MB
-  UPLOAD_EXTENSIONS = ".png,.jpg,.jpeg,.gif,.bmp,.tiff,.svg,.pdf,.webp"
-  PLATFORM = "fly"  # Enable Fly.io optimizations
+  CACHE_TYPE = 'redis'
+  FLASK_DEBUG = 'False'
+  FLASK_ENV = 'production'
+  LOG_LEVEL = 'INFO'
+  MAX_CONTENT_LENGTH = '16777216'
+  PLATFORM = 'fly'
+  PYTHON_VERSION = '3.11.0'
+  SESSION_COOKIE_SECURE = 'True'
+  SESSION_TYPE = 'redis'
+  UPLOAD_EXTENSIONS = '.png,.jpg,.jpeg,.gif,.bmp,.tiff,.svg,.pdf,.webp'
 
+[processes]
+  app = 'gunicorn --bind 0.0.0.0:8080 --workers 2 --worker-class sync --timeout 90 --keep-alive 2 --max-requests 500 --max-requests-jitter 50 --worker-tmp-dir /tmp --preload Backend.app_config:create_app()'
+
+[[mounts]]
+  source = 'zyppts_data'
+  destination = '/app/data'
+
+# HTTP Service Configuration
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["app"]
+  processes = ['app']
+
+  [[http_service.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[http_service.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
 
   [[http_service.checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/health"
+    interval = '15s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/health'
 
-[processes]
-  app = "gunicorn --bind 0.0.0.0:8080 --workers 4 --worker-class sync --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 100 Backend:create_app()"
-
-[[vm]]
-  cpu_kind = "shared"
-  cpus = 1
-  memory_mb = 2048  # 2GB RAM - optimized for Fly.io
-
-# Volume for persistent storage
-[[mounts]]
-  source = "zyppts_data"
-  destination = "/app/data"
-
-# Health check configuration
 [checks]
   [checks.app]
     port = 8080
-    type = "http"
-    interval = "30s"
-    timeout = "10s"
-    grace_period = "30s"
-    method = "GET"
-    path = "/health"
-    protocol = "http"
+    type = 'http'
+    interval = '15s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/health'
+    protocol = 'http'
     tls_skip_verify = false
 
-# Metrics and monitoring
-[metrics]
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 2048
+
+[[metrics]]
   port = 9091
-  path = "/metrics"
-
-# Scaling configuration
-[scale]
-  min = 1
-  max = 3  # Scale up to 3 instances for high traffic
-
-# Resource limits
-[resources]
-  memory = "2GB"
-  cpu = "1" 
+  path = '/metrics'

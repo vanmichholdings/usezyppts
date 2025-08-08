@@ -66,9 +66,9 @@ check_fly_auth() {
 # Create Fly.io app if it doesn't exist
 create_fly_app() {
     print_status "Checking if Fly.io app exists..."
-    if ! fly apps list | grep -q "zyppts-logo-processor"; then
+    if ! fly apps list | grep -q "zyppts-logo-processor-aged-violet-9912"; then
         print_status "Creating new Fly.io app..."
-        fly apps create zyppts-logo-processor --org personal
+        fly apps create zyppts-logo-processor-aged-violet-9912 --org personal
         print_success "Fly.io app created successfully"
     else
         print_success "Fly.io app already exists"
@@ -151,7 +151,7 @@ show_info() {
     print_success "Deployment completed!"
     echo ""
     echo "🌐 Your app is now live at:"
-    echo "   https://zyppts-logo-processor.fly.dev"
+    echo "   https://zyppts-logo-processor-aged-violet-9912.fly.dev"
     echo ""
     echo "📊 Monitor your app:"
     echo "   fly status"
