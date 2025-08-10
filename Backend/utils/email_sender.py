@@ -22,8 +22,20 @@ import logging
 from datetime import datetime, date, timedelta
 from flask import render_template, current_app
 from flask_mail import Message, Mail
-from app_config import mail
-from utils.analytics_collector import AnalyticsCollector
+try:
+    from ..app_config import mail
+except ImportError:
+    try:
+        from app_config import mail
+    except ImportError:
+        from Backend.app_config import mail
+try:
+    from .analytics_collector import AnalyticsCollector
+except ImportError:
+    try:
+        from utils.analytics_collector import AnalyticsCollector
+    except ImportError:
+        from Backend.utils.analytics_collector import AnalyticsCollector
 import json
 
 logger = logging.getLogger(__name__)
@@ -78,13 +90,29 @@ class EmailSender:
         
         # Get admin email from config
         from flask import current_app
-        admin_email = current_app.config.get('ADMIN_ALERT_EMAIL')
-        if not admin_email:
-            logger.error("No admin email configured for daily summary")
+        try:
+            from .email_notifications import get_admin_emails
+        except ImportError:
+            try:
+                from email_notifications import get_admin_emails
+            except ImportError:
+                try:
+                    from Backend.utils.email_notifications import get_admin_emails
+                except ImportError:
+                    logger.error("Could not import get_admin_emails from any location")
+                    return False
+        
+        admin_emails = get_admin_emails()
+        if not admin_emails:
+            logger.error("No admin emails configured for daily summary")
             return False
         
-        # Redirect to admin function
-        return EmailSender.send_admin_daily_summary(admin_email, date.today())
+        # Redirect to admin function (send to all admin emails)
+        success = True
+        for admin_email in admin_emails:
+            if not EmailSender.send_admin_daily_summary(admin_email, date.today()):
+                success = False
+        return success
     
     @staticmethod
     def send_weekly_report(user, report_data=None):
@@ -102,17 +130,33 @@ class EmailSender:
         
         # Get admin email from config
         from flask import current_app
-        admin_email = current_app.config.get('ADMIN_ALERT_EMAIL')
-        if not admin_email:
-            logger.error("No admin email configured for weekly report")
+        try:
+            from .email_notifications import get_admin_emails
+        except ImportError:
+            try:
+                from email_notifications import get_admin_emails
+            except ImportError:
+                try:
+                    from Backend.utils.email_notifications import get_admin_emails
+                except ImportError:
+                    logger.error("Could not import get_admin_emails from any location")
+                    return False
+        
+        admin_emails = get_admin_emails()
+        if not admin_emails:
+            logger.error("No admin emails configured for weekly report")
             return False
         
         # Get the start of the current week (Monday)
         today = date.today()
         week_start = today - timedelta(days=today.weekday())
         
-        # Redirect to admin function
-        return EmailSender.send_admin_weekly_report(admin_email, week_start)
+        # Redirect to admin function (send to all admin emails)
+        success = True
+        for admin_email in admin_emails:
+            if not EmailSender.send_admin_weekly_report(admin_email, week_start):
+                success = False
+        return success
     
     @staticmethod
     def send_admin_daily_summary(admin_email, report_date=None):
@@ -132,7 +176,7 @@ class EmailSender:
                 report_date=analytics_data['date'],
                 total_uploads=analytics_data['total_uploads'],
                 total_variations=analytics_data['total_variations'],
-                processing_time=analytics_data['total_processing_time'],
+                total_processing_time=analytics_data['total_processing_time'],
                 credits_used=analytics_data['total_credits_used'],
                 credits_remaining=0,  # Admin view
                 user_plan='Admin',
@@ -178,11 +222,14 @@ class EmailSender:
             html_content = render_template(
                 'emails/weekly_report.html',
                 user_email=admin_email,
-                week_start=analytics_data['week_start'],
+                start_date=analytics_data['week_start'],  # Template expects start_date
+                end_date=analytics_data['week_end'],      # Template expects end_date
+                week_start=analytics_data['week_start'],  # Backup compatibility
                 total_uploads=analytics_data['total_uploads'],
                 total_variations=analytics_data['total_variations'],
                 total_processing_time=analytics_data['total_processing_time'],
-                credits_used=analytics_data['total_credits_used'],
+                total_credits_used=analytics_data['total_credits_used'],  # Template expects total_credits_used
+                credits_used=analytics_data['total_credits_used'],        # Backup compatibility
                 credits_remaining=0,  # Admin view
                 user_plan='Admin',
                 weekly_usage_percentage=0,  # Admin view
@@ -198,7 +245,10 @@ class EmailSender:
                 new_users=analytics_data['new_users'],
                 new_subscriptions=analytics_data['new_subscriptions'],
                 active_subscriptions=analytics_data['active_subscriptions'],
-                total_revenue=analytics_data['total_revenue'],
+                subscription_upgrades=analytics_data['subscription_upgrades'],
+                subscription_cancellations=analytics_data['subscription_cancellations'],
+                weekly_revenue=analytics_data['total_revenue'],  # Template expects weekly_revenue
+                total_revenue=analytics_data['total_revenue'],   # Backup compatibility
                 avg_processing_time=analytics_data['avg_processing_time'],
                 user_growth=analytics_data['user_growth'],
                 top_users=analytics_data['top_users'],

@@ -197,7 +197,7 @@ MAIL_PORT=587
 MAIL_USE_TLS=True
 MAIL_USERNAME=zyppts@gmail.com
 MAIL_PASSWORD=your-app-password
-ADMIN_ALERT_EMAIL=zyppts@gmail.com
+ADMIN_ALERT_EMAIL=mike@usezyppts.com,zyppts@gmail.com
 
 # Database
 DATABASE_URL=postgresql://user:pass@host:port/db

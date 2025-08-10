@@ -35,7 +35,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Security configuration
 ADMIN_IP_WHITELIST = os.environ.get('ADMIN_IP_WHITELIST', '').split(',')  # Comma-separated IPs
-ADMIN_ALLOWED_EMAILS = os.environ.get('ADMIN_ALLOWED_EMAILS', 'mike@usezyppts.com,test@zyppts.com,admin@zyppts.com').split(',')  # Comma-separated emails
+ADMIN_ALLOWED_EMAILS = os.environ.get('ADMIN_ALLOWED_EMAILS', 'mike@usezyppts.com').split(',')  # Comma-separated emails
 ADMIN_SESSION_TIMEOUT = int(os.environ.get('ADMIN_SESSION_TIMEOUT', 86400))  # 24 hours default
 
 # Set up admin-specific logging
@@ -79,7 +79,7 @@ def check_admin_email():
     admin_emails_env = os.environ.get('ADMIN_ALLOWED_EMAILS')
     if not admin_emails_env:
         # Use default values if no environment variable is set
-        admin_emails = 'mike@usezyppts.com,test@zyppts.com,admin@zyppts.com'
+        admin_emails = 'mike@usezyppts.com'
     else:
         admin_emails = admin_emails_env
     
@@ -603,9 +603,21 @@ def update_credits(sub_id):
 def notifications():
     """Email notification management"""
     # Get notification settings
+    try:
+        try:
+            from .utils.email_notifications import get_admin_emails
+        except ImportError:
+            from utils.email_notifications import get_admin_emails
+        admin_emails = get_admin_emails()
+        admin_alert_email = ', '.join(admin_emails) if admin_emails else 'Not configured'
+        email_enabled = bool(admin_emails)
+    except:
+        admin_alert_email = 'Not configured'
+        email_enabled = False
+    
     notification_settings = {
-        'admin_alert_email': current_app.config.get('ADMIN_ALERT_EMAIL', 'Not configured'),
-        'email_enabled': bool(current_app.config.get('ADMIN_ALERT_EMAIL')),
+        'admin_alert_email': admin_alert_email,
+        'email_enabled': email_enabled,
         'daily_summary_enabled': True,
         'weekly_report_enabled': True,
         'new_user_notifications': True,
@@ -614,7 +626,10 @@ def notifications():
     
     # Get scheduled jobs
     try:
-        from utils.scheduled_tasks import get_scheduled_jobs
+        try:
+            from .utils.scheduled_tasks import get_scheduled_jobs
+        except ImportError:
+            from utils.scheduled_tasks import get_scheduled_jobs
         scheduled_jobs = get_scheduled_jobs()
     except:
         scheduled_jobs = []
@@ -629,12 +644,21 @@ def notifications():
 def test_notification():
     """Test email notification"""
     try:
-        from utils.email_notifications import send_email
+        try:
+            from .utils.email_notifications import send_email, get_admin_emails
+        except ImportError:
+            from utils.email_notifications import send_email, get_admin_emails
+        
+        # Get admin emails
+        admin_emails = get_admin_emails()
+        if not admin_emails:
+            flash('No admin emails configured', 'error')
+            return redirect(url_for('admin.notifications'))
         
         # Send test email
         send_email(
             subject="🧪 Test Email - Zyppts Admin",
-            recipients=[current_app.config.get('ADMIN_ALERT_EMAIL')],
+            recipients=admin_emails,
             template='test_notification',
             admin_name=current_user.username,
             timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -697,14 +721,27 @@ def template_preview(template_name):
 def send_template_test():
     """Send test email with selected template"""
     try:
-        from utils.email_notifications import send_email
+        try:
+            from .utils.email_notifications import send_email, get_admin_emails
+        except ImportError:
+            from utils.email_notifications import send_email, get_admin_emails
         
         template_name = request.form.get('template_name')
-        test_email = request.form.get('test_email', current_app.config.get('ADMIN_ALERT_EMAIL'))
+        test_email = request.form.get('test_email')
         
         if not template_name:
             flash('Template name is required', 'error')
             return redirect(url_for('admin.notifications'))
+        
+        # If no test email provided, use admin emails
+        if not test_email:
+            admin_emails = get_admin_emails()
+            if not admin_emails:
+                flash('No admin emails configured', 'error')
+                return redirect(url_for('admin.notifications'))
+            recipients = admin_emails
+        else:
+            recipients = [test_email]
         
         # Define template data for testing
         test_data = {
@@ -743,13 +780,13 @@ def send_template_test():
         # Send test email
         send_email(
             subject=subject,
-            recipients=[test_email],
+            recipients=recipients,
             template=template_name,
             **template_data
         )
         
         flash(f'Test email sent successfully using {template_name} template!', 'success')
-        log_admin_action('TEMPLATE_TEST_SENT', {'template': template_name, 'recipient': test_email})
+        log_admin_action('TEMPLATE_TEST_SENT', {'template': template_name, 'recipients': recipients})
         
     except Exception as e:
         flash(f'Failed to send test email: {str(e)}', 'error')
@@ -763,7 +800,18 @@ def send_template_test():
 def send_daily_summary_manual():
     """Manually send daily summary"""
     try:
-        from utils.scheduled_tasks import run_manual_daily_summary
+        try:
+            from .utils.scheduled_tasks import run_manual_daily_summary
+        except ImportError:
+            try:
+                from utils.scheduled_tasks import run_manual_daily_summary
+            except ImportError:
+                try:
+                    from Backend.utils.scheduled_tasks import run_manual_daily_summary
+                except ImportError:
+                    flash('Error: Could not import daily summary function', 'error')
+                    log_admin_action('MANUAL_DAILY_SUMMARY_IMPORT_ERROR')
+                    return redirect(url_for('admin.notifications'))
         
         if run_manual_daily_summary():
             flash('Daily summary sent successfully!', 'success')
@@ -784,7 +832,10 @@ def send_daily_summary_manual():
 def send_weekly_report_manual():
     """Manually send weekly report"""
     try:
-        from utils.scheduled_tasks import run_manual_weekly_report
+        try:
+            from .utils.scheduled_tasks import run_manual_weekly_report
+        except ImportError:
+            from utils.scheduled_tasks import run_manual_weekly_report
         
         if run_manual_weekly_report():
             flash('Weekly report sent successfully!', 'success')

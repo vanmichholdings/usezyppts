@@ -111,7 +111,7 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'Zyppts HQ <zyppts@gmail.com>')
     
     # Admin email configuration
-    ADMIN_ALERT_EMAIL = os.environ.get('ADMIN_ALERT_EMAIL', os.environ.get('MAIL_USERNAME'))
+    ADMIN_ALERT_EMAIL = os.environ.get('ADMIN_ALERT_EMAIL', 'mike@usezyppts.com,zyppts@gmail.com')
     SITE_URL = os.environ.get('SITE_URL', 'https://usezyppts.com')
     
     # File upload configuration for production
@@ -322,7 +322,7 @@ class Config:
         },
         'pro': {
             'price': 9.99,
-            'monthly_credits': 100,  # 100 logo credits per month
+            'monthly_credits': -1,  # Unlimited uploads for basic + effects
             'stripe_price_id': 'price_1RnCQDI1902kkwjouP5vvijE',
             'stripe_annual_price_id': 'price_1Rr9JxI1902kkwjoIOBPETYv',  # Pro Annual
             'features': [
@@ -335,7 +335,7 @@ class Config:
         },
         'studio': {
             'price': 29.99,
-            'monthly_credits': 500,  # 500 logo credits per month
+            'monthly_credits': -1,  # Unlimited, with social + batch
             'stripe_price_id': 'price_1RnCRWI1902kkwjoq18LY3eB',
             'stripe_annual_price_id': 'price_1Rr9MII1902kkwjomfiuG44B',  # Studio Annual
             'features': [

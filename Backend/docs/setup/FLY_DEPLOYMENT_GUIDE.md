@@ -37,7 +37,7 @@ flyctl secrets set MAIL_PASSWORD="your-app-password"
 flyctl secrets set STRIPE_SECRET_KEY="your-stripe-secret"
 flyctl secrets set STRIPE_PUBLISHABLE_KEY="your-stripe-publishable"
 flyctl secrets set STRIPE_WEBHOOK_SECRET="your-webhook-secret"
-flyctl secrets set ADMIN_ALERT_EMAIL="zyppts@gmail.com"
+flyctl secrets set ADMIN_ALERT_EMAIL="mike@usezyppts.com,zyppts@gmail.com"
 ```
 
 ### 3. Set up Database

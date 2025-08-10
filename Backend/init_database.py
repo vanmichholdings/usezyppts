@@ -31,37 +31,6 @@ def init_database():
             db.create_all()
             print("✓ Database tables created")
             
-            # Check if admin user exists
-            admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
-                # Create admin user
-                admin_user = User(
-                    username='admin',
-                    email='admin@usezyppts.com',
-                    is_admin=True,
-                    is_active=True,
-                    is_beta=True,
-                    created_at=datetime.utcnow()
-                )
-                admin_user.set_password('zyppts2024!')  # You should change this
-                
-                # Create admin subscription
-                admin_subscription = Subscription(
-                    user=admin_user,
-                    plan='enterprise',
-                    status='active',
-                    monthly_credits=-1,  # Unlimited
-                    start_date=datetime.utcnow(),
-                    billing_cycle='annual'
-                )
-                
-                db.session.add(admin_user)
-                db.session.add(admin_subscription)
-                db.session.commit()
-                print("✓ Admin user created (username: admin, password: zyppts2024!)")
-            else:
-                print("✓ Admin user already exists")
-            
             # Check if mike user exists (your original user)
             mike_user = User.query.filter_by(email='mike@usezyppts.com').first()
             if not mike_user:
@@ -110,9 +79,6 @@ def init_database():
                 print("✓ Mike user settings updated")
             
             print("\n✅ Database initialization completed successfully!")
-            print("\nAdmin login credentials:")
-            print("  Username: admin")
-            print("  Password: zyppts2024!")
             print("\nMike login credentials:")
             print("  Username: mike")
             print("  Email: mike@usezyppts.com")

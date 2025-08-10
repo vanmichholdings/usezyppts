@@ -413,18 +413,21 @@ def logo_processor():
         return jsonify({'error': 'Active subscription required'}), 403
         
     if not current_user.can_generate_files():
-        # Check if user has early access but ran out of credits
-        if current_user.has_early_access():
-            update_progress(session_id, 'error', 0, 'You have used all your free credits. Please upgrade to continue using pro features.')
-            return jsonify({
-                'error': 'No credits remaining',
-                'early_access_expired': True,
-                'upgrade_message': 'You have used all your free credits. Please upgrade to continue using pro features.',
-                'upgrade_url': url_for('main.subscription_plans')
-            }), 403
-        else:
-            update_progress(session_id, 'error', 0, 'No credits remaining')
-            return jsonify({'error': 'No credits remaining'}), 403
+        # AJAX callers receive JSON (current behavior for the processor UI)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            if current_user.has_early_access():
+                update_progress(session_id, 'error', 0, 'You have used all your free credits. Please upgrade to continue using pro features.')
+                return jsonify({
+                    'error': 'No credits remaining',
+                    'early_access_expired': True,
+                    'upgrade_message': 'You have used all your free credits. Please upgrade to continue using pro features.',
+                    'upgrade_url': url_for('main.subscription_plans')
+                }), 403
+            else:
+                update_progress(session_id, 'error', 0, 'No credits remaining')
+                return jsonify({'error': 'No credits remaining', 'upgrade_url': url_for('main.subscription_plans')}), 403
+        # Non-AJAX form post: show persuasive landing page
+        return redirect(url_for('main.paywall_no_credits'))
     
     dirs = None
     file_path = None
@@ -667,6 +670,36 @@ def logo_processor():
                 logger.info(f"❌ Not selected: {form_field} -> {internal_name}")
         
         options['social_formats'] = social_formats
+        
+        # Enforce plan permissions and credit policy
+        plan = current_user.subscription.plan if current_user.subscription else 'free'
+        is_unlimited = current_user.subscription and current_user.subscription.monthly_credits == -1
+        
+        # Free: basic only; no effects/social; 3 credits/month enforced
+        if plan == 'free':
+            for k in ['vector_trace','color_separations','distressed_effect','contour_cut','halftone']:
+                options[k] = False
+            options['social_formats'] = {k: False for k in options['social_formats'].keys()}
+        
+        # Pro: basic + effects; no social; no batch
+        if plan == 'pro':
+            options['social_formats'] = {k: False for k in options['social_formats'].keys()}
+            has_batch_processing = False
+        
+        # Enterprise is a custom offer restricted to admin for now
+        if plan == 'enterprise' and current_user.email != 'mike@usezyppts.com':
+            update_progress(session_id, 'error', 0, 'Enterprise plan is a custom offer. Please contact us to enable.')
+            return jsonify({'error': 'Enterprise plan is a custom offer. Please contact us.', 'contact_url': url_for('main.contact')}), 403
+        
+        # Determine credits needed (1 per file) for non-unlimited plans
+        credits_needed = 0 if is_unlimited else total_files
+        if credits_needed > 0 and not current_user.subscription.use_credits(credits_needed):
+            update_progress(session_id, 'error', 0, 'No credits remaining. Please upgrade or wait until reset.')
+            return jsonify({'error': 'No credits remaining', 'upgrade_url': url_for('main.subscription_plans')}), 403
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         
         # Log the final options
         logger.info(f"📋 Final processing options: {options}")
@@ -1305,7 +1338,10 @@ def register():
             # Handle promo code if provided
             if promo_code:
                 try:
-                    from utils.promo_codes import apply_promo_code, validate_promo_code
+                    try:
+                        from .utils.promo_codes import apply_promo_code, validate_promo_code
+                    except ImportError:
+                        from utils.promo_codes import apply_promo_code, validate_promo_code
                     
                     # Validate the promo code
                     promo_details = validate_promo_code(promo_code)
@@ -1337,11 +1373,14 @@ def register():
             
             # Send email notifications
             try:
-                from utils.email_notifications import send_new_account_notification
+                try:
+                    from .utils.email_notifications import send_new_account_notification
+                except ImportError:
+                    from utils.email_notifications import send_new_account_notification
                 send_new_account_notification(user)
             except Exception as e:
                 logger.error(f"Failed to send email notification: {e}")
-                # Don't fail registration if email fails
+            # Don't fail registration if email fails
             
             login_user(user)
             
@@ -1387,7 +1426,15 @@ def preview_variation():
         if variation_type == 'transparent':
             result = img
         elif variation_type == 'black':
-            result = ImageOps.grayscale(img).point(lambda x: 0 if x < 128 else 255, '1').convert("RGBA")
+            # Convert to grayscale
+            grayscale_img = ImageOps.grayscale(img)
+            # Increase contrast to enhance tones and tints
+            contrast_enhancer = ImageEnhance.Contrast(grayscale_img)
+            contrast_img = contrast_enhancer.enhance(1.5)
+            # Create white background and composite
+            white_bg = Image.new('RGB', img.size, (255, 255, 255))
+            contrast_rgba = contrast_img.convert('RGBA')
+            result = Image.alpha_composite(white_bg.convert('RGBA'), contrast_rgba).convert('RGBA')
         elif variation_type == 'white':
             result = ImageOps.grayscale(img).point(lambda x: 255 if x < 128 else 0, '1').convert("RGBA")
         elif variation_type.startswith('color_'):
@@ -1541,7 +1588,10 @@ def account():
     promo_status = None
     if current_user.promo_code_applied:
         try:
-            from utils.promo_codes import get_user_promo_code_status
+            try:
+                from .utils.promo_codes import get_user_promo_code_status
+            except ImportError:
+                from utils.promo_codes import get_user_promo_code_status
             promo_status = get_user_promo_code_status(current_user)
         except Exception as e:
             logger.error(f"Error getting promo code status: {e}")
@@ -2139,15 +2189,21 @@ def stripe_webhook():
                 logger.info(f"Subscription activated for user {user_id}: {plan} ({billing})")
                 
                 # Send payment confirmation email
-                from utils.email_notifications import send_payment_confirmation
-                amount = session_obj.get('amount_total', 0) / 100  # Convert from cents
-                send_payment_confirmation(
-                    user=user,
-                    subscription=user.subscription,
-                    amount=amount,
-                    transaction_id=session_obj.get('id'),
-                    payment_date=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-                )
+                try:
+                    try:
+                        from .utils.email_notifications import send_payment_confirmation
+                    except ImportError:
+                        from utils.email_notifications import send_payment_confirmation
+                    amount = session_obj.get('amount_total', 0) / 100  # Convert from cents
+                    send_payment_confirmation(
+                        user=user,
+                        subscription=user.subscription,
+                        amount=amount,
+                        transaction_id=session_obj.get('id'),
+                        payment_date=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                    )
+                except Exception as e:
+                    logger.error(f"Error sending payment confirmation: {e}")
                 
             except Exception as e:
                 logger.error(f"Error activating subscription: {e}")
@@ -2166,7 +2222,10 @@ def stripe_webhook():
         if subscription and subscription.user:
             try:
                 # Send payment confirmation email
-                from utils.email_notifications import send_payment_confirmation
+                try:
+                    from .utils.email_notifications import send_payment_confirmation
+                except ImportError:
+                    from utils.email_notifications import send_payment_confirmation
                 amount = invoice_obj.get('amount_paid', 0) / 100  # Convert from cents
                 send_payment_confirmation(
                     user=subscription.user,
@@ -2190,7 +2249,10 @@ def stripe_webhook():
         if subscription and subscription.user:
             try:
                 # Send payment failed email
-                from utils.email_notifications import send_payment_failed
+                try:
+                    from .utils.email_notifications import send_payment_failed
+                except ImportError:
+                    from utils.email_notifications import send_payment_failed
                 amount = invoice_obj.get('amount_due', 0) / 100  # Convert from cents
                 error_message = invoice_obj.get('last_payment_error', {}).get('message', 'Payment failed')
                 send_payment_failed(
@@ -2240,7 +2302,10 @@ def stripe_webhook():
                 db.session.commit()
                 
                 # Send cancellation email
-                from utils.email_notifications import send_account_cancellation
+                try:
+                    from .utils.email_notifications import send_account_cancellation
+                except ImportError:
+                    from utils.email_notifications import send_account_cancellation
                 access_until_date = (datetime.utcnow() + timedelta(days=30)).strftime('%Y-%m-%d')
                 send_account_cancellation(
                     user=subscription.user,
@@ -2266,7 +2331,10 @@ def forbidden(e):
 def get_celery_stats():
     """Get Celery worker performance statistics"""
     try:
-        from utils.celery_worker import celery_app, monitor_performance
+        try:
+            from .utils.celery_worker import celery_app, monitor_performance
+        except ImportError:
+            from utils.celery_worker import celery_app, monitor_performance
         
         # Get performance metrics
         stats = monitor_performance.delay()
@@ -2333,3 +2401,35 @@ def utility_processor():
     return {
         'now': datetime.utcnow()
     }
+
+@bp.route('/paywall/no-credits')
+@login_required
+def paywall_no_credits():
+    sub = current_user.subscription
+    used = sub.used_credits if sub else 0
+    total = sub.monthly_credits if sub else 0
+    # Compute next reset from start_date monthly cycle
+    next_reset = None
+    if sub and sub.start_date:
+        try:
+            billing_day = sub.start_date.day
+            today = datetime.utcnow()
+            next_reset = today.replace(day=billing_day)
+            if next_reset <= today:
+                if next_reset.month == 12:
+                    next_reset = next_reset.replace(year=next_reset.year + 1, month=1)
+                else:
+                    next_reset = next_reset.replace(month=next_reset.month + 1)
+        except Exception:
+            next_reset = None
+    return render_template('paywall_no_credits.html', used_credits=used, total_credits=total, next_reset=next_reset, now=datetime.now())
+
+@bp.route('/processing')
+@login_required
+def processing_page():
+    return render_template('processing.html', now=datetime.now())
+
+@bp.route('/download/complete')
+@login_required
+def download_complete_page():
+    return render_template('download_complete.html', now=datetime.now())

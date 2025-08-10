@@ -23,7 +23,7 @@ def create_admin_user():
         
         with app.app_context():
             # Check if admin user already exists
-            admin_email = "admin@zyppts.com"
+            admin_email = "mike@usezyppts.com"
             existing_admin = User.query.filter_by(email=admin_email).first()
             
             if existing_admin:
@@ -34,7 +34,7 @@ def create_admin_user():
             
             # Create new admin user
             admin_user = User(
-                username="admin",
+                username="mike",
                 email=admin_email,
                 is_admin=True,
                 is_active=True,
@@ -48,7 +48,7 @@ def create_admin_user():
             
             print("✅ Admin user created successfully!")
             print(f"   Email: {admin_email}")
-            print(f"   Username: admin")
+            print(f"   Username: mike")
             print(f"   Password: admin123")
             print("\n⚠️  IMPORTANT: Change the password in production!")
             
@@ -80,5 +80,5 @@ if __name__ == "__main__":
     create_admin_user()
     print("\n🎯 Next Steps:")
     print("   1. Start the Flask application: python run.py")
-    print("   2. Log in with admin@zyppts.com / admin123")
+    print("   2. Log in with mike@usezyppts.com / admin123")
     print("   3. Visit: http://localhost:5003/admin/analytics") 

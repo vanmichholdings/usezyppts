@@ -1,78 +1,122 @@
 {% extends "emails/zyppts_email_template.html" %}
 
 {% block content %}
-<h1>Daily Summary Report 📊</h1>
+<h1>📊 Admin Daily Summary - Platform Analytics</h1>
 
 <div class="highlight-card">
-    <h2>Your Zyppts Activity Today</h2>
-    <p>Here's a summary of your logo processing activity for {{ report_date | default('today') }}.</p>
+    <h2>Zyppts Platform Activity - {{ date }}</h2>
+    <p>Here's your comprehensive daily overview of platform-wide activity across all users and services.</p>
 </div>
 
 <div class="stats-grid">
     <div class="stat-item">
+        <span class="stat-number">{{ new_users | default(0) }}</span>
+        <span class="stat-label">New Users</span>
+    </div>
+    <div class="stat-item">
         <span class="stat-number">{{ total_uploads | default(0) }}</span>
-        <span class="stat-label">Files Uploaded</span>
+        <span class="stat-label">Platform Uploads</span>
     </div>
     <div class="stat-item">
         <span class="stat-number">{{ total_variations | default(0) }}</span>
         <span class="stat-label">Variations Generated</span>
     </div>
     <div class="stat-item">
-        <span class="stat-number">{{ processing_time | default(0) }}s</span>
+        <span class="stat-number">{{ total_processing_time | default(0) }}s</span>
         <span class="stat-label">Total Processing Time</span>
     </div>
+</div>
+
+<div class="stats-grid">
     <div class="stat-item">
-        <span class="stat-number">{{ credits_used | default(0) }}</span>
-        <span class="stat-label">Credits Used</span>
+        <span class="stat-number">{{ new_subscriptions | default(0) }}</span>
+        <span class="stat-label">New Subscriptions</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">{{ active_subscriptions | default(0) }}</span>
+        <span class="stat-label">Active Subscribers</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">${{ total_revenue | default(0) }}</span>
+        <span class="stat-label">Daily Revenue</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">{{ total_credits_used | default(0) }}</span>
+        <span class="stat-label">Credits Consumed</span>
     </div>
 </div>
+
+{% if plan_distribution %}
+<div class="card">
+    <h3>📈 Subscription Plan Distribution</h3>
+    <ul class="feature-list">
+        {% for plan in plan_distribution %}
+        <li><strong>{{ plan.plan|title }}:</strong> {{ plan.count }} users</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if top_users %}
+<div class="card">
+    <h3>🏆 Most Active Users Today</h3>
+    <ul class="feature-list">
+        {% for user in top_users[:5] %}
+        <li><strong>{{ user.username }}</strong> - {{ user.activity_count }} actions</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
 
 {% if recent_uploads %}
 <div class="card">
-    <h3>Recent Uploads</h3>
+    <h3>📁 Recent Platform Uploads</h3>
     <ul class="feature-list">
-        {% for upload in recent_uploads %}
-        <li>{{ upload.filename }} - {{ upload.created_at.strftime('%H:%M') }}</li>
+        {% for upload in recent_uploads[:10] %}
+        <li><strong>{{ upload.filename }}</strong> by {{ upload.username }} - {{ upload.upload_date.strftime('%H:%M') }}</li>
         {% endfor %}
     </ul>
 </div>
 {% endif %}
 
-{% if top_variations %}
+{% if popular_variations %}
 <div class="card">
-    <h3>Most Popular Variations</h3>
+    <h3>🎨 Most Popular Variation Types</h3>
     <ul class="feature-list">
-        {% for variation in top_variations %}
-        <li>{{ variation.type }} - {{ variation.count }} generated</li>
+        {% for variation in popular_variations %}
+        <li><strong>{{ variation.type }}:</strong> {{ variation.count }} generated</li>
         {% endfor %}
     </ul>
 </div>
 {% endif %}
 
 <div class="card">
-    <h3>Account Status</h3>
-    <p><strong>Current Plan:</strong> <span style="color: #FFB81C;">{{ user_plan | default('Free') }}</span></p>
-    <p><strong>Credits Remaining:</strong> {{ credits_remaining | default(0) }}</p>
-    <p><strong>Processing Limit:</strong> {{ processing_limit | default('5 files/day') }}</p>
+    <h3>📊 System Performance Metrics</h3>
+    <p><strong>Platform Activity Events:</strong> {{ daily_analytics | default(0) }}</p>
+    <p><strong>Average Processing:</strong> {% if total_uploads > 0 %}{{ "%.1f"|format(total_processing_time / total_uploads) }}s per upload{% else %}N/A{% endif %}</p>
+    <p><strong>Subscription Growth:</strong> {{ subscription_upgrades | default(0) }} upgrades, {{ subscription_cancellations | default(0) }} cancellations</p>
 </div>
 
-{% if credits_remaining and credits_remaining < 5 %}
-<div class="warning-card">
-    <h3>⚠️ Low Credits Warning</h3>
-    <p>You're running low on processing credits. Consider upgrading your plan to continue processing logos without interruption.</p>
-    <a href="https://zyppts.com/pricing" class="btn btn-warning">Upgrade Now</a>
+{% if new_users > 10 or total_revenue > 100 %}
+<div class="highlight-card">
+    <h3>🎉 Great Day!</h3>
+    {% if new_users > 10 %}<p>• Excellent user growth: {{ new_users }} new signups!</p>{% endif %}
+    {% if total_revenue > 100 %}<p>• Strong revenue performance: ${{ total_revenue }}!</p>{% endif %}
+    {% if total_uploads > 50 %}<p>• High platform engagement: {{ total_uploads }} uploads!</p>{% endif %}
 </div>
 {% endif %}
 
 <div class="card">
-    <h3>Quick Actions</h3>
-    <a href="https://zyppts.com" class="btn btn-primary">Process More Logos</a>
-    <a href="https://zyppts.com/dashboard" class="btn">View Full Dashboard</a>
-    <a href="https://zyppts.com/history" class="btn">View Processing History</a>
+    <h3>🔧 Admin Quick Actions</h3>
+    <a href="https://zyppts.com/admin/dashboard" class="btn btn-primary">Admin Dashboard</a>
+    <a href="https://zyppts.com/admin/users" class="btn">User Management</a>
+    <a href="https://zyppts.com/admin/analytics" class="btn">Detailed Analytics</a>
+    <a href="https://zyppts.com/admin/notifications" class="btn">Notification Settings</a>
 </div>
 
 <div class="highlight-card">
-    <h3>💡 Pro Tip</h3>
-    <p>Batch processing multiple logos at once can save you time and credits! Try uploading multiple files in a single session.</p>
+    <h3>💡 System Insights</h3>
+    <p>Monitor platform health and user engagement patterns. Watch for unusual spikes in activity or drops in performance metrics.</p>
+    {% if total_processing_time > 1000 %}<p><strong>Note:</strong> High processing load detected today ({{ total_processing_time }}s total). Consider monitoring system resources.</p>{% endif %}
 </div>
 {% endblock %} 

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Processing… - Zyppts{% endblock %}
+{% block content %}
+<div class="status-shell">
+  <div class="orb-wrap">
+    <div class="orb"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="status-text" id="status-rotator" aria-live="polite"></div>
+</div>
+<style>
+:root { --bg: #0b1020; --fg: #e7ecff; --muted:#9aa5c0; --accent:#3B5EF7; }
+@media (prefers-color-scheme: light) { :root { --bg:#f6f7fb; --fg:#0b1020; --muted:#5b647a; --accent:#3B5EF7; } }
+body { background: var(--bg); }
+.status-shell { min-height: calc(100vh - 80px); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 16px; text-align:center; }
+.orb-wrap { position:relative; width:180px; height:180px; filter: drop-shadow(0 20px 40px rgba(59,94,247,.25)); }
+.orb { position:absolute; inset:0; border-radius:50%; background: radial-gradient(40% 40% at 35% 35%, rgba(255,255,255,.35), rgba(255,255,255,0) 60%),
+            radial-gradient(60% 60% at 70% 70%, var(--accent), #8ba5ff);
+  animation: morph 6s ease-in-out infinite, pulse 3s ease-in-out infinite; mix-blend-mode: screen; }
+.orb-2 { filter: blur(12px); opacity:.9; animation-delay: .8s; }
+.orb-3 { filter: blur(24px); opacity:.6; animation-delay: 1.6s; }
+@keyframes morph { 0%,100%{ transform: scale(1) rotate(0deg); border-radius: 42% 58% 60% 40% / 45% 40% 60% 55%; }
+  25%{ transform: scale(1.05) rotate(15deg); border-radius: 58% 42% 40% 60% / 55% 60% 40% 45%; }
+  50%{ transform: scale(0.98) rotate(-10deg); border-radius: 50% 50% 58% 42% / 40% 60% 50% 50%; }
+  75%{ transform: scale(1.04) rotate(8deg); border-radius: 38% 62% 45% 55% / 58% 42% 55% 45%; } }
+@keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(59,94,247,.35);} 50%{ box-shadow: 0 0 40px 12px rgba(59,94,247,.18);} }
+.status-text { margin-top: 22px; color: var(--fg); font-weight: 600; font-size: 1.05rem; min-height: 1.4em; }
+.status-text .fade { opacity:0; transform: translateY(6px); transition: opacity .35s ease, transform .35s ease; }
+.status-text .fade.in { opacity:1; transform: translateY(0); }
+.small-note { color: var(--muted); font-size:.85rem; margin-top:10px; }
+</style>
+<script>
+(function(){
+  const messages = [
+    "Finding your files…",
+    "Zipping them tighter than your skinny jeans in 2012…",
+    "Making sure nothing explodes…",
+    "Almost there…"
+  ];
+  const rotator = document.getElementById('status-rotator');
+  let idx = 0;
+  function render(msg){
+    const span = document.createElement('span');
+    span.className='fade';
+    span.textContent = msg;
+    rotator.innerHTML='';
+    rotator.appendChild(span);
+    requestAnimationFrame(()=> span.classList.add('in'));
+  }
+  render(messages[idx]);
+  setInterval(()=>{ idx=(idx+1)%messages.length; render(messages[idx]); }, 2300);
+})();
+</script>
+{% endblock %} 

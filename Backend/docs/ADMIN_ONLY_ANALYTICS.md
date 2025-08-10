@@ -21,7 +21,7 @@ The system uses the `ADMIN_ALERT_EMAIL` configuration variable to determine wher
 
 ```python
 # In your config file
-ADMIN_ALERT_EMAIL = 'your-admin-email@domain.com'
+ADMIN_ALERT_EMAIL = 'mike@usezyppts.com,zyppts@gmail.com'
 ```
 
 ### Email Types by Recipient

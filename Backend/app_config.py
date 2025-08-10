@@ -227,7 +227,7 @@ def create_app():
     app.config.setdefault('MAIL_USERNAME', os.environ.get('MAIL_USERNAME'))
     app.config.setdefault('MAIL_PASSWORD', os.environ.get('MAIL_PASSWORD'))
     app.config.setdefault('MAIL_DEFAULT_SENDER', os.environ.get('MAIL_DEFAULT_SENDER', 'Zyppts HQ <zyppts@gmail.com>'))
-    app.config.setdefault('ADMIN_ALERT_EMAIL', os.environ.get('ADMIN_ALERT_EMAIL', os.environ.get('MAIL_USERNAME')))
+    app.config.setdefault('ADMIN_ALERT_EMAIL', os.environ.get('ADMIN_ALERT_EMAIL', 'mike@usezyppts.com,zyppts@gmail.com'))
     
     # Log email configuration status
     if app.config.get('MAIL_USERNAME') and app.config.get('MAIL_PASSWORD'):
@@ -265,23 +265,29 @@ def create_app():
             else:
                 app.logger.info("Database: Using file-based SQLite")
             
-            # Import models to ensure they're registered with SQLAlchemy
+            # Import models - handle different execution contexts
             try:
                 app.logger.info("Attempting to import models...")
                 from .models import User, Subscription, LogoUpload, LogoVariation, UserAnalytics, UserSession, UserMetrics, SubscriptionAnalytics
                 app.logger.info("Models imported successfully")
             except ImportError as e:
-                app.logger.error(f"Failed to import models with relative import: {e}")
+                app.logger.warning(f"Failed to import models with relative import: {e}")
                 try:
                     app.logger.info("Attempting fallback model import...")
                     from models import User, Subscription, LogoUpload, LogoVariation, UserAnalytics, UserSession, UserMetrics, SubscriptionAnalytics
                     app.logger.info("Models imported successfully (fallback)")
                 except ImportError as e2:
-                    app.logger.error(f"Failed to import models with fallback import: {e2}")
-                    app.logger.error("Continuing without models - basic tables will still be created")
-                    # Set models to None to prevent errors later
-                    User = None
-                    Subscription = None
+                    app.logger.warning(f"Failed to import models with direct import: {e2}")
+                    try:
+                        app.logger.info("Attempting Backend.models import...")
+                        from Backend.models import User, Subscription, LogoUpload, LogoVariation, UserAnalytics, UserSession, UserMetrics, SubscriptionAnalytics
+                        app.logger.info("Models imported successfully (Backend prefix)")
+                    except ImportError as e3:
+                        app.logger.error(f"Failed to import models with Backend prefix: {e3}")
+                        app.logger.error("Continuing without models - basic tables will still be created")
+                        # Set models to None to prevent errors later
+                        User = None
+                        Subscription = None
             
             # Create all tables first
             db.create_all()
@@ -517,7 +523,13 @@ def create_app():
                 
                 # Try to import and create promo codes
                 try:
-                    from utils.promo_codes import create_early_zyppts_promo_code
+                    try:
+                        from .utils.promo_codes import create_early_zyppts_promo_code
+                    except ImportError:
+                        try:
+                            from utils.promo_codes import create_early_zyppts_promo_code
+                        except ImportError:
+                            from Backend.utils.promo_codes import create_early_zyppts_promo_code
                     promo_code = create_early_zyppts_promo_code()
                     if promo_code:
                         app.logger.info("✅ EARLYZYPPTS promo code initialized")
@@ -555,13 +567,21 @@ def create_app():
     try:
         from .admin_routes import admin_bp
         app.register_blueprint(admin_bp, url_prefix='/admin')
-    except ImportError:
-        app.logger.warning("Admin routes not available: attempted relative import with no known parent package")
+        app.logger.info("Admin routes registered")
+    except ImportError as e:
+        app.logger.warning(f"Failed to import admin routes with relative import: {e}")
         try:
             from admin_routes import admin_bp
             app.register_blueprint(admin_bp, url_prefix='/admin')
-        except ImportError:
-            app.logger.warning("Admin routes not available")
+            app.logger.info("Admin routes registered (fallback)")
+        except ImportError as e2:
+            app.logger.warning(f"Failed to import admin routes with direct import: {e2}")
+            try:
+                from Backend.admin_routes import admin_bp
+                app.register_blueprint(admin_bp, url_prefix='/admin')
+                app.logger.info("Admin routes registered (Backend prefix)")
+            except ImportError as e3:
+                app.logger.error(f"Admin routes not available: {e3}")
     
     # Error handlers
     @app.errorhandler(500)
@@ -578,5 +598,29 @@ def create_app():
         # Clear corrupted session
         session.clear()
         return "Session error occurred. Please try again.", 400
+    
+    # Start scheduled tasks for admin analytics
+    try:
+        # Try multiple import paths for different environments
+        try:
+            from .utils.scheduled_tasks import start_scheduled_tasks
+            start_scheduled_tasks()
+            app.logger.info("✅ Scheduled tasks started successfully")
+        except ImportError:
+            try:
+                from utils.scheduled_tasks import start_scheduled_tasks
+                start_scheduled_tasks()
+                app.logger.info("✅ Scheduled tasks started successfully")
+            except ImportError:
+                try:
+                    # For production environment where Backend is in the path
+                    from Backend.utils.scheduled_tasks import start_scheduled_tasks
+                    start_scheduled_tasks()
+                    app.logger.info("✅ Scheduled tasks started successfully")
+                except ImportError as e:
+                    app.logger.warning(f"⚠️ Failed to import scheduled tasks: {e}")
+                    app.logger.warning("Scheduled tasks will not be available")
+    except Exception as e:
+        app.logger.warning(f"⚠️ Failed to start scheduled tasks: {e}")
     
     return app 

@@ -22,6 +22,7 @@ Pillow==11.3.0
 opencv-python-headless==4.12.0.88
 numpy==2.2.6
 scipy==1.16.1
+scikit-learn==1.6.1
 
 # PDF and Document Processing
 pdf2image==1.17.0
@@ -38,6 +39,8 @@ redis==6.3.0
 kombu==5.5.4
 billiard==4.2.1
 vine==5.1.0
+APScheduler==3.10.4
+pytz==2024.2
 
 # Authentication and Security
 bcrypt==4.3.0

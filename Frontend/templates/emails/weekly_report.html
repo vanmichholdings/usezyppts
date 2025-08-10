@@ -1,17 +1,21 @@
 {% extends "emails/zyppts_email_template.html" %}
 
 {% block content %}
-<h1>Weekly Report 📈</h1>
+<h1>📈 Admin Weekly Report - Platform Analytics</h1>
 
 <div class="highlight-card">
-    <h2>Your Zyppts Activity This Week</h2>
-    <p>Here's a comprehensive summary of your logo processing activity for the week of {{ week_start | default('this week') }}.</p>
+    <h2>Zyppts Platform Performance</h2>
+    <p>Your comprehensive weekly overview for {{ start_date }} - {{ end_date }}. Track growth, engagement, and system performance across all platform users.</p>
 </div>
 
 <div class="stats-grid">
     <div class="stat-item">
+        <span class="stat-number">{{ new_users | default(0) }}</span>
+        <span class="stat-label">New Users</span>
+    </div>
+    <div class="stat-item">
         <span class="stat-number">{{ total_uploads | default(0) }}</span>
-        <span class="stat-label">Files Uploaded</span>
+        <span class="stat-label">Platform Uploads</span>
     </div>
     <div class="stat-item">
         <span class="stat-number">{{ total_variations | default(0) }}</span>
@@ -19,20 +23,57 @@
     </div>
     <div class="stat-item">
         <span class="stat-number">{{ total_processing_time | default(0) }}s</span>
-        <span class="stat-label">Processing Time</span>
+        <span class="stat-label">Total Processing Time</span>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-item">
+        <span class="stat-number">{{ new_subscriptions | default(0) }}</span>
+        <span class="stat-label">New Subscriptions</span>
     </div>
     <div class="stat-item">
-        <span class="stat-number">{{ credits_used | default(0) }}</span>
-        <span class="stat-label">Credits Used</span>
+        <span class="stat-number">{{ active_subscriptions | default(0) }}</span>
+        <span class="stat-label">Active Subscribers</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">${{ weekly_revenue | default(0) }}</span>
+        <span class="stat-label">Weekly Revenue</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">{{ total_credits_used | default(0) }}</span>
+        <span class="stat-label">Credits Consumed</span>
     </div>
 </div>
 
 {% if daily_breakdown %}
 <div class="card">
-    <h3>Daily Activity Breakdown</h3>
+    <h3>📊 Daily Activity Breakdown</h3>
     <ul class="feature-list">
         {% for day in daily_breakdown %}
-        <li>{{ day.date }}: {{ day.uploads }} uploads, {{ day.variations }} variations</li>
+        <li><strong>{{ day.date }}:</strong> {{ day.uploads }} uploads, {{ day.variations }} variations generated</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if user_growth %}
+<div class="card">
+    <h3>📈 User Growth Trend</h3>
+    <ul class="feature-list">
+        {% for day in user_growth %}
+        <li><strong>{{ day.date }}:</strong> {{ day.count }} new users</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if top_users %}
+<div class="card">
+    <h3>🏆 Most Active Users This Week</h3>
+    <ul class="feature-list">
+        {% for user in top_users[:10] %}
+        <li><strong>{{ user.username }}</strong> - {{ user.activity_count }} actions</li>
         {% endfor %}
     </ul>
 </div>
@@ -40,59 +81,69 @@
 
 {% if popular_variations %}
 <div class="card">
-    <h3>Most Popular Variations This Week</h3>
+    <h3>🎨 Most Popular Variation Types</h3>
     <ul class="feature-list">
         {% for variation in popular_variations %}
-        <li>{{ variation.type }} - {{ variation.count }} generated</li>
+        <li><strong>{{ variation.type }}:</strong> {{ variation.count }} generated this week</li>
         {% endfor %}
     </ul>
 </div>
 {% endif %}
 
 <div class="card">
-    <h3>Account Summary</h3>
-    <p><strong>Current Plan:</strong> <span style="color: #FFB81C;">{{ user_plan | default('Free') }}</span></p>
-    <p><strong>Credits Remaining:</strong> {{ credits_remaining | default(0) }}</p>
-    <p><strong>Weekly Usage:</strong> {{ weekly_usage_percentage | default(0) }}% of your limit</p>
-    <p><strong>Processing Efficiency:</strong> {{ efficiency_score | default('Good') }}</p>
+    <h3>💼 Business Metrics</h3>
+    <p><strong>Subscription Growth:</strong> {{ subscription_upgrades | default(0) }} upgrades, {{ subscription_cancellations | default(0) }} cancellations</p>
+    <p><strong>Platform Activity Events:</strong> {{ weekly_analytics | default(0) }}</p>
+    <p><strong>Average Processing Time:</strong> {{ avg_processing_time | default(0) }}s per upload</p>
+    <p><strong>System Efficiency Score:</strong> <span style="color: #FFB81C;">{{ efficiency_score | default('Good') }}</span></p>
 </div>
 
-{% if weekly_usage_percentage and weekly_usage_percentage > 80 %}
+{% if weekly_revenue > 500 or new_users > 50 %}
+<div class="highlight-card">
+    <h3>🎉 Excellent Week!</h3>
+    {% if weekly_revenue > 500 %}<p>• Outstanding revenue: ${{ weekly_revenue }} this week!</p>{% endif %}
+    {% if new_users > 50 %}<p>• Strong user acquisition: {{ new_users }} new signups!</p>{% endif %}
+    {% if total_uploads > 200 %}<p>• High engagement: {{ total_uploads }} platform uploads!</p>{% endif %}
+</div>
+{% endif %}
+
+{% if subscription_cancellations > 5 or avg_processing_time > 60 %}
 <div class="warning-card">
-    <h3>⚠️ High Usage Alert</h3>
-    <p>You've used {{ weekly_usage_percentage }}% of your weekly processing limit. Consider upgrading your plan for unlimited processing.</p>
-    <a href="https://zyppts.com/pricing" class="btn btn-warning">Upgrade Plan</a>
+    <h3>⚠️ Areas for Attention</h3>
+    {% if subscription_cancellations > 5 %}<p>• Higher cancellation rate: {{ subscription_cancellations }} cancellations this week. Consider user feedback review.</p>{% endif %}
+    {% if avg_processing_time > 60 %}<p>• Processing performance: {{ avg_processing_time }}s average. Monitor system resources.</p>{% endif %}
 </div>
 {% endif %}
 
-{% if efficiency_tips %}
 <div class="card">
-    <h3>💡 Efficiency Tips</h3>
+    <h3>📊 System Health Insights</h3>
     <ul class="feature-list">
-        {% for tip in efficiency_tips %}
-        <li>{{ tip }}</li>
-        {% endfor %}
+        <li><strong>Peak Processing Day:</strong> {% if daily_breakdown %}{{ daily_breakdown | max(attribute='uploads') | attr('date') }}{% else %}N/A{% endif %}</li>
+        <li><strong>User Retention:</strong> Active users engaging across multiple days</li>
+        <li><strong>Load Distribution:</strong> Processing spread across {{ daily_breakdown | length if daily_breakdown else 7 }} days</li>
+        <li><strong>Growth Rate:</strong> {% if new_users > 0 %}{{ "%.1f"|format((new_users / 7)) }} new users per day{% else %}Stable{% endif %}</li>
     </ul>
 </div>
-{% endif %}
 
 <div class="card">
-    <h3>Quick Actions</h3>
-    <a href="https://zyppts.com" class="btn btn-primary">Process More Logos</a>
-    <a href="https://zyppts.com/dashboard" class="btn">View Full Dashboard</a>
-    <a href="https://zyppts.com/analytics" class="btn">Detailed Analytics</a>
+    <h3>🔧 Admin Quick Actions</h3>
+    <a href="https://zyppts.com/admin/dashboard" class="btn btn-primary">Admin Dashboard</a>
+    <a href="https://zyppts.com/admin/users" class="btn">User Management</a>
+    <a href="https://zyppts.com/admin/analytics" class="btn">Detailed Analytics</a>
+    <a href="https://zyppts.com/admin/system" class="btn">System Monitoring</a>
 </div>
 
 <div class="highlight-card">
-    <h3>🎯 Weekly Goal</h3>
-    <p>You're making great progress! Keep up the momentum and continue creating amazing logo variations.</p>
+    <h3>🎯 Weekly Performance Summary</h3>
+    <p>Platform shows {{ efficiency_score | lower }} performance with steady user engagement. Monitor subscription trends and processing efficiency for optimal growth.</p>
+    {% if new_subscriptions > new_users * 0.1 %}<p><strong>Conversion Rate:</strong> Excellent - {{ "%.1f"|format((new_subscriptions / new_users * 100) if new_users > 0 else 0) }}% of new users upgraded!</p>{% endif %}
 </div>
 
 <div class="card">
-    <h3>Need Help?</h3>
-    <p>Our support team is here to help you maximize your productivity with Zyppts.</p>
+    <h3>📞 Admin Support</h3>
+    <p>Need technical assistance or have questions about platform metrics?</p>
     
-    <a href="mailto:support@zyppts.com" class="btn">Contact Support</a>
-    <a href="https://zyppts.com/docs" class="btn">View Documentation</a>
+    <a href="mailto:admin@zyppts.com" class="btn">Contact Admin Support</a>
+    <a href="https://zyppts.com/admin/docs" class="btn">Admin Documentation</a>
 </div>
 {% endblock %} 

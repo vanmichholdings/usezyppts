@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}You're out of credits – Keep Zypping{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f7ff; margin: -40px -20px; padding: 20px;">
+  <div class="auth-box" style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 8px 28px rgba(27,20,100,0.12); width: 100%; max-width: 680px; text-align: center;">
+    <div style="margin-bottom: 12px;">
+      <span class="badge" style="background: linear-gradient(135deg, #3b5ef7 0%, #60a5fa 100%); color: #fff; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;">Upgrade to keep zypping</span>
+    </div>
+
+    <h1 style="color: var(--primary-color); font-size: 28px; margin: 8px 0 6px;">You're out of credits</h1>
+    <p class="auth-subtitle" style="color: var(--silver-gray); margin-bottom: 18px;">You've used {{ used_credits }} of {{ total_credits }} free credits this cycle.</p>
+
+    {% if next_reset %}
+    <div class="alert" style="background: #eef2ff; color: #1b1464; border: 1px solid #dbe2ff; border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;">
+      <i class="fas fa-clock me-2"></i>
+      Credits reset on <strong>{{ next_reset.strftime('%B %d, %Y') }}</strong>.
+    </div>
+    {% endif %}
+
+    <div style="text-align: left; margin: 20px 0 8px;">
+      <h3 style="font-size: 16px; color: #111827; margin-bottom: 10px;">Why upgrade?</h3>
+      <ul style="line-height: 1.65; color: #374151; padding-left: 18px;">
+        <li><strong>Pro</strong>: Unlimited uploads with Basic + Effects variations. Perfect for everyday production.</li>
+        <li><strong>Studio</strong>: Everything in Pro <em>plus</em> Social formats and Batch processing for speed.</li>
+        <li>Skip the wait—keep processing logos instantly and keep your projects moving.</li>
+      </ul>
+    </div>
+
+    <div class="hero-cta" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px;">
+      <a href="{{ url_for('main.subscription_plans') }}" class="btn-primary" style="background: linear-gradient(135deg, var(--primary-color), #3B5EF7); color: #fff; padding: 12px 18px; border-radius: 10px; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-up"></i>
+        Upgrade Now
+      </a>
+      <a href="{{ url_for('main.account') }}" class="btn-secondary" style="background: #eef2ff; color: #1b1464; padding: 12px 18px; border-radius: 10px; border: 1px solid #dbe2ff; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-user-cog"></i>
+        Manage Account
+      </a>
+      <a href="{{ url_for('main.contact') }}" class="btn-secondary" style="background: #f9fafb; color: #374151; padding: 12px 18px; border-radius: 10px; border: 1px solid #e5e7eb; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-handshake"></i>
+        Talk to Us
+      </a>
+    </div>
+
+    <div style="margin-top: 16px; color: #6b7280; font-size: 14px;">
+      Want unlimited "zypping"? <strong>Studio</strong> unlocks Social formats and Batch for serious speed.
+    </div>
+
+    <div style="margin-top: 28px;">
+      <img src="/static/images/locked_feature.svg" alt="Upgrade Illustration" style="max-width: 220px; opacity: 0.95;">
+    </div>
+
+    <div class="small" style="margin-top: 24px; color: #9ca3af;">
+      &copy; {{ now.year }} Zyppts. All rights reserved.
+    </div>
+  </div>
+</div>
+{% endblock %} 

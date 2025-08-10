@@ -23,8 +23,7 @@ def send_async_email(app, msg):
                 try:
                     from app_config import mail
                 except ImportError:
-                    logger.error("Could not import mail from app_config")
-                    return
+                    from Backend.app_config import mail
             
             mail.send(msg)
             logger.info(f"Email sent successfully: {msg.subject}")
@@ -41,8 +40,7 @@ def send_email(subject, recipients, template, **kwargs):
             try:
                 from app_config import mail
             except ImportError:
-                logger.error("Could not import mail from app_config")
-                return False
+                from Backend.app_config import mail
         
         msg = Message(
             subject=subject,
@@ -61,9 +59,20 @@ def send_email(subject, recipients, template, **kwargs):
         logger.error(f"Failed to send email notification: {e}")
         return False
 
+def get_admin_emails():
+    """Get list of admin email addresses from config"""
+    admin_email_config = current_app.config.get('ADMIN_ALERT_EMAIL', '')
+    if not admin_email_config:
+        return []
+    
+    # Split by comma and strip whitespace
+    emails = [email.strip() for email in admin_email_config.split(',') if email.strip()]
+    return emails
+
 def send_new_account_notification(user):
     """Send notification when new account is created"""
-    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+    admin_emails = get_admin_emails()
+    if not admin_emails:
         logger.warning("ADMIN_ALERT_EMAIL not configured, skipping notification")
         return False
     
@@ -80,7 +89,7 @@ def send_new_account_notification(user):
         # Send admin notification
         send_email(
             subject=f"🆕 New User Registration: {user.username}",
-            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
+            recipients=admin_emails,
             template='new_account_notification',
             user=user_info,
             timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -200,13 +209,14 @@ def send_account_cancellation(user, subscription, cancellation_date, access_unti
 
 def send_subscription_notification(user, subscription, action):
     """Send notification for subscription changes"""
-    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+    admin_emails = get_admin_emails()
+    if not admin_emails:
         return False
     
     try:
         send_email(
             subject=f"💳 Subscription {action.title()}: {user.username}",
-            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
+            recipients=admin_emails,
             template='subscription_notification',
             user=user,
             subscription=subscription,
@@ -220,13 +230,14 @@ def send_subscription_notification(user, subscription, action):
 
 def send_upload_notification(user, upload):
     """Send notification for new uploads"""
-    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+    admin_emails = get_admin_emails()
+    if not admin_emails:
         return False
     
     try:
         send_email(
             subject=f"📁 New Upload: {user.username}",
-            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
+            recipients=admin_emails,
             template='upload_notification',
             user=user,
             upload=upload,
@@ -239,13 +250,14 @@ def send_upload_notification(user, upload):
 
 def send_security_alert(alert_type, details):
     """Send security alert notifications"""
-    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+    admin_emails = get_admin_emails()
+    if not admin_emails:
         return False
     
     try:
         send_email(
             subject=f"🚨 Security Alert: {alert_type}",
-            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
+            recipients=admin_emails,
             template='security_alert',
             alert_type=alert_type,
             details=details,
@@ -258,7 +270,8 @@ def send_security_alert(alert_type, details):
 
 def send_daily_summary():
     """Send daily summary to admin"""
-    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+    admin_emails = get_admin_emails()
+    if not admin_emails:
         return False
     
     try:
@@ -295,7 +308,7 @@ def send_daily_summary():
         
         send_email(
             subject=f"📊 Daily Summary - {yesterday.strftime('%Y-%m-%d')}",
-            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
+            recipients=admin_emails,
             template='daily_summary',
             date=yesterday.strftime('%Y-%m-%d'),
             new_users=new_users,
@@ -311,7 +324,8 @@ def send_daily_summary():
 
 def send_weekly_report():
     """Send weekly report to admin"""
-    if not current_app.config.get('ADMIN_ALERT_EMAIL'):
+    admin_emails = get_admin_emails()
+    if not admin_emails:
         return False
     
     try:
@@ -355,7 +369,7 @@ def send_weekly_report():
         
         send_email(
             subject=f"📈 Weekly Report - {last_week.strftime('%Y-%m-%d')} to {datetime.utcnow().strftime('%Y-%m-%d')}",
-            recipients=[current_app.config['ADMIN_ALERT_EMAIL']],
+            recipients=admin_emails,
             template='weekly_report',
             start_date=last_week.strftime('%Y-%m-%d'),
             end_date=datetime.utcnow().strftime('%Y-%m-%d'),

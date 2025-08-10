@@ -119,6 +119,9 @@ class Subscription(db.Model):
     
     def has_credits(self):
         """Check if subscription has available credits"""
+        # -1 means unlimited credits
+        if self.monthly_credits == -1:
+            return True
         return self.monthly_credits > self.used_credits
     
     def get_next_billing_date(self):
@@ -149,6 +152,9 @@ class Subscription(db.Model):
     
     def use_credits(self, amount):
         """Use credits and return True if successful"""
+        # Unlimited plan does not deduct credits
+        if self.monthly_credits == -1:
+            return True
         if self.monthly_credits - self.used_credits >= amount:
             self.used_credits += amount
             return True

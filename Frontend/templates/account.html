@@ -72,7 +72,11 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Credits Used:</span>
+                        {% if current_user.subscription.monthly_credits == -1 %}
+                        <span class="info-value">Unlimited</span>
+                        {% else %}
                         <span class="info-value">{{ current_user.subscription.used_credits }}/{{ current_user.subscription.monthly_credits }}</span>
+                        {% endif %}
                     </div>
                     
                     {% if current_user.subscription.status == 'active' %}
