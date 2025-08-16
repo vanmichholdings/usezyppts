@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     --no-install-suggests \
     build-essential \
-    # OpenCV dependencies
-    libgl1-mesa-glx \
+    # OpenCV dependencies (updated package names for newer Debian)
+    libgl1-mesa-dev \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -31,14 +31,12 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    # SSL and networking
+    libgdk-pixbuf-2.0-0 \
+    # Additional dependencies
     libffi-dev \
     libssl3 \
-    # XML processing
     libxml2 \
     libxslt1.1 \
-    # Utilities
     curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
