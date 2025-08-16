@@ -675,16 +675,39 @@ def logo_processor():
         plan = current_user.subscription.plan if current_user.subscription else 'free'
         is_unlimited = current_user.subscription and current_user.subscription.monthly_credits == -1
         
-        # Free: basic only; no effects/social; 3 credits/month enforced
-        if plan == 'free':
+        # Log user permissions for debugging
+        logger.info(f"🔍 User {current_user.id} permissions check:")
+        logger.info(f"   Plan: {plan}")
+        logger.info(f"   Has active subscription: {current_user.has_active_subscription()}")
+        logger.info(f"   Has early access: {current_user.has_early_access()}")
+        logger.info(f"   Can access pro features: {current_user.can_access_pro_features()}")
+        logger.info(f"   Promo code applied: {current_user.promo_code_applied}")
+        logger.info(f"   Promo code used: {current_user.promo_code_used}")
+        
+        # Check if user can access pro features (either through subscription or early access)
+        can_access_effects = current_user.can_access_pro_features()
+        can_access_social = plan in ['studio', 'enterprise'] or (current_user.has_early_access() and plan in ['studio', 'enterprise'])
+        
+        # Free plan users WITHOUT early access: basic only; no effects/social; 3 credits/month enforced
+        if plan == 'free' and not current_user.has_early_access():
             for k in ['vector_trace','color_separations','distressed_effect','contour_cut','halftone']:
                 options[k] = False
             options['social_formats'] = {k: False for k in options['social_formats'].keys()}
+            logger.info("🚫 Free plan user without early access - effects disabled")
+        elif plan == 'free' and current_user.has_early_access():
+            # Early access users on free plan get pro features (effects) but no social
+            options['social_formats'] = {k: False for k in options['social_formats'].keys()}
+            logger.info("✅ Early access user - effects enabled, social disabled")
         
-        # Pro: basic + effects; no social; no batch
-        if plan == 'pro':
+        # Pro: basic + effects; no social; no batch  
+        elif plan == 'pro':
             options['social_formats'] = {k: False for k in options['social_formats'].keys()}
             has_batch_processing = False
+            logger.info("✅ Pro plan user - effects enabled, social disabled")
+        
+        # Studio/Enterprise: all features
+        elif plan in ['studio', 'enterprise']:
+            logger.info(f"✅ {plan.title()} plan user - all features enabled")
         
         # Enterprise is a custom offer restricted to admin for now
         if plan == 'enterprise' and current_user.email != 'mike@usezyppts.com':
